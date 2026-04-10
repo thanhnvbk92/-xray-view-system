@@ -1,0 +1,104 @@
+<UserControl x:Class="XrayCollector.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:vm="clr-namespace:XrayCollector.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="500">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25">
+            
+            <TextBlock Text="CẤU HÌNH THIẾT BỊ" Style="{StaticResource MaterialDesignHeadline6TextBlock}" FontWeight="Bold" Margin="0,0,0,20" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+
+            <materialDesign:Card Padding="20" Margin="0,0,0,20" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
+                <StackPanel>
+                    <TextBlock Text="MÁY CHỦ API" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding TempServerUrl, UpdateSourceTrigger=PropertyChanged}"
+                                 materialDesign:HintAssist.Hint="http://ip:port"
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                        <Button Grid.Column="1" Margin="10,0,0,0" 
+                                Style="{StaticResource MaterialDesignIconButton}"
+                                Padding="0" Width="40" Height="40"
+                                Command="{Binding LoadDataCommand}">
+                            <materialDesign:PackIcon Kind="Update" Width="22" Height="22"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Padding="20" Margin="0,0,0,20" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
+                <StackPanel>
+                    <TextBlock Text="THÔNG TIN THIẾT BỊ" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
+                    <ComboBox ItemsSource="{Binding Lines}"
+                              SelectedItem="{Binding SelectedLine}"
+                              DisplayMemberPath="Name"
+                              materialDesign:HintAssist.Hint="Chọn Dây chuyền"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                              Margin="0,0,0,16"/>
+
+                    <ComboBox ItemsSource="{Binding FilteredMachines}"
+                              SelectedItem="{Binding SelectedMachine}"
+                              DisplayMemberPath="Name"
+                              materialDesign:HintAssist.Hint="Chọn Máy Quét"
+                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Padding="20" Margin="0,0,0,25" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
+                <StackPanel>
+                    <TextBlock Text="ĐƯỜNG DẪN THƯ MỤC" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding TempImagePath}" IsReadOnly="True" materialDesign:HintAssist.Hint="Thư mục Ảnh" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                        <Button Grid.Column="1" Command="{Binding SelectFolderCommand}" CommandParameter="img" Margin="10,0,0,0" Style="{StaticResource MaterialDesignIconButton}" Background="#F0F2F5"><materialDesign:PackIcon Kind="FolderImage"/></Button>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Text="{Binding TempLogPath}" IsReadOnly="True" materialDesign:HintAssist.Hint="Thư mục Log" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                        <Button Grid.Column="1" Command="{Binding SelectFolderCommand}" CommandParameter="log" Margin="10,0,0,0" Style="{StaticResource MaterialDesignIconButton}" Background="#F0F2F5"><materialDesign:PackIcon Kind="FolderFile"/></Button>
+                    </Grid>
+
+                    <TextBox Text="{Binding TempLogExtension}" 
+                             materialDesign:HintAssist.Hint="Đuôi file Log (ví dụ: .txt, .csv, *)" 
+                             Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <materialDesign:Card Padding="20" Margin="0,0,0,25" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
+                <StackPanel>
+                    <TextBlock Text="QUY TẮC ÁNH XẠ PID" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton Content="Tăng dần (+1)" IsChecked="{Binding TempIsPidMappingIncrease}" Margin="0,0,20,0"/>
+                        <RadioButton Content="Giảm dần (-1)" IsChecked="{Binding TempIsPidMappingIncrease, Converter={StaticResource InverseBooleanConverter}}"/>
+                    </StackPanel>
+                    <TextBlock Text="* Áp dụng cho 6 ký tự cuối (Alphanumeric)" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,10,0,0" Opacity="0.5" FontStyle="Italic"/>
+                </StackPanel>
+            </materialDesign:Card>
+
+            <Button Content="LƯU CÀI ĐẶT" 
+                    Style="{StaticResource MaterialDesignRaisedButton}"
+                    Background="{DynamicResource SecondaryHueMidBrush}"
+                    Foreground="{DynamicResource SecondaryHueMidForegroundBrush}"
+                    FontWeight="Bold"
+                    Height="56"
+                    materialDesign:ButtonAssist.CornerRadius="28"
+                    Command="{Binding SaveSettingsCommand}"
+                    Margin="0,0,0,40"/>
+            
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

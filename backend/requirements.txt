@@ -1,0 +1,9 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+mysql-connector-python
+pydantic
+python-multipart
+websockets
+python-dotenv
+Pillow
