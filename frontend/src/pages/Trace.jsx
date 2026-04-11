@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, Monitor, Hash, CheckCircle2, XCircle, Eye, Filter, ArrowRight } from 'lucide-react';
-import { api } from '../context/AuthContext';
+import { Search, Calendar, Monitor, Hash, CheckCircle2, XCircle, Eye, Filter, ArrowRight, Move, ZoomIn, ZoomOut, Maximize, Check, X } from 'lucide-react';
+import { useAuth, api } from '../context/AuthContext';
 
 const API_URL = `http://${window.location.hostname}:8000`;
 
 function Trace() {
+    const { user } = useAuth();
+    const isViewer = user?.role === 'VIEWER';
     const [pid, setPid] = useState('');
     const [machineId, setMachineId] = useState('');
     const [result, setResult] = useState('');
@@ -16,6 +18,13 @@ function Trace() {
     const [selectedPcb, setSelectedPcb] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [pcbImages, setPcbImages] = useState([]);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [showOriginal, setShowOriginal] = useState(false);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [modalScale, setModalScale] = useState(1);
+    const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
+    const [isModalDragging, setIsModalDragging] = useState(false);
+    const [modalDragStart, setModalDragStart] = useState({ x: 0, y: 0 });
 
     useEffect(() => {
         // Load danh sách máy để lọc
@@ -60,11 +69,104 @@ function Trace() {
         try {
             console.log(`Trace: Fetching details for PCB ${pcb.id}`);
             const res = await api.get(`/api/pcbs/${pcb.id}/images`);
-            // Lọc bỏ ảnh gốc để xem cho gọn
-            const markedOnly = res.data.filter(img => !img.image_path.toLowerCase().endsWith('_o.jpg') && !img.image_path.toLowerCase().endsWith('_o.png'));
+            const images = res.data;
+            // Lọc bỏ ảnh gốc để xem cho gọn ở danh sách chính
+            const markedOnly = images.filter(img => !img.image_path.toLowerCase().endsWith('_o.jpg') && !img.image_path.toLowerCase().endsWith('_o.png'));
             setPcbImages(markedOnly);
+            // Lưu lại full list vào selectedPcb để sau này tìm ảnh gốc nhanh
+            setSelectedPcb({ ...pcb, images });
         } catch (error) {
             console.error("Error fetching images:", error);
+        }
+    };
+
+    const openImageInspector = (img) => {
+        setSelectedImage(img);
+        setShowOriginal(false);
+        setModalScale(1);
+        setModalPosition({ x: 0, y: 0 });
+        setIsImageModalOpen(true);
+    };
+
+    // Keyboard shortcuts for Modal
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') setIsImageModalOpen(false);
+            if (e.key === ' ' && isImageModalOpen) {
+                e.preventDefault();
+                setShowOriginal(prev => !prev);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isImageModalOpen]);
+
+    const handleModalWheel = (e) => {
+        if (!isImageModalOpen) return;
+        const delta = e.deltaY > 0 ? -0.2 : 0.2;
+        const newScale = Math.min(Math.max(modalScale + delta, 0.5), 10);
+        setModalScale(newScale);
+    };
+
+    const onModalMouseDown = (e) => {
+        if (!isImageModalOpen) return;
+        setIsModalDragging(true);
+        setModalDragStart({ x: e.clientX - modalPosition.x, y: e.clientY - modalPosition.y });
+    };
+
+    const onModalMouseMove = (e) => {
+        if (isModalDragging && isImageModalOpen) {
+            setModalPosition({
+                x: e.clientX - modalDragStart.x,
+                y: e.clientY - modalDragStart.y
+            });
+        }
+    };
+
+    const onModalMouseUp = () => {
+        setIsModalDragging(false);
+    };
+
+    const handleConfirm = async (userResult) => {
+        if (!selectedImage || !selectedPcb || isViewer) return;
+
+        try {
+            const formData = new FormData();
+            formData.append('user_result', userResult);
+            console.log(`Trace: Confirming image ${selectedImage.id} as ${userResult}`);
+            
+            // 0. Vô hiệu hóa modal tạm thời để tránh double click (có thể thêm loading state nếu cần)
+            
+            await api.post(`/api/pcbs/confirm-image/${selectedImage.id}`, formData);
+
+            // 1. Cập nhật ảnh trong modal chi tiết
+            const updatedPcbImages = pcbImages.map(img => 
+                img.id === selectedImage.id ? { ...img, machine_result: userResult } : img
+            );
+            setPcbImages(updatedPcbImages);
+
+            // 2. Cập nhật danh sách results bên ngoài
+            const updatedResults = results.map(item => {
+                if (item.id === selectedPcb.id) {
+                    const allNowOk = updatedPcbImages.every(i => i.machine_result === 'OK');
+                    return { 
+                        ...item, 
+                        result: allNowOk ? 'OK' : item.result, 
+                        user_confirmed: true,
+                        confirmed_by_name: user.full_name
+                    };
+                }
+                return item;
+            });
+            setResults(updatedResults);
+            
+            // 3. ĐÓNG POPUP NGAY ĐỂ PHẢN HỒI CHO NGƯỜI DÙNG
+            setIsImageModalOpen(false);
+            setSelectedImage(null);
+            
+        } catch (error) {
+            console.error("Error confirming image in Trace:", error);
+            alert("Có lỗi xảy ra khi xác nhận. Vui lòng thử lại.");
         }
     };
 
@@ -99,11 +201,21 @@ function Trace() {
                         <select
                             value={machineId}
                             onChange={(e) => setMachineId(e.target.value)}
-                            style={{ padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '10px', color: 'white' }}
+                            className="glass-select"
+                            style={{ 
+                                padding: '10px', 
+                                background: 'rgba(255, 255, 255, 0.07)', 
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)', 
+                                borderRadius: '10px', 
+                                color: 'white',
+                                outline: 'none',
+                                cursor: 'pointer'
+                            }}
                         >
-                            <option value="">Tất cả máy</option>
+                            <option value="" style={{ background: '#1a1b26' }}>Tất cả máy</option>
                             {machines.map(m => (
-                                <option key={m.id} value={m.id}>{m.name}</option>
+                                <option key={m.id} value={m.id} style={{ background: '#1a1b26' }}>{m.name}</option>
                             ))}
                         </select>
                     </div>
@@ -113,11 +225,21 @@ function Trace() {
                         <select
                             value={result}
                             onChange={(e) => setResult(e.target.value)}
-                            style={{ padding: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', borderRadius: '10px', color: 'white' }}
+                            className="glass-select"
+                            style={{ 
+                                padding: '10px', 
+                                background: 'rgba(255, 255, 255, 0.07)', 
+                                backdropFilter: 'blur(10px)',
+                                border: '1px solid rgba(255, 255, 255, 0.1)', 
+                                borderRadius: '10px', 
+                                color: 'white',
+                                outline: 'none',
+                                cursor: 'pointer'
+                            }}
                         >
-                            <option value="">Tất cả</option>
-                            <option value="OK">OK</option>
-                            <option value="NG">NG</option>
+                            <option value="" style={{ background: '#1a1b26' }}>Tất cả</option>
+                            <option value="OK" style={{ background: '#1a1b26' }}>OK</option>
+                            <option value="NG" style={{ background: '#1a1b26' }}>NG</option>
                         </select>
                     </div>
 
@@ -226,8 +348,8 @@ function Trace() {
                                         <img
                                             src={`${API_URL}${img.image_path}`}
                                             alt="Unit"
-                                            style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', cursor: 'pointer' }}
-                                            onClick={() => window.open(`${API_URL}${img.image_path}`, '_blank')}
+                                            style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', cursor: 'zoom-in' }}
+                                            onClick={() => openImageInspector(img)}
                                         />
                                         <div style={{ padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Unit {img.image_path.split('_').pop().split('.')[0]}</span>
@@ -236,6 +358,104 @@ function Trace() {
                                     </div>
                                 ))}
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Premium Image Inspector Modal */}
+            {isImageModalOpen && selectedImage && (
+                <div 
+                    style={{
+                        position: 'fixed', inset: 0, zIndex: 9999,
+                        background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(15px)',
+                        display: 'flex', flexDirection: 'column'
+                    }}
+                >
+                    {/* Modal Header */}
+                    <div style={{ padding: '15px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <div className={`badge ${selectedImage.machine_result === 'OK' ? 'badge-ok' : 'badge-ng'}`}>
+                                Máy: {selectedImage.machine_result}
+                            </div>
+                            <span style={{ color: 'white', fontWeight: 'bold' }}>{selectedPcb?.pid} - {selectedImage.image_path.split('/').pop()}</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button 
+                                className="btn btn-secondary" 
+                                style={{ background: showOriginal ? 'var(--primary)' : 'rgba(255,255,255,0.1)', color: 'white', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                onClick={() => setShowOriginal(!showOriginal)}
+                            >
+                                <Eye size={18} /> {showOriginal ? "HIỆN ẢNH LỖI" : "HIỆN ẢNH GỐC"} (SPACE)
+                            </button>
+                            <button className="btn btn-secondary" onClick={() => setIsImageModalOpen(false)}>
+                                <XCircle size={18} /> ĐÓNG (ESC)
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Modal Content - The Big Viewer */}
+                    <div 
+                        style={{ flex: 1, position: 'relative', overflow: 'hidden', cursor: isModalDragging ? 'grabbing' : 'grab' }}
+                        onWheel={handleModalWheel}
+                        onMouseDown={onModalMouseDown}
+                        onMouseMove={onModalMouseMove}
+                        onMouseUp={onModalMouseUp}
+                        onMouseLeave={onModalMouseUp}
+                    >
+                        <div style={{
+                            width: '100%', height: '100%',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            transform: `scale(${modalScale}) translate(${modalPosition.x / modalScale}px, ${modalPosition.y / modalScale}px)`,
+                            transition: isModalDragging ? 'none' : 'transform 0.15s ease-out'
+                        }}>
+                             <img
+                                src={`${API_URL}${(() => {
+                                    if (!showOriginal) return selectedImage.image_path;
+                                    // Tìm ảnh gốc tương ứng (_o.jpg)
+                                    const basePath = selectedImage.image_path.substring(0, selectedImage.image_path.lastIndexOf('.'));
+                                    const ext = selectedImage.image_path.substring(selectedImage.image_path.lastIndexOf('.'));
+                                    const originalPath = `${basePath}_o${ext}`;
+                                    const foundOriginal = selectedPcb?.images?.find(i => i.image_path === originalPath);
+                                    return foundOriginal ? foundOriginal.image_path : selectedImage.image_path;
+                                })()}`}
+                                alt="Inspection"
+                                style={{ maxWidth: '95%', maxHeight: '95%', objectFit: 'contain', pointerEvents: 'none', filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.5))' }}
+                            />
+                        </div>
+
+                        {/* Floating Tooltips & Action Buttons */}
+                        <div style={{ position: 'absolute', bottom: '30px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '20px', alignItems: 'center' }}>
+                            <div style={{ background: 'rgba(0,0,0,0.7)', padding: '10px 20px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '15px', color: 'white', backdropFilter: 'blur(5px)' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Move size={14} /> <span style={{fontSize: '0.75rem'}}>Kéo</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: '15px' }}>
+                                    <ZoomIn size={14} /> <span style={{fontSize: '0.75rem'}}>{Math.round(modalScale * 100)}%</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: '15px' }}>
+                                    <Eye size={14} /> <span style={{fontSize: '0.75rem'}}>Space: {showOriginal ? "Gốc" : "Lỗi"}</span>
+                                </div>
+                            </div>
+
+                            {!isViewer && (
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button 
+                                        className="btn btn-primary" 
+                                        style={{ background: 'var(--status-ok)', border: 'none', height: '45px', padding: '0 25px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }} 
+                                        onClick={() => handleConfirm('OK')}
+                                    >
+                                        <Check size={18} /> XÁC NHẬN OK
+                                    </button>
+                                    <button 
+                                        className="btn" 
+                                        style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid #ef4444', color: '#ef4444', height: '45px', padding: '0 25px', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }} 
+                                        onClick={() => handleConfirm('NG')}
+                                    >
+                                        <X size={18} /> GIỮ NG
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
