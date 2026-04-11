@@ -44,3 +44,5 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 - **Yêu cầu 19**: Sửa lỗi nút xác nhận OK không phản hồi (Bổ sung WebSocket Broadcast và đồng bộ hóa `machine_result`). [Hoàn thành]
 - **Yêu cầu 20**: Sửa lỗi 405 Method Not Allowed tận gốc tại Frontend (`MachineDetail.jsx`), gọi đúng API `/api/pcbs/confirm-image`. [Hoàn thành]
 - **Yêu cầu 21**: Hiển thị tổng số lượng PCB chờ duyệt thực tế trên trang chi tiết máy (thay vì bị giới hạn ở con số 50). [Hoàn thành]
+- **Yêu cầu 22**: Triển khai cơ chế Upsert (Cập nhật nếu trùng) tại Backend để hỗ trợ đồng bộ bù ảnh thiếu. [Hoàn thành]
+- **Yêu cầu 23**: Tối ưu UI Collector (hiện UI trước, chạy dịch vụ sau khi START) và lưu vết tên file Log vào Database. [Hoàn thành]

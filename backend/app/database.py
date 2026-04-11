@@ -96,7 +96,7 @@ class PCB(Base):
     client_time = Column(DateTime, index=True)          # Thời gian ghi nhận tại máy quét (từ log)
     system_time = Column(DateTime, default=datetime.utcnow, index=True) # Thời gian ghi nhận tại server
     
-    image_path = Column(String(255))
+    image_path = Column(String(255)) # Sử dụng để lưu tên file log gốc (ví dụ: Xray_20260411.log)
     user_confirmed = Column(Boolean, default=False, index=True)
     confirmed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     confirmed_at = Column(DateTime, nullable=True)

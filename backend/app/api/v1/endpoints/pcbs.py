@@ -26,19 +26,20 @@ async def upload_scan(
     client_time: str = Form(...),
     job_file: Optional[str] = Form(None),
     image_results: Optional[str] = Form(None),
+    log_file: Optional[str] = Form(None), # Thêm tham số log_file
     files: Optional[List[UploadFile]] = File(None),
     db: Session = Depends(get_db)
 ):
-    # 0. Kiểm tra trùng lặp
+    # 0. Kiểm tra trùng lặp để thực hiện UPSERT
+    existing_pcb = None
     try:
         c_time_dt = datetime.fromisoformat(client_time)
         existing_pcb = db.query(PCB).filter(
             PCB.pid == pid, 
             PCB.client_time == c_time_dt,
-            PCB.array_index == array_index
+            PCB.array_index == array_index,
+            PCB.machine_id == machine_id
         ).first()
-        if existing_pcb:
-            return {"status": "success", "message": "Duplicate ignored", "pcb_id": existing_pcb.id}
     except Exception:
         pass
         
@@ -55,7 +56,7 @@ async def upload_scan(
         if machine_info.line:
             line_name = machine_info.line.name
 
-    # 3. Lưu các file ảnh tạm vào upload directory
+    # 3. Lưu các file ảnh tạm
     saved_paths = []
     main_image_path = None
 
@@ -71,11 +72,44 @@ async def upload_scan(
             saved_paths.append(file_path)
             if i == 0: main_image_path = file_path
 
-    # 4. Giả lập AI processing (Tương lai sẽ gọi image_processor)
+    # Nếu đã tồn tại, thực hiện CẬP NHẬT (UPSERT)
+    if existing_pcb:
+        # Cập nhật tên file log vào image_path theo yêu cầu
+        if log_file:
+            existing_pcb.image_path = log_file
+        
+        # Chỉ cập nhật danh sách ảnh nếu bản ghi cũ đang thiếu ảnh
+        existing_images_count = db.query(func.count(PCBImage.id)).filter(PCBImage.pcb_id == existing_pcb.id).scalar()
+        if existing_images_count == 0 and saved_paths:
+            for i, img_path in enumerate(saved_paths):
+                m_res = img_result_list[i] if i < len(img_result_list) else machine_result
+                a_res = "OK" if m_res == "OK" else "NG"
+                
+                new_img = PCBImage(
+                    pcb_id=existing_pcb.id,
+                    image_path=img_path,
+                    machine_result=m_res,
+                    ai_result=a_res,
+                    user_result="PENDING",
+                    is_processed=False
+                )
+                db.add(new_img)
+                if m_res == "OK":
+                    db.flush() # Để lấy ID cho queue
+                    await image_queue.put(new_img.id)
+            
+            db.commit()
+            global_stats_cache.clear()
+            return {"status": "success", "message": "Record updated with images", "pcb_id": existing_pcb.id}
+        
+        db.commit()
+        return {"status": "success", "message": "Duplicate verified", "pcb_id": existing_pcb.id}
+
+    # 4. Giả lập AI processing (Tạo mới)
     overall_ai_score = 0.95 if machine_result == "OK" else 0.45 
     overall_ai_result = "OK" if overall_ai_score > 0.8 else "NG"
     
-    # 5. Lưu PCB vào Database
+    # 5. Lưu PCB vào Database (Tạo mới)
     new_pcb = PCB(
         pid=pid,
         board_pid=board_pid or pid,
@@ -87,7 +121,7 @@ async def upload_scan(
         final_result=machine_result,
         job_file=job_file,
         client_time=datetime.fromisoformat(client_time),
-        image_path=main_image_path,
+        image_path=log_file or main_image_path, # Lưu tên file log hoặc path ảnh đầu tiên
         ai_score=overall_ai_score,
         user_confirmed=False
     )
@@ -95,7 +129,7 @@ async def upload_scan(
     db.commit()
     db.refresh(new_pcb)
 
-    # 6. Lưu danh sách ảnh vào bảng pcb_images và đưa vào hàng đợi xử lý
+    # 6. Lưu danh sách ảnh
     for i, img_path in enumerate(saved_paths):
         m_res = img_result_list[i] if i < len(img_result_list) else machine_result
         a_res = "OK" if m_res == "OK" else "NG"
@@ -112,10 +146,10 @@ async def upload_scan(
         db.commit()
         db.refresh(new_img)
         
-        # Đẩy vào hàng đợi nén ảnh CHỈ NẾU kết quả là OK
-        # Sản phẩm NG sẽ chờ đến khi Confirm mới nén
         if m_res == "OK":
             await image_queue.put(new_img.id)
+    
+    # WebSocket broadcast... (giữ nguyên logic bên dưới)
     
     # 7. Broadcast qua WebSocket và Xóa cache
     main_img_url = new_pcb.image_path

@@ -17,7 +17,7 @@ namespace XrayCollector.Services
         Task<List<MachineDto>> GetMachinesAsync();
         Task<List<MachineTypeDto>> GetMachineTypesAsync();
         Task<bool> PingAsync();
-        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, System.Collections.Generic.List<string> imagePaths, System.Collections.Generic.List<string> imageResults);
+        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, System.Collections.Generic.List<string> imagePaths, System.Collections.Generic.List<string> imageResults, string logFile = null);
         Task<MachineDetailDto> GetMachineDetailAsync(int machineId);
     }
 
@@ -116,7 +116,7 @@ namespace XrayCollector.Services
             catch { return false; }
         }
 
-        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults)
+        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string logFile = null)
         {
             try
             {
@@ -131,6 +131,11 @@ namespace XrayCollector.Services
                 if (!string.IsNullOrEmpty(jobFile))
                 {
                     content.Add(new StringContent(jobFile), "job_file");
+                }
+
+                if (!string.IsNullOrEmpty(logFile))
+                {
+                    content.Add(new StringContent(logFile), "log_file");
                 }
 
                 if (imageResults != null && imageResults.Count > 0)

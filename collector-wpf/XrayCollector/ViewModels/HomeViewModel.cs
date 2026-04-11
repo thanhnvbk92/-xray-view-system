@@ -59,17 +59,9 @@ namespace XrayCollector.ViewModels
             _persistence = persistence;
 
             _version = $"v{_updateService.CurrentVersion}";
-            RefreshDisplayInfo();
             
-            // Khởi tạo timer thử lại ghi ngầm (mỗi 1 phút)
-            _retryTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
-            _retryTimer.Tick += async (s, e) => await ProcessRetryQueueAsync();
-            _retryTimer.Start();
-
             // Lắng nghe thông điệp khi cài đặt thay đổi
             WeakReferenceMessenger.Default.Register<SettingsChangedMessage>(this, (r, m) => RefreshDisplayInfo());
-            
-            CheckForUpdatesCommand.Execute(null);
         }
 
         private async void RefreshDisplayInfo()
@@ -226,6 +218,18 @@ namespace XrayCollector.ViewModels
                 }
             });
 
+            // 3. Khởi tạo và chạy các tác vụ nền sau khi START
+            RefreshDisplayInfo();
+            CheckForUpdatesCommand.Execute(null);
+
+            // Khởi tạo timer thử lại ghi ngầm (mỗi 1 phút) nếu chưa có
+            if (_retryTimer == null)
+            {
+                _retryTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+                _retryTimer.Tick += async (s, e) => await ProcessRetryQueueAsync();
+            }
+            _retryTimer.Start();
+
             if (int.TryParse(_settings.MachineId, out int mid))
             {
                 LocalIpAddress = GetLocalIpAddress();
@@ -261,8 +265,12 @@ namespace XrayCollector.ViewModels
                 int count = 0;
                 foreach (var file in logFiles)
                 {
-                    await ProcessLogFile(file.FullName);
-                    count++;
+                    var lines = File.ReadAllLines(file.FullName);
+                    if (lines.Any(line => line.Contains("Start inspection")))
+                    {
+                        await ProcessLogFile(file.FullName);
+                        count++;
+                    }
                 }
                 
                 if (count > 0) AddLog($"Đã hoàn thành quét bù {count} tệp log.");
@@ -403,7 +411,8 @@ namespace XrayCollector.ViewModels
 
                     // Tìm ảnh và JobFile (Sử dụng unitIndex để lọc đúng ảnh của Array đó)
                     var (jobFile, imageInfos) = FindImagesAndJobFile(timestamp, unitIndex);
-                    AddLog($"[ImageSearch] Timestamp {timestamp}, Unit {unitIndex} => Tìm thấy {imageInfos.Count} ảnh");
+                    string logFileName = Path.GetFileName(filePath); // Lấy tên file log
+                    AddLog($"[ImageSearch] Log: {logFileName}, Unit {unitIndex} => Tìm thấy {imageInfos.Count} ảnh");
                     
                     var imagePaths = imageInfos.Select(i => i.Path).ToList();
                     var imageResults = imageInfos.Select(i => i.Result).ToList();
@@ -411,7 +420,7 @@ namespace XrayCollector.ViewModels
                     // Đẩy dữ liệu lên Server
                     if (int.TryParse(_settings.MachineId, out int mid))
                     {
-                        var success = await _apiService.UploadScanAsync(mappedPid, mid, result, isoTime, jobFile, unitIndex, imagePaths, imageResults);
+                        var success = await _apiService.UploadScanAsync(mappedPid, mid, result, isoTime, jobFile, unitIndex, imagePaths, imageResults, logFileName);
                         
                         if (success) 
                         {
