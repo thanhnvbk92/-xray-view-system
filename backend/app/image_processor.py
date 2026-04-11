@@ -16,9 +16,9 @@ class CPUEngine(ImageEngine):
         with Image.open(input_path) as img:
             if img.mode != 'RGB':
                 img = img.convert('RGB')
-            # Tối ưu tốc độ: Tắt optimize, sử dụng chất lượng 75%
-            # Subsampling=2 (4:2:0) là tiêu chuẩn cân bằng tốc độ/dung lượng
-            img.save(target_path, "JPEG", quality=75, optimize=False, subsampling=2)
+            # Sử dụng chất lượng từ config
+            quality = getattr(config, 'IMAGE_QUALITY', 75)
+            img.save(target_path, "JPEG", quality=quality, optimize=False, subsampling=2)
 
 class GPUEngine(ImageEngine):
     """
@@ -37,22 +37,27 @@ class GPUEngine(ImageEngine):
             
             # Tự động gán GPU nếu không chỉ định:
             # (Process ID - 1) % GPU_COUNT giúp chia đều tải cho 2 card
+            # Tự động gán GPU: Sử dụng Identity của process trong pool
             if device_id is None:
                 try:
+                    # identity là một tuple, vd (1,) cho worker đầu tiên
                     ident = mp.current_process()._identity
-                    if ident:
+                    if ident and len(ident) > 0:
                         device_id = (ident[0] - 1) % config.GPU_COUNT
                     else:
+                        # Fallback nếu không chạy trong pool (vd test manually)
                         device_id = 0
                 except:
                     device_id = 0
             
+            self.device_id = device_id
             self.device = torch.device(f'cuda:{device_id}')
+            torch.cuda.set_device(self.device) # Đặt device mặc định cho thread này
             self.is_gpu_ready = torch.cuda.is_available()
             
             if self.is_gpu_ready:
                 device_name = torch.cuda.get_device_name(device_id)
-                print(f"Image Engine: Process {mp.current_process().pid} assigned to GPU {device_id} ({device_name})")
+                print(f"Image Engine: Worker {mp.current_process().pid} pinned to TITAN X GPU {device_id} ({device_name})")
         except ImportError:
             self.is_gpu_ready = False
         
@@ -68,9 +73,9 @@ class GPUEngine(ImageEngine):
             # Dù write_jpeg chạy trên CPU, việc preprocessing trên GPU vẫn giúp ích
             gpu_tensor = img_tensor.to(self.device)
             
-            # 3. Thực hiện Encode (về CPU để save)
-            # Với CUDA 12.x, torchvision được tối ưu hóa cho các tập lệnh tập trung của NV
-            self.io.write_jpeg(gpu_tensor.cpu(), target_path, quality=75)
+            # Encode JPEG sử dụng chất lượng từ config
+            quality = getattr(config, 'IMAGE_QUALITY', 75)
+            self.io.write_jpeg(gpu_tensor.cpu(), target_path, quality=quality)
             
             del gpu_tensor
             

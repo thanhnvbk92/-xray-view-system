@@ -1,7 +1,7 @@
 import asyncio
 import multiprocessing
 from concurrent.futures import ProcessPoolExecutor
-from app import image_processor
+from app import image_processor, config
 
 # Hàng đợi xử lý ảnh dùng chung
 image_queue = asyncio.Queue()
@@ -10,11 +10,13 @@ image_executor = None
 def init_image_executor():
     """Khởi tạo ProcessPool cho việc nén ảnh"""
     global image_executor
-    cpu_cores = multiprocessing.cpu_count()
-    # Tận dụng khoảng 50-75% số nhân để không làm treo máy
-    max_workers = max(1, cpu_cores - 2)
+    
+    # Tối ưu hóa cho 2 card GPU (Titan X): Mỗi GPU gán 2 worker
+    # Tổng cộng 4 worker chạy song song (Phù hợp với đa nhân CPU)
+    max_workers = config.GPU_COUNT * 2
+    
     image_executor = ProcessPoolExecutor(max_workers=max_workers)
-    print(f"Lifecycle: Started Image Processor Pool with {max_workers} processes (Total CPU Cores: {cpu_cores})")
+    print(f"Lifecycle: Started Image Processor Pool with {max_workers} workers for {config.GPU_COUNT} GPUs")
     return image_executor
 
 async def image_worker():

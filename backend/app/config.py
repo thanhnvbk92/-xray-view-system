@@ -20,6 +20,7 @@ FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend/dist")
 # Cấu hình Engine xử lý (Sử dụng GPU cho 2x Titan X)
 IMAGE_ENGINE = "GPU" 
 GPU_COUNT = 2
+IMAGE_QUALITY = 75 # Mức độ nén mặc định
 
 # Đảm bảo các thư mục tồn tại
 os.makedirs(UPLOAD_DIR, exist_ok=True)

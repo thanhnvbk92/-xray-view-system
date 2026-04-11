@@ -111,8 +111,10 @@ async def upload_scan(
         db.commit()
         db.refresh(new_img)
         
-        # Đẩy vào hàng đợi nén ảnh
-        await image_queue.put(new_img.id)
+        # Đẩy vào hàng đợi nén ảnh CHỈ NẾU kết quả là OK
+        # Sản phẩm NG sẽ chờ đến khi Confirm mới nén
+        if m_res == "OK":
+            await image_queue.put(new_img.id)
     
     # 7. Broadcast qua WebSocket và Xóa cache
     main_img_url = new_pcb.image_path
@@ -135,7 +137,7 @@ async def upload_scan(
     
     return {"status": "success", "pcb_id": new_pcb.id}
 
-@router.get("/unconfirmed/{machine_id}")
+@router.get("/unconfirmed/{machine_id}", response_model=List[schemas.PCBResponse])
 async def get_unconfirmed_pcbs(machine_id: int, db: Session = Depends(get_db)):
     """Lấy danh sách các PCB NG chưa duyệt của 1 máy"""
     pcbs = db.query(PCB).filter(
@@ -230,7 +232,7 @@ async def confirm_image(
 
     return {"status": "success", "image_id": image_id, "user_result": user_result}
 
-@router.get("/trace/search")
+@router.get("/trace/search", response_model=List[schemas.PCBResponse])
 async def search_trace(
     pid: Optional[str] = None,
     machine_id: Optional[int] = None,
@@ -250,18 +252,4 @@ async def search_trace(
     if end_date: query = query.filter(PCB.client_time <= end_date)
         
     pcbs = query.order_by(PCB.client_time.desc()).limit(200).all()
-    
-    results = []
-    for pcb in pcbs:
-        results.append({
-            "id": pcb.id,
-            "pid": pcb.pid,
-            "machine_name": pcb.machine.name,
-            "line_name": pcb.machine.line.name if pcb.machine.line else "Unknown",
-            "display_name": f"{pcb.machine.line.name if pcb.machine.line else 'Unknown'} - {pcb.machine.name}",
-            "result": pcb.final_result,
-            "time": pcb.client_time.isoformat(),
-            "user_confirmed": pcb.user_confirmed,
-            "confirmed_by_name": pcb.confirmed_by.full_name if pcb.confirmed_by else None
-        })
-    return results
+    return pcbs
