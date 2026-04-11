@@ -65,20 +65,20 @@ class GPUEngine(ImageEngine):
         if not self.is_gpu_ready:
             return CPUEngine().compress(input_path, target_path)
         
+        import time
+        start_t = time.time()
         try:
             # 1. Đọc ảnh vào Tensor (CPU)
+            # torchvision.io.read_image rất nhanh vì sử dụng libjpeg-turbo
             img_tensor = self.io.read_image(input_path)
             
-            # 2. Xử lý trên GPU (VD: đưa lên GPU để tận dụng bus dữ liệu nhanh)
-            # Dù write_jpeg chạy trên CPU, việc preprocessing trên GPU vẫn giúp ích
-            gpu_tensor = img_tensor.to(self.device)
-            
-            # Encode JPEG sử dụng chất lượng từ config
+            # 2. Xử lý nén (Bỏ qua việc đưa lên GPU nếu chỉ nén để tránh nghẽn PCIe bus)
             quality = getattr(config, 'IMAGE_QUALITY', 75)
-            self.io.write_jpeg(gpu_tensor.cpu(), target_path, quality=quality)
+            self.io.write_jpeg(img_tensor, target_path, quality=quality)
             
-            del gpu_tensor
-            
+            duration = (time.time() - start_t) * 1000
+            print(f"  [TURBO] Compressed: {os.path.basename(target_path)} in {duration:.1f}ms (Worker {mp.current_process().pid})")
+            return True
         except Exception as e:
             print(f"GPU Processing error: {e}. Falling back to CPU.")
             return CPUEngine().compress(input_path, target_path)

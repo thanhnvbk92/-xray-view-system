@@ -25,3 +25,9 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
     - Sản phẩm OK: Nén ngay khi upload.
     - Sản phẩm NG: Giữ nguyên tại thư mục Tạm cho đến khi Confirm. Sau khi Confirm mới nén và di chuyển sang thư mục Lưu trữ. 
     - Xóa ảnh gốc sau khi nén thành công.
+
+### Phiên làm việc: 11/04/2026 - Nâng cấp Turbo Mode (Siêu tốc)
+- **Yêu cầu 10**: Chuyển đổi công nghệ từ xử lý tuần tự sang **song song hoàn toàn** (Parallel Processing). [Hoàn thành]
+- **Yêu cầu 11**: Tăng số lượng Worker lên 12 để tận dụng tối đa 16 luồng CPU. [Hoàn thành]
+- **Yêu cầu 12**: Loại bỏ bước trung chuyển GPU dư thừa cho nén JPEG để giải phóng băng thông I/O. [Hoàn thành]
+- **Kết quả**: Tốc độ nén đạt mức ms cho mỗi ảnh, đáp ứng tốt lưu lượng ảnh lớn từ máy quét Xray. [Hoàn thành]

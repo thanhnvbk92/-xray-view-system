@@ -11,27 +11,30 @@ def init_image_executor():
     """Khởi tạo ProcessPool cho việc nén ảnh"""
     global image_executor
     
-    # Tối ưu hóa cho 2 card GPU (Titan X): Mỗi GPU gán 2 worker
-    # Tổng cộng 4 worker chạy song song (Phù hợp với đa nhân CPU)
-    max_workers = config.GPU_COUNT * 2
+    # TỐI ƯU CỰC HẠN cho 16 luồng CPU
+    max_workers = 12
     
     image_executor = ProcessPoolExecutor(max_workers=max_workers)
-    print(f"Lifecycle: Started Image Processor Pool with {max_workers} workers for {config.GPU_COUNT} GPUs")
+    print(f"Lifecycle: Started TURBO Image Processor Pool with {max_workers} workers")
     return image_executor
 
 async def image_worker():
-    """Worker chuyên trách xử lý ảnh từ hàng đợi (Tuần tự, chống quá tải)"""
-    print("Image Worker: Started and waiting for tasks...")
+    """Worker chuyên trách xử lý ảnh từ hàng đợi (Song song cự hạn)"""
+    print("Turbo Image Worker: Started and ready for parallel tasks...")
+    loop = asyncio.get_running_loop()
     try:
         while True:
-            try:
-                image_id = await image_queue.get()
-                # Sử dụng ProcessPoolExecutor để tận dụng đa nhân CPU (vượt qua GIL)
-                loop = asyncio.get_running_loop()
-                await loop.run_in_executor(image_executor, image_processor.process_compressed_image, image_id)
-                image_queue.task_done()
-            except Exception as e:
-                print(f"Worker Error: {e}")
-            await asyncio.sleep(0.1) # Tránh chiếm dụng CPU 100%
+            image_id = await image_queue.get()
+            # KHÔNG await ở đây để vòng lặp có thể lấy ảnh tiếp theo ngay lập tức
+            # ProcessPoolExecutor sẽ tự quản lý việc chạy song song 12 tác vụ
+            asyncio.create_task(run_task(loop, image_id))
+            image_queue.task_done()
     except asyncio.CancelledError:
         print("Image Worker: Stopping gracefully...")
+
+async def run_task(loop, image_id):
+    """Wrapper để chạy task mà không chặn loop chính"""
+    try:
+        await loop.run_in_executor(image_executor, image_processor.process_compressed_image, image_id)
+    except Exception as e:
+        print(f"Task Error [ID {image_id}]: {e}")
