@@ -316,7 +316,10 @@ async def search_trace(
     db: Session = Depends(get_db)
 ):
     """Truy vết PCB theo nhiều điều kiện"""
-    query = db.query(PCB).join(Machine).outerjoin(User, PCB.confirmed_by_id == User.id)
+    query = db.query(PCB).options(
+        joinedload(PCB.machine).joinedload(Machine.line),
+        joinedload(PCB.confirmed_by)
+    )
     
     if pid: query = query.filter(PCB.pid.like(f"%{pid}%"))
     if machine_id: query = query.filter(PCB.machine_id == machine_id)

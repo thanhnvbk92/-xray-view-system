@@ -101,6 +101,25 @@ class PCB(Base):
     confirmed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     confirmed_at = Column(DateTime, nullable=True)
     
+    @property
+    def display_name(self):
+        if self.machine:
+            line_prefix = self.machine.line.name if self.machine.line else "Unknown"
+            return f"{line_prefix} - {self.machine.name}"
+        return f"Machine {self.machine_id}"
+
+    @property
+    def result(self):
+        return self.final_result
+
+    @property
+    def time(self):
+        return self.client_time
+
+    @property
+    def confirmed_by_name(self):
+        return self.confirmed_by.full_name if self.confirmed_by else None
+
     machine = relationship("Machine", back_populates="pcbs")
     images = relationship("PCBImage", back_populates="pcb", cascade="all, delete-orphan")
     confirmed_by = relationship("User", back_populates="confirmed_pcbs")

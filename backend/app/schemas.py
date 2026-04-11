@@ -188,6 +188,10 @@ class PCBResponse(BaseModel):
     user_confirmed: bool
     confirmed_by_id: Optional[int] = None
     confirmed_at: Optional[datetime] = None
+    display_name: Optional[str] = None
+    result: Optional[str] = None
+    time: Optional[datetime] = None
+    confirmed_by_name: Optional[str] = None
     images: List[PCBImageResponse] = []
 
     class Config:
