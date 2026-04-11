@@ -23,33 +23,37 @@ async def get_analysis_summary(
 ):
     """Tổng hợp dữ liệu chuyên sâu cho trang Analysis"""
     
-    # 1. Xây dựng Filter
-    filters = []
-    if machine_id:
-        filters.append(PCB.machine_id == machine_id)
+    # Phân tách bộ lọc: base_filters (không có machine_id) và full_filters (có machine_id)
+    base_filters = []
+    
     if job_file:
-        filters.append(PCB.job_file == job_file)
+        base_filters.append(PCB.job_file == job_file)
     if array_index:
-        filters.append(PCB.array_index == array_index)
+        base_filters.append(PCB.array_index == array_index)
     if shot_idx:
         # Lọc các PCB có ít nhất một ảnh tương ứng với shot_idx này
         # Shot Index được tách từ image_path: ..._{shot_idx}.jpg
         shot_subquery = db.query(PCBImage.pcb_id).filter(
             func.substring_index(func.substring_index(PCBImage.image_path, '_', -1), '.', 1).cast(Integer) == shot_idx
         ).subquery()
-        filters.append(PCB.id.in_(shot_subquery))
+        base_filters.append(PCB.id.in_(shot_subquery))
     
     if target_date:
         d = datetime.strptime(target_date, "%Y-%m-%d")
-        filters.append(and_(PCB.system_time >= d, PCB.system_time < d + timedelta(days=1)))
+        base_filters.append(and_(PCB.system_time >= d, PCB.system_time < d + timedelta(days=1)))
     elif start_date and end_date:
         sd = datetime.strptime(start_date, "%Y-%m-%d")
         ed = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
-        filters.append(and_(PCB.system_time >= sd, PCB.system_time < ed))
+        base_filters.append(and_(PCB.system_time >= sd, PCB.system_time < ed))
     else:
         # Mặc định 7 ngày gần nhất
         sd = datetime.now() - timedelta(days=7)
-        filters.append(PCB.system_time >= sd)
+        base_filters.append(PCB.system_time >= sd)
+
+    # full_filters bao gồm cả machine_id
+    full_filters = list(base_filters)
+    if machine_id:
+        full_filters.append(PCB.machine_id == machine_id)
 
     def get_rate(count, total):
         return round((count / total * 100), 1) if total > 0 else 0
@@ -61,7 +65,7 @@ async def get_analysis_summary(
         func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng'),
         func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
         func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
-    ).filter(*filters).first()
+    ).filter(*full_filters).first()
 
     total = overall_stats.total or 0
     ok = int(overall_stats.ok or 0)
@@ -78,6 +82,7 @@ async def get_analysis_summary(
     }
 
     # 3. Stats by Machine - Sử dụng Outer Join để luôn giữ đủ danh sách máy kể cả khi không có data theo bộ lọc
+    # Không dùng machine_id ở đây để giữ khung biểu đồ đầy đủ
     machine_stats = db.query(
         Machine.id,
         Machine.name,
@@ -85,7 +90,7 @@ async def get_analysis_summary(
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
     ).join(Line, Machine.line_id == Line.id)\
-        .outerjoin(PCB, and_(PCB.machine_id == Machine.id, *filters))\
+        .outerjoin(PCB, and_(PCB.machine_id == Machine.id, *base_filters))\
         .group_by(Machine.id).order_by(Line.name, Machine.name).all()
 
     machines = []
@@ -99,11 +104,26 @@ async def get_analysis_summary(
         })
 
     # 4. Stats by Job File
+    trend_stats = db.query(
+        func.date(PCB.system_time).label('date'),
+        func.count(PCB.id).label('total'),
+        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
+    ).filter(*full_filters).group_by(func.date(PCB.system_time)).order_by(func.date(PCB.system_time)).all()
+
+    trends = []
+    for row in trend_stats:
+        trends.append({
+            "date": str(row.date),
+            "total": row.total,
+            "ng": int(row.ng or 0),
+            "ng_rate": get_rate(int(row.ng or 0), row.total)
+        })
+
     job_stats = db.query(
         PCB.job_file,
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*filters).group_by(PCB.job_file).order_by(func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).desc()).limit(20).all()
+    ).filter(*full_filters).group_by(PCB.job_file).order_by(func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).desc()).limit(20).all()
 
     jobs = []
     for row in job_stats:
@@ -120,7 +140,7 @@ async def get_analysis_summary(
         PCB.array_index,
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*filters).group_by(PCB.array_index).all()
+    ).filter(*full_filters).group_by(PCB.array_index).all()
 
     arrays = []
     for row in array_stats:
@@ -133,18 +153,18 @@ async def get_analysis_summary(
         })
 
     # 6. Stats by Shot (Vị trí ảnh trên PCB) - Map theo tên ảnh (ví dụ _1.jpg)
-    shot_query = db.query(
-        func.substring_index(func.substring_index(PCBImage.image_path, '_', -1), '.', 1).label('shot_idx'),
+    shot_stats = db.query(
+        func.substring_index(func.substring_index(PCBImage.image_path, '_', -1), '.', 1).label('shot'),
         func.count(PCBImage.id).label('total'),
         func.sum(case((PCBImage.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).join(PCB, PCBImage.pcb_id == PCB.id).filter(*filters).group_by(text('shot_idx')).all()
+    ).join(PCB, PCBImage.pcb_id == PCB.id).filter(*full_filters).group_by(text('shot')).all()
 
     shots = []
-    for row in shot_query:
-        if row.shot_idx and row.shot_idx.isdigit() and row.total > 0:
+    for row in shot_stats:
+        if row.shot and row.shot.isdigit() and row.total > 0:
             shots.append({
-                "shot": int(row.shot_idx),
-                "displayLabel": f"Shot {row.shot_idx}",
+                "shot": int(row.shot),
+                "displayLabel": f"Shot {row.shot}",
                 "total": row.total,
                 "ng": int(row.ng or 0),
                 "ng_rate": get_rate(int(row.ng or 0), row.total)
@@ -162,5 +182,6 @@ async def get_analysis_summary(
         "machines": machines,
         "jobs": jobs,
         "shots": shots,
-        "arrays": arrays
+        "arrays": arrays,
+        "trends": trends
     }

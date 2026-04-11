@@ -378,9 +378,15 @@ function Analysis() {
                                         return (
                                             <Cell
                                                 key={`cell-${index}`}
-                                                fill={COLORS[index % COLORS.length]}
+                                                fill="#3b82f6"
                                                 fillOpacity={!isAnySelected || isSelected ? 1 : 0.25}
-                                                style={{ filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none' }}
+                                                style={{ 
+                                                    filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none',
+                                                    cursor: 'pointer',
+                                                    transition: 'fill 0.2s ease'
+                                                }}
+                                                onMouseEnter={(e) => e.target.style.fill = '#60a5fa'}
+                                                onMouseLeave={(e) => e.target.style.fill = '#3b82f6'}
                                             />
                                         );
                                     })}
