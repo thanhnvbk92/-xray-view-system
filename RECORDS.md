@@ -42,3 +42,4 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 - **Yêu cầu 17**: Sửa lỗi Route `/api/version` (loại bỏ prefix `/system` để khớp với Collector). [Hoàn thành]
 - **Yêu cầu 18**: Tối ưu hóa trang Confirm (Turbo Load) bằng kỹ thuật `joinedload`, Index và Phân trang. [Hoàn thành]
 - **Yêu cầu 19**: Sửa lỗi nút xác nhận OK không phản hồi (Bổ sung WebSocket Broadcast và đồng bộ hóa `machine_result`). [Hoàn thành]
+- **Yêu cầu 20**: Sửa lỗi 405 Method Not Allowed bằng cách tạo Alias `/api/images/confirm` cho PCB confirmation. [Hoàn thành]
