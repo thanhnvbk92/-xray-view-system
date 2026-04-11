@@ -70,6 +70,15 @@ namespace XrayCollector.ViewModels
         {
             await Task.Yield(); // Chuyển sang background ngay lập tức
             RefreshDisplayInfo();
+            
+            // 1. Chỉ khởi tạo timer thử lại gửi dữ liệu lỗi (Retry Queue) mỗi 1 phút lúc Startup
+            if (_retryTimer == null)
+            {
+                _retryTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
+                _retryTimer.Tick += async (s, e) => await ProcessRetryQueueAsync();
+                _retryTimer.Start();
+            }
+
             await Task.Delay(1000); // Đợi 1 chút cho mạng ổn định rồi check update
             CheckForUpdatesCommand.Execute(null);
         }
@@ -222,7 +231,23 @@ namespace XrayCollector.ViewModels
                 }
             });
 
-            // 3. Các tác vụ nền khác (Refresh và Update) nay đã được thực hiện ở constructor lúc startup
+            // 3. Kích hoạt Heartbeat báo Online chỉ sau khi đã START thành công
+            if (int.TryParse(_settings.MachineId, out int mid))
+            {
+                // Gửi gói tin báo Online ngay lập tức
+                var result = await _apiService.SendHeartbeatAsync(mid, LocalIpAddress);
+                UpdateConnectionStatus(result.Success, result.Message);
+
+                // Sau đó duy trì đều đặn
+                _heartbeatTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
+                _heartbeatTimer.Tick += async (s, e) => 
+                {
+                    var hb = await _apiService.SendHeartbeatAsync(mid, LocalIpAddress);
+                    UpdateConnectionStatus(hb.Success, hb.Message);
+                };
+                _heartbeatTimer.Start();
+            }
+
             AddLog("Bắt đầu giám sát hệ thống.");
         }
 

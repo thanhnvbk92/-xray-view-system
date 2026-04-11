@@ -54,6 +54,8 @@ function Analysis() {
         machineId: null, 
         machineName: null, 
         jobFile: null, 
+        arrayIndex: null,
+        shotIdx: null,
         date: null,
         startDate: '',
         endDate: ''
@@ -67,6 +69,8 @@ function Analysis() {
             const params = {
                 machine_id: filters.machineId,
                 job_file: filters.jobFile,
+                array_index: filters.arrayIndex,
+                shot_idx: filters.shotIdx,
                 target_date: filters.date,
                 start_date: filters.startDate,
                 end_date: filters.endDate
@@ -101,12 +105,12 @@ function Analysis() {
             setTrends(trendsWithLabels);
             
             // Nếu không có bộ lọc máy/job, cập nhật baselineData làm khung cho biểu đồ
-            if (!filters.machineId && !filters.jobFile) {
+            if (!filters.machineId && !filters.jobFile && !filters.arrayIndex && !filters.shotIdx) {
                 setBaselineData(processedData);
             }
             
             // Xử lý cache nếu không có lọc
-            if (!filters.machineId && !filters.jobFile && !filters.date && !filters.startDate && !filters.endDate) {
+            if (!filters.machineId && !filters.jobFile && !filters.arrayIndex && !filters.shotIdx && !filters.date && !filters.startDate && !filters.endDate) {
                 sessionStorage.setItem('ana_data', JSON.stringify(processedData));
                 sessionStorage.setItem('ana_trends', JSON.stringify(trendsWithLabels));
             }
@@ -125,9 +129,11 @@ function Analysis() {
         fetchData();
     }, [filters]);
 
-    const resetFilters = () => setFilters({ machineId: null, machineName: null, jobFile: null, date: null, startDate: '', endDate: '' });
+    const resetFilters = () => setFilters({ machineId: null, machineName: null, jobFile: null, arrayIndex: null, shotIdx: null, date: null, startDate: '', endDate: '' });
     const removeMachineFilter = () => setFilters(prev => ({ ...prev, machineId: null, machineName: null }));
     const removeJobFilter = () => setFilters(prev => ({ ...prev, jobFile: null }));
+    const removeArrayIndexFilter = () => setFilters(prev => ({ ...prev, arrayIndex: null }));
+    const removeShotIdxFilter = () => setFilters(prev => ({ ...prev, shotIdx: null }));
     const removeDateFilter = () => setFilters(prev => ({ ...prev, date: null }));
     
     // Hàm chuyển đổi YYYY-MM-DD thành DD/MM
@@ -242,6 +248,18 @@ function Analysis() {
                                     <X size={14} style={{ cursor: 'pointer' }} onClick={removeDateFilter} />
                                 </div>
                             )}
+                            {filters.arrayIndex && (
+                                <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
+                                    <span>Array: {filters.arrayIndex}</span>
+                                    <X size={14} style={{ cursor: 'pointer' }} onClick={removeArrayIndexFilter} />
+                                </div>
+                            )}
+                            {filters.shotIdx && (
+                                <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
+                                    <span>Shot: {filters.shotIdx}</span>
+                                    <X size={14} style={{ cursor: 'pointer' }} onClick={removeShotIdxFilter} />
+                                </div>
+                            )}
                             <button onClick={resetFilters} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline' }}>Xóa tất cả</button>
                         </>
                     ) : (
@@ -263,7 +281,7 @@ function Analysis() {
             {/* 1. Trends Row - Adaptive */}
             <div className="data-table-container" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', fontSize: '1.2rem' }}>
-                    <TrendingUp size={22} /> Xu hướng Tỉ lệ lỗi {filters.machineName ? `(${filters.machineName})` : filters.jobFile ? `(${filters.jobFile})` : 'Hệ thống'}
+                    <TrendingUp size={22} /> Xu hướng Tỉ lệ lỗi {filters.machineName ? `(${filters.machineName})` : filters.jobFile ? `(${filters.jobFile})` : filters.arrayIndex ? `(Array ${filters.arrayIndex})` : filters.shotIdx ? `(Shot ${filters.shotIdx})` : 'Hệ thống'}
                 </h3>
                 <div style={{ height: '280px' }}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -415,10 +433,25 @@ function Analysis() {
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.arrays} margin={{ top: 25, right: 10, left: 10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis dataKey="displayLabel" stroke="var(--text-secondary)" fontSize={11} />
+                                <XAxis dataKey="array_index" stroke="var(--text-secondary)" fontSize={11} />
                                 <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
                                 <Tooltip cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} />
-                                <Bar dataKey="ng_rate" fill="#f59e0b" radius={[5, 5, 0, 0]} activeBar={false}>
+                                <Bar 
+                                    dataKey="ng_rate" 
+                                    fill="#f59e0b" 
+                                    radius={[5, 5, 0, 0]} 
+                                    activeBar={false}
+                                    onClick={(entry) => {
+                                        if (!entry) return;
+                                        const idx = entry.array_index;
+                                        if (filters.arrayIndex === idx) removeArrayIndexFilter();
+                                        else setFilters(prev => ({ ...prev, arrayIndex: idx }));
+                                    }}
+                                >
+                                    {data.arrays.map((entry, index) => {
+                                        const isSelected = filters.arrayIndex !== null && entry.array_index === filters.arrayIndex;
+                                        return <Cell key={`array-${index}`} fill="#f59e0b" fillOpacity={filters.arrayIndex === null || isSelected ? 1 : 0.25} style={{ filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none' }} />;
+                                    })}
                                     <LabelList dataKey="displayLabel" position="top" style={{ fill: '#fff', fontSize: '10px', fontWeight: 'bold' }} offset={10} />
                                 </Bar>
                             </BarChart>
@@ -438,7 +471,22 @@ function Analysis() {
                                 <XAxis dataKey="shot" stroke="var(--text-secondary)" fontSize={11} />
                                 <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
                                 <Tooltip cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} />
-                                <Bar dataKey="ng_rate" fill="#ef4444" radius={[5, 5, 0, 0]} activeBar={false}>
+                                <Bar 
+                                    dataKey="ng_rate" 
+                                    fill="#ef4444" 
+                                    radius={[5, 5, 0, 0]} 
+                                    activeBar={false}
+                                    onClick={(entry) => {
+                                        if (!entry) return;
+                                        const shot = entry.shot;
+                                        if (filters.shotIdx === shot) removeShotIdxFilter();
+                                        else setFilters(prev => ({ ...prev, shotIdx: shot }));
+                                    }}
+                                >
+                                    {data.shots.map((entry, index) => {
+                                        const isSelected = filters.shotIdx !== null && entry.shot === filters.shotIdx;
+                                        return <Cell key={`shot-${index}`} fill="#ef4444" fillOpacity={filters.shotIdx === null || isSelected ? 1 : 0.25} style={{ filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none' }} />;
+                                    })}
                                     <LabelList dataKey="displayLabel" position="top" style={{ fill: '#fff', fontSize: '10px', fontWeight: 'bold' }} offset={10} />
                                 </Bar>
                             </BarChart>

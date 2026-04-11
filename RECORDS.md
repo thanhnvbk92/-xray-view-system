@@ -52,3 +52,5 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 - **Yêu cầu 27**: (2026-04-11 22:01) Triển khai Semaphore để xử lý tuần tự file log. Giải quyết triệt để lỗi quét bù bị gián đoạn khi có file mới xuất hiện (Race Condition làm nhảy mốc LastProcessedTime). [Hoàn thành]
 - **Yêu cầu 28**: (2026-04-11 22:13) Tối ưu hóa khởi động và phản hồi UI: Tự động Check Connection/Update ngay khi mở App. Đưa các tác vụ quét đĩa và mạng vào luồng riêng biệt, tuyệt đối không gây treo giao diện (Zero UI Freeze). [Hoàn thành]
 - **Yêu cầu 29**: (2026-04-11 22:20) Loại bỏ logic so sánh `lastTime` bên trong `ProcessLogFile`. Mốc thời gian giờ đây chỉ dùng để lọc danh sách file lúc bắt đầu, đảm bảo mọi file đã mở đều được xử lý đầy đủ nội dung. [Hoàn thành]
+- **Yêu cầu 30**: (2026-04-11 22:35) Nâng cấp trang Phân tích: Hỗ trợ lọc (drill-down) khi click vào biểu đồ Array Index và Shot Heatmap. Cập nhật đồng bộ cả Backend API và Frontend UI. [Hoàn thành]
+- **Yêu cầu 31**: (2026-04-11 22:37) Điều chỉnh cơ chế Heartbeat: Chỉ kích hoạt gửi tín hiệu Online sau khi người dùng nhấn nút START và dừng khi nhấn STOP. [Hoàn thành]

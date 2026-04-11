@@ -13,6 +13,8 @@ router = APIRouter()
 async def get_analysis_summary(
     machine_id: Optional[int] = None,
     job_file: Optional[str] = None,
+    array_index: Optional[int] = None,
+    shot_idx: Optional[int] = None,
     target_date: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -27,6 +29,15 @@ async def get_analysis_summary(
         filters.append(PCB.machine_id == machine_id)
     if job_file:
         filters.append(PCB.job_file == job_file)
+    if array_index:
+        filters.append(PCB.array_index == array_index)
+    if shot_idx:
+        # Lọc các PCB có ít nhất một ảnh tương ứng với shot_idx này
+        # Shot Index được tách từ image_path: ..._{shot_idx}.jpg
+        shot_subquery = db.query(PCBImage.pcb_id).filter(
+            func.substring_index(func.substring_index(PCBImage.image_path, '_', -1), '.', 1).cast(Integer) == shot_idx
+        ).subquery()
+        filters.append(PCB.id.in_(shot_subquery))
     
     if target_date:
         d = datetime.strptime(target_date, "%Y-%m-%d")
