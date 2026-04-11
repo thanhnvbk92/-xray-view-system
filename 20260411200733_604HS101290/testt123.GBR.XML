@@ -1,0 +1,24 @@
+<ePM-AI>
+  <format name="AI standard xml" ver="1.0" />
+  <program name="TV Unit Edit Control" ver="1.0.0" date="x260114" />
+  <unit name="mm" decpt="3" coord="LL" />
+  <board name="testt123" w="215.800" h="180.200" type="Array" z="0.0" />
+  <boardarrays>
+    <group name="0" w="71.933" h="90.100" cx="59.944" cy="90.100">
+      <boardarray num="1" name="Board1" skip="0" cx="59.944" cy="90.100" offx="0.000" offy="0.000" rot="0.000" />
+      <boardarray num="2" name="Board2" skip="0" cx="155.856" cy="90.100" offx="95.911" offy="0.000" rot="0.000" />
+    </group>
+  </boardarrays>
+  <pads />
+  <footprints />
+  <pkgpinshs />
+  <pkgs />
+  <parts />
+  <fiducials />
+  <badmarks />
+  <components>
+    <group name="0">
+      <boardarray num="1" block_name="Board1" />
+    </group>
+  </components>
+</ePM-AI>

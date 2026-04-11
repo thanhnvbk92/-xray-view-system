@@ -1,0 +1,2627 @@
+<TV_INSPECTION_RESULT>
+    <HEADER>
+        <RESULT_ID VAL="NONE"/>
+        <IMAGE_FILE_NAME VAL="r.tif"/>
+    </HEADER>
+    <COMPONENT NAME="0" RESULT="1">
+        <REFERENCE>
+            <ALGORITHM NAME="Weldability">
+                <Area MIN="45.00000" MAX="150.00000"/>
+                <void MIN="0.00000" MAX="20.00000"/>
+                <circularity MIN="65.00000" MAX="100.00000"/>
+                <Convexity MIN="60.00000" MAX="120.00000"/>
+                <distance MIN="0.00000" MAX="10.00000"/>
+                <angle MIN="0.00000" MAX="10.00000"/>
+                <Eccentricity MIN="10.00000" MAX="100.00000"/>
+                <foreign MIN="0.00000" MAX="0.00000"/>
+                <Quantity MIN="200.00000" MAX="200.00000"/>
+            </ALGORITHM>
+        </REFERENCE>
+        <GLOBAL_FEATURE RESULT="0">
+            <LOCATION X="239" Y="71" Z="0" W="547" H="823" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Quantity VAL="200.00000" RESULT="0"/>
+            </ALGORITHM>
+        </GLOBAL_FEATURE>
+        <PIN NAME="0" RESULT="0">
+            <LOCATION X="615" Y="77" Z="0" W="21" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.17886" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="86.91385" RESULT="0"/>
+                <Convexity VAL="97.60192" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.82663" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="1" RESULT="0">
+            <LOCATION X="661" Y="77" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.80488" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.25841" RESULT="0"/>
+                <Convexity VAL="98.11765" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.90219" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="2" RESULT="0">
+            <LOCATION X="754" Y="77" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.50407" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.64118" RESULT="0"/>
+                <Convexity VAL="97.38095" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.43875" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="3" RESULT="0">
+            <LOCATION X="338" Y="76" Z="0" W="21" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.39024" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.43278" RESULT="0"/>
+                <Convexity VAL="97.53695" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.08658" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="4" RESULT="0">
+            <LOCATION X="384" Y="76" Z="0" W="21" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.85366" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="85.49700" RESULT="0"/>
+                <Convexity VAL="97.35577" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.27022" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="5" RESULT="0">
+            <LOCATION X="568" Y="77" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="63.25203" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="87.50815" RESULT="0"/>
+                <Convexity VAL="97.98489" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.81929" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="6" RESULT="0">
+            <LOCATION X="707" Y="78" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.45528" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.00927" RESULT="0"/>
+                <Convexity VAL="97.45370" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.03851" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="7" RESULT="0">
+            <LOCATION X="291" Y="77" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.22764" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.88616" RESULT="0"/>
+                <Convexity VAL="96.57702" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.55554" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="8" RESULT="0">
+            <LOCATION X="430" Y="78" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.34146" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.43649" RESULT="0"/>
+                <Convexity VAL="97.14286" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.65796" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="9" RESULT="0">
+            <LOCATION X="245" Y="78" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="62.92683" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="87.90973" RESULT="0"/>
+                <Convexity VAL="96.99248" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.25246" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="10" RESULT="0">
+            <LOCATION X="661" Y="115" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.94309" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.87861" RESULT="0"/>
+                <Convexity VAL="98.60465" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.40144" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="11" RESULT="0">
+            <LOCATION X="708" Y="115" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.99187" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.30012" RESULT="0"/>
+                <Convexity VAL="98.09524" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.73650" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="12" RESULT="0">
+            <LOCATION X="754" Y="115" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.99187" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.88978" RESULT="0"/>
+                <Convexity VAL="98.09524" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.00537" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="13" RESULT="0">
+            <LOCATION X="568" Y="115" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.55285" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.16838" RESULT="0"/>
+                <Convexity VAL="98.26733" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.08926" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="14" RESULT="0">
+            <LOCATION X="615" Y="116" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.34146" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.02082" RESULT="0"/>
+                <Convexity VAL="97.60766" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.60646" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="15" RESULT="0">
+            <LOCATION X="291" Y="115" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="63.08943" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.78305" RESULT="0"/>
+                <Convexity VAL="98.22785" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.92342" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="16" RESULT="0">
+            <LOCATION X="384" Y="115" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.55285" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.09618" RESULT="0"/>
+                <Convexity VAL="98.02469" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.08926" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="17" RESULT="0">
+            <LOCATION X="431" Y="116" Z="0" W="21" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.06504" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.81405" RESULT="0"/>
+                <Convexity VAL="98.74687" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.53879" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="18" RESULT="0">
+            <LOCATION X="245" Y="116" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="61.30081" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.76302" RESULT="0"/>
+                <Convexity VAL="96.91517" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.02376" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="19" RESULT="0">
+            <LOCATION X="337" Y="116" Z="0" W="22" H="20" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="60.65041" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="87.41620" RESULT="0"/>
+                <Convexity VAL="98.15789" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.41475" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="20" RESULT="0">
+            <LOCATION X="568" Y="152" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.13008" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.96112" RESULT="0"/>
+                <Convexity VAL="97.44186" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.46828" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="21" RESULT="0">
+            <LOCATION X="661" Y="153" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.91870" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.84973" RESULT="0"/>
+                <Convexity VAL="97.94989" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.15398" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="22" RESULT="0">
+            <LOCATION X="708" Y="153" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.26829" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.14076" RESULT="0"/>
+                <Convexity VAL="98.38337" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.50735" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="23" RESULT="0">
+            <LOCATION X="754" Y="153" Z="0" W="21" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.50407" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="98.85249" RESULT="0"/>
+                <Convexity VAL="98.55422" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.68022" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="24" RESULT="0">
+            <LOCATION X="338" Y="152" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.04065" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.39868" RESULT="0"/>
+                <Convexity VAL="98.03922" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.19571" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="25" RESULT="0">
+            <LOCATION X="429" Y="153" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.29268" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.33164" RESULT="0"/>
+                <Convexity VAL="98.13084" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.04628" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="26" RESULT="0">
+            <LOCATION X="615" Y="154" Z="0" W="23" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.26829" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.79709" RESULT="0"/>
+                <Convexity VAL="98.15668" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="95.73646" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="27" RESULT="0">
+            <LOCATION X="245" Y="153" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.36585" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.76759" RESULT="0"/>
+                <Convexity VAL="97.33656" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.99614" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="28" RESULT="0">
+            <LOCATION X="291" Y="153" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.85366" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="78.82623" RESULT="0"/>
+                <Convexity VAL="97.59036" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.00500" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="29" RESULT="0">
+            <LOCATION X="384" Y="153" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.85366" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.06066" RESULT="0"/>
+                <Convexity VAL="98.30097" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.27022" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="30" RESULT="0">
+            <LOCATION X="615" Y="190" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.65854" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.19127" RESULT="0"/>
+                <Convexity VAL="98.05195" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.11906" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="31" RESULT="0">
+            <LOCATION X="662" Y="190" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.63415" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.66803" RESULT="0"/>
+                <Convexity VAL="97.86780" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.90181" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="32" RESULT="0">
+            <LOCATION X="708" Y="190" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.40650" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.01546" RESULT="0"/>
+                <Convexity VAL="97.74266" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="94.18876" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="33" RESULT="0">
+            <LOCATION X="754" Y="190" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.91870" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.99767" RESULT="0"/>
+                <Convexity VAL="98.17352" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.15398" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="34" RESULT="0">
+            <LOCATION X="383" Y="189" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.43089" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="87.97653" RESULT="0"/>
+                <Convexity VAL="97.48858" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.77333" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="35" RESULT="0">
+            <LOCATION X="568" Y="190" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.38211" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.39774" RESULT="0"/>
+                <Convexity VAL="97.55556" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="86.34672" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="36" RESULT="0">
+            <LOCATION X="291" Y="190" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.99187" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.75357" RESULT="0"/>
+                <Convexity VAL="97.86223" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.00537" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="37" RESULT="0">
+            <LOCATION X="337" Y="190" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.64228" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.95431" RESULT="0"/>
+                <Convexity VAL="96.74419" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.12070" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="38" RESULT="0">
+            <LOCATION X="431" Y="191" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.94309" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.44644" RESULT="0"/>
+                <Convexity VAL="96.80365" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="86.22509" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="39" RESULT="0">
+            <LOCATION X="245" Y="191" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.50407" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.95964" RESULT="0"/>
+                <Convexity VAL="97.84689" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.38738" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="40" RESULT="0">
+            <LOCATION X="707" Y="227" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.14634" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.89183" RESULT="0"/>
+                <Convexity VAL="97.43590" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.50643" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="41" RESULT="0">
+            <LOCATION X="755" Y="227" Z="0" W="22" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.08130" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.75143" RESULT="0"/>
+                <Convexity VAL="96.85393" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="78.74468" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="42" RESULT="0">
+            <LOCATION X="568" Y="227" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.82114" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.33627" RESULT="0"/>
+                <Convexity VAL="97.63441" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.91395" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="43" RESULT="0">
+            <LOCATION X="615" Y="228" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="75.28455" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.05911" RESULT="0"/>
+                <Convexity VAL="97.88584" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.10785" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="44" RESULT="0">
+            <LOCATION X="661" Y="228" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="75.28455" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.88575" RESULT="0"/>
+                <Convexity VAL="97.47368" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="97.45601" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="45" RESULT="0">
+            <LOCATION X="338" Y="227" Z="0" W="22" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.40650" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.05660" RESULT="0"/>
+                <Convexity VAL="96.86801" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.54321" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="46" RESULT="0">
+            <LOCATION X="384" Y="227" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.24390" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.27036" RESULT="0"/>
+                <Convexity VAL="96.64430" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.74586" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="47" RESULT="0">
+            <LOCATION X="431" Y="228" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.52033" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.55616" RESULT="0"/>
+                <Convexity VAL="97.80702" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.99150" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="48" RESULT="0">
+            <LOCATION X="245" Y="228" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.80488" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.65746" RESULT="0"/>
+                <Convexity VAL="97.42991" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.72290" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="49" RESULT="0">
+            <LOCATION X="291" Y="228" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.43089" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.95496" RESULT="0"/>
+                <Convexity VAL="97.71167" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.77333" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="50" RESULT="0">
+            <LOCATION X="660" Y="264" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="79.67480" RESULT="0"/>
+                <void VAL="0.65041" RESULT="0"/>
+                <circularity VAL="95.99722" RESULT="0"/>
+                <Convexity VAL="97.05305" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="61.41949" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="51" RESULT="0">
+            <LOCATION X="614" Y="265" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="77.39837" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.49475" RESULT="0"/>
+                <Convexity VAL="96.74797" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="94.79440" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="52" RESULT="0">
+            <LOCATION X="707" Y="265" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.19512" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="98.93725" RESULT="0"/>
+                <Convexity VAL="98.01325" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="95.00661" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="53" RESULT="0">
+            <LOCATION X="754" Y="265" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.43089" RESULT="0"/>
+                <void VAL="0.32520" RESULT="0"/>
+                <circularity VAL="96.21078" RESULT="0"/>
+                <Convexity VAL="97.72210" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="46.97769" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="54" RESULT="0">
+            <LOCATION X="429" Y="265" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.84553" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.14762" RESULT="0"/>
+                <Convexity VAL="98.03063" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.61208" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="55" RESULT="0">
+            <LOCATION X="567" Y="265" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="77.39837" RESULT="0"/>
+                <void VAL="0.48780" RESULT="0"/>
+                <circularity VAL="94.25805" RESULT="0"/>
+                <Convexity VAL="98.15574" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="63.38624" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="56" RESULT="0">
+            <LOCATION X="290" Y="265" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.73171" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.28150" RESULT="0"/>
+                <Convexity VAL="97.09821" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.14072" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="57" RESULT="0">
+            <LOCATION X="383" Y="265" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.35772" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.48201" RESULT="0"/>
+                <Convexity VAL="98.01762" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="94.79311" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="58" RESULT="0">
+            <LOCATION X="245" Y="266" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.91870" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.51811" RESULT="0"/>
+                <Convexity VAL="97.72727" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.64681" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="59" RESULT="0">
+            <LOCATION X="336" Y="266" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.19512" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.64560" RESULT="0"/>
+                <Convexity VAL="97.79736" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.85525" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="60" RESULT="0">
+            <LOCATION X="613" Y="301" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.91057" RESULT="0"/>
+                <void VAL="0.81301" RESULT="0"/>
+                <circularity VAL="91.79658" RESULT="0"/>
+                <Convexity VAL="97.35234" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="63.62695" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="61" RESULT="0">
+            <LOCATION X="567" Y="302" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="80.65041" RESULT="0"/>
+                <void VAL="0.16260" RESULT="0"/>
+                <circularity VAL="95.43740" RESULT="0"/>
+                <Convexity VAL="98.80716" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="65.73731" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="62" RESULT="0">
+            <LOCATION X="661" Y="303" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.82114" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="82.83381" RESULT="0"/>
+                <Convexity VAL="91.16466" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="58.52978" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="63" RESULT="0">
+            <LOCATION X="707" Y="303" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.14634" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.17851" RESULT="0"/>
+                <Convexity VAL="97.85408" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.50643" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="64" RESULT="0">
+            <LOCATION X="384" Y="302" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.14634" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.94917" RESULT="0"/>
+                <Convexity VAL="98.48812" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.50643" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="65" RESULT="0">
+            <LOCATION X="430" Y="303" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="78.53659" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.50843" RESULT="0"/>
+                <Convexity VAL="97.97160" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.42057" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="66" RESULT="0">
+            <LOCATION X="752" Y="304" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.94309" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.44546" RESULT="0"/>
+                <Convexity VAL="98.14815" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.40144" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="67" RESULT="0">
+            <LOCATION X="291" Y="303" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.38211" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.22175" RESULT="0"/>
+                <Convexity VAL="96.90949" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.90144" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="68" RESULT="0">
+            <LOCATION X="336" Y="303" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.82114" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.96645" RESULT="0"/>
+                <Convexity VAL="97.84483" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="86.75401" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="69" RESULT="0">
+            <LOCATION X="244" Y="304" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.03252" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.94637" RESULT="0"/>
+                <Convexity VAL="98.22616" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="95.22107" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="70" RESULT="0">
+            <LOCATION X="753" Y="339" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.98374" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.41744" RESULT="0"/>
+                <Convexity VAL="94.59459" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="60.88837" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="71" RESULT="0">
+            <LOCATION X="614" Y="340" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.74797" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="87.09378" RESULT="0"/>
+                <Convexity VAL="93.83698" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="66.55917" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="72" RESULT="0">
+            <LOCATION X="661" Y="340" Z="0" W="23" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.74797" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="98.47774" RESULT="0"/>
+                <Convexity VAL="98.33333" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="95.59774" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="73" RESULT="0">
+            <LOCATION X="383" Y="339" Z="0" W="24" H="25" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="78.37398" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="87.36469" RESULT="0"/>
+                <Convexity VAL="94.50980" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="70.41277" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="74" RESULT="0">
+            <LOCATION X="430" Y="340" Z="0" W="24" H="25" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="77.72358" RESULT="0"/>
+                <void VAL="1.95122" RESULT="0"/>
+                <circularity VAL="89.18297" RESULT="0"/>
+                <Convexity VAL="97.41551" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="62.96140" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="75" RESULT="0">
+            <LOCATION X="567" Y="340" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="79.83740" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.34286" RESULT="0"/>
+                <Convexity VAL="96.27451" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="74.45914" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="76" RESULT="0">
+            <LOCATION X="706" Y="341" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.00813" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="79.90355" RESULT="0"/>
+                <Convexity VAL="94.12998" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="59.18156" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="77" RESULT="0">
+            <LOCATION X="338" Y="340" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.95935" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.87055" RESULT="0"/>
+                <Convexity VAL="98.29424" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.50311" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="78" RESULT="0">
+            <LOCATION X="244" Y="341" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.52033" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.75970" RESULT="0"/>
+                <Convexity VAL="97.59300" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="94.58057" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="79" RESULT="0">
+            <LOCATION X="291" Y="341" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.79675" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.25496" RESULT="0"/>
+                <Convexity VAL="98.29060" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.66029" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="80" RESULT="0">
+            <LOCATION X="568" Y="377" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="77.07317" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="87.69228" RESULT="0"/>
+                <Convexity VAL="95.37223" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="74.33971" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="81" RESULT="0">
+            <LOCATION X="614" Y="378" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.30894" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="83.24240" RESULT="0"/>
+                <Convexity VAL="92.88618" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="68.65859" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="82" RESULT="0">
+            <LOCATION X="660" Y="378" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.14634" RESULT="0"/>
+                <void VAL="0.97561" RESULT="0"/>
+                <circularity VAL="94.59480" RESULT="0"/>
+                <Convexity VAL="97.88136" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="50.84429" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="83" RESULT="0">
+            <LOCATION X="708" Y="378" Z="0" W="23" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.33333" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.38842" RESULT="0"/>
+                <Convexity VAL="96.98925" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="78.22236" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="84" RESULT="0">
+            <LOCATION X="754" Y="378" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.17073" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.61994" RESULT="0"/>
+                <Convexity VAL="98.25328" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.73985" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="85" RESULT="0">
+            <LOCATION X="292" Y="378" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="75.77236" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.96446" RESULT="0"/>
+                <Convexity VAL="95.10204" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="69.96932" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="86" RESULT="0">
+            <LOCATION X="338" Y="378" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="77.72358" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.94185" RESULT="0"/>
+                <Convexity VAL="98.55670" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="94.39777" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="87" RESULT="0">
+            <LOCATION X="383" Y="378" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="78.21138" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.67603" RESULT="0"/>
+                <Convexity VAL="97.17172" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.80901" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="88" RESULT="0">
+            <LOCATION X="430" Y="379" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.26016" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.99250" RESULT="0"/>
+                <Convexity VAL="98.52941" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="96.20924" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="89" RESULT="0">
+            <LOCATION X="244" Y="379" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.47154" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.74279" RESULT="0"/>
+                <Convexity VAL="98.07281" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.04745" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="90" RESULT="0">
+            <LOCATION X="383" Y="414" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="78.21138" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.69223" RESULT="0"/>
+                <Convexity VAL="97.96334" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.80901" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="91" RESULT="0">
+            <LOCATION X="430" Y="415" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="78.86179" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="99.14806" RESULT="0"/>
+                <Convexity VAL="97.97980" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.03533" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="92" RESULT="0">
+            <LOCATION X="568" Y="415" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="81.62602" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.03229" RESULT="0"/>
+                <Convexity VAL="98.04688" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.88473" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="93" RESULT="0">
+            <LOCATION X="615" Y="416" Z="0" W="23" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="77.39837" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.98742" RESULT="0"/>
+                <Convexity VAL="98.55072" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.70514" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="94" RESULT="0">
+            <LOCATION X="661" Y="416" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="79.67480" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.30566" RESULT="0"/>
+                <Convexity VAL="97.41551" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="98.33557" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="95" RESULT="0">
+            <LOCATION X="708" Y="416" Z="0" W="23" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.79675" RESULT="0"/>
+                <void VAL="0.48780" RESULT="0"/>
+                <circularity VAL="93.16225" RESULT="0"/>
+                <Convexity VAL="97.88584" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="57.76635" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="96" RESULT="0">
+            <LOCATION X="336" Y="415" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="75.77236" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="85.01212" RESULT="0"/>
+                <Convexity VAL="93.57430" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="69.96932" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="97" RESULT="0">
+            <LOCATION X="753" Y="417" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.35772" RESULT="0"/>
+                <void VAL="0.65041" RESULT="0"/>
+                <circularity VAL="86.39709" RESULT="0"/>
+                <Convexity VAL="98.46491" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="42.91744" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="98" RESULT="0">
+            <LOCATION X="244" Y="416" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="75.12195" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.59630" RESULT="0"/>
+                <Convexity VAL="97.05882" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.27648" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="99" RESULT="0">
+            <LOCATION X="291" Y="416" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.98374" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="98.20313" RESULT="0"/>
+                <Convexity VAL="98.27214" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.70974" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="100" RESULT="0">
+            <LOCATION X="614" Y="527" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.58537" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.06883" RESULT="0"/>
+                <Convexity VAL="97.11340" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="95.80071" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="101" RESULT="0">
+            <LOCATION X="661" Y="527" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.79675" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.73901" RESULT="0"/>
+                <Convexity VAL="98.50107" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.70203" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="102" RESULT="0">
+            <LOCATION X="706" Y="527" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.14634" RESULT="0"/>
+                <void VAL="2.11382" RESULT="0"/>
+                <circularity VAL="92.89491" RESULT="0"/>
+                <Convexity VAL="98.11715" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="55.80461" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="103" RESULT="0">
+            <LOCATION X="753" Y="527" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.78049" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.43448" RESULT="0"/>
+                <Convexity VAL="96.79634" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.40020" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="104" RESULT="0">
+            <LOCATION X="568" Y="527" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.98374" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.74957" RESULT="0"/>
+                <Convexity VAL="98.06034" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="99.16953" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="105" RESULT="0">
+            <LOCATION X="338" Y="527" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="75.77236" RESULT="0"/>
+                <void VAL="0.32520" RESULT="0"/>
+                <circularity VAL="91.16612" RESULT="0"/>
+                <Convexity VAL="98.11321" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="64.74646" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="106" RESULT="0">
+            <LOCATION X="429" Y="528" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.91057" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.71322" RESULT="0"/>
+                <Convexity VAL="96.53061" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.31529" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="107" RESULT="0">
+            <LOCATION X="243" Y="528" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.42276" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.62446" RESULT="0"/>
+                <Convexity VAL="98.12109" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="86.77390" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="108" RESULT="0">
+            <LOCATION X="292" Y="528" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.14634" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="78.85552" RESULT="0"/>
+                <Convexity VAL="92.30769" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="58.27307" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="109" RESULT="0">
+            <LOCATION X="382" Y="528" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.26016" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.15550" RESULT="0"/>
+                <Convexity VAL="97.30290" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.94229" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="110" RESULT="0">
+            <LOCATION X="661" Y="565" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.65854" RESULT="0"/>
+                <void VAL="1.46341" RESULT="0"/>
+                <circularity VAL="89.73122" RESULT="0"/>
+                <Convexity VAL="98.08917" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="51.18100" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="111" RESULT="0">
+            <LOCATION X="754" Y="565" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.94309" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.79309" RESULT="0"/>
+                <Convexity VAL="97.92148" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.40144" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="112" RESULT="0">
+            <LOCATION X="568" Y="565" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.33333" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.54306" RESULT="0"/>
+                <Convexity VAL="94.54927" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="53.79152" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="113" RESULT="0">
+            <LOCATION X="614" Y="566" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.33333" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.62532" RESULT="0"/>
+                <Convexity VAL="97.83080" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.42956" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="114" RESULT="0">
+            <LOCATION X="707" Y="566" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.08130" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.58300" RESULT="0"/>
+                <Convexity VAL="97.95455" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.94945" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="115" RESULT="0">
+            <LOCATION X="383" Y="565" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="76.09756" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.33138" RESULT="0"/>
+                <Convexity VAL="98.31933" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.13447" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="116" RESULT="0">
+            <LOCATION X="429" Y="566" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="78.04878" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.62482" RESULT="0"/>
+                <Convexity VAL="97.95918" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.88111" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="117" RESULT="0">
+            <LOCATION X="244" Y="566" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.63415" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.77483" RESULT="0"/>
+                <Convexity VAL="97.86780" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.85345" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="118" RESULT="0">
+            <LOCATION X="291" Y="566" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.47154" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.38555" RESULT="0"/>
+                <Convexity VAL="98.07281" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.10247" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="119" RESULT="0">
+            <LOCATION X="338" Y="566" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.91870" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.75332" RESULT="0"/>
+                <Convexity VAL="97.50567" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.64681" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="120" RESULT="0">
+            <LOCATION X="615" Y="603" Z="0" W="23" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.86992" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.42624" RESULT="0"/>
+                <Convexity VAL="96.08696" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="79.81512" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="121" RESULT="0">
+            <LOCATION X="662" Y="603" Z="0" W="22" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.21951" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.37170" RESULT="0"/>
+                <Convexity VAL="98.64865" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="86.78829" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="122" RESULT="0">
+            <LOCATION X="708" Y="603" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.29268" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.96356" RESULT="0"/>
+                <Convexity VAL="98.13084" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.82888" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="123" RESULT="0">
+            <LOCATION X="384" Y="602" Z="0" W="23" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.63415" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="97.81787" RESULT="0"/>
+                <Convexity VAL="98.49785" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.90181" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="124" RESULT="0">
+            <LOCATION X="569" Y="603" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.17886" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.49368" RESULT="0"/>
+                <Convexity VAL="97.83654" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.87825" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="125" RESULT="0">
+            <LOCATION X="754" Y="604" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.31707" RESULT="0"/>
+                <void VAL="0.48780" RESULT="0"/>
+                <circularity VAL="85.37052" RESULT="0"/>
+                <Convexity VAL="98.11765" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="69.79915" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="126" RESULT="0">
+            <LOCATION X="291" Y="603" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="78.21138" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.22562" RESULT="0"/>
+                <Convexity VAL="97.36842" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="93.80901" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="127" RESULT="0">
+            <LOCATION X="337" Y="603" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.98374" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.05942" RESULT="0"/>
+                <Convexity VAL="97.63948" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.63458" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="128" RESULT="0">
+            <LOCATION X="430" Y="604" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="79.83740" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.91162" RESULT="0"/>
+                <Convexity VAL="98.39679" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.89844" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="129" RESULT="0">
+            <LOCATION X="244" Y="604" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.47154" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.72548" RESULT="0"/>
+                <Convexity VAL="98.07281" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="82.76465" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="130" RESULT="0">
+            <LOCATION X="566" Y="640" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.49593" RESULT="0"/>
+                <void VAL="0.97561" RESULT="0"/>
+                <circularity VAL="89.56589" RESULT="0"/>
+                <Convexity VAL="97.65458" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="42.25279" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="131" RESULT="0">
+            <LOCATION X="612" Y="640" Z="0" W="25" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.84553" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="86.71100" RESULT="0"/>
+                <Convexity VAL="95.72650" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="81.65279" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="132" RESULT="0">
+            <LOCATION X="659" Y="641" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.59350" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="86.43570" RESULT="0"/>
+                <Convexity VAL="93.24619" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="62.08533" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="133" RESULT="0">
+            <LOCATION X="707" Y="641" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.99187" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.26429" RESULT="0"/>
+                <Convexity VAL="96.94118" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="95.65080" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="134" RESULT="0">
+            <LOCATION X="751" Y="642" Z="0" W="24" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="62.43902" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="74.74172" RESULT="0"/>
+                <Convexity VAL="95.76060" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.91069" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="135" RESULT="0">
+            <LOCATION X="244" Y="641" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.35772" RESULT="0"/>
+                <void VAL="0.48780" RESULT="0"/>
+                <circularity VAL="94.19608" RESULT="0"/>
+                <Convexity VAL="96.96970" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="36.56628" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="136" RESULT="0">
+            <LOCATION X="337" Y="641" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.40650" RESULT="0"/>
+                <void VAL="2.43902" RESULT="0"/>
+                <circularity VAL="77.14639" RESULT="0"/>
+                <Convexity VAL="93.52818" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="61.36841" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="137" RESULT="0">
+            <LOCATION X="383" Y="641" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.98374" RESULT="0"/>
+                <void VAL="2.92683" RESULT="0"/>
+                <circularity VAL="84.49351" RESULT="0"/>
+                <Convexity VAL="97.72727" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="50.95603" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="138" RESULT="0">
+            <LOCATION X="429" Y="642" Z="0" W="26" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.17073" RESULT="0"/>
+                <void VAL="4.06504" RESULT="0"/>
+                <circularity VAL="76.39372" RESULT="0"/>
+                <Convexity VAL="97.33607" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="59.05004" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="139" RESULT="0">
+            <LOCATION X="291" Y="642" Z="0" W="25" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.49593" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="85.10432" RESULT="0"/>
+                <Convexity VAL="97.62419" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="80.88371" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="140" RESULT="0">
+            <LOCATION X="614" Y="678" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.61789" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.98514" RESULT="0"/>
+                <Convexity VAL="96.56751" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.82515" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="141" RESULT="0">
+            <LOCATION X="706" Y="678" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.82927" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.32924" RESULT="0"/>
+                <Convexity VAL="96.93396" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.00353" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="142" RESULT="0">
+            <LOCATION X="567" Y="678" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.08130" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.25908" RESULT="0"/>
+                <Convexity VAL="98.17768" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.94945" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="143" RESULT="0">
+            <LOCATION X="661" Y="679" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.78049" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="84.51212" RESULT="0"/>
+                <Convexity VAL="97.46544" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.40020" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="144" RESULT="0">
+            <LOCATION X="753" Y="679" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.40650" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="86.30354" RESULT="0"/>
+                <Convexity VAL="98.18594" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.48141" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="145" RESULT="0">
+            <LOCATION X="290" Y="678" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.33333" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.49907" RESULT="0"/>
+                <Convexity VAL="96.78112" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.42956" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="146" RESULT="0">
+            <LOCATION X="336" Y="678" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.21951" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.95058" RESULT="0"/>
+                <Convexity VAL="97.76786" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.97290" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="147" RESULT="0">
+            <LOCATION X="383" Y="678" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.05691" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.64315" RESULT="0"/>
+                <Convexity VAL="97.98206" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="96.52845" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="148" RESULT="0">
+            <LOCATION X="430" Y="679" Z="0" W="24" H="24" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.19512" RESULT="0"/>
+                <void VAL="0.97561" RESULT="0"/>
+                <circularity VAL="91.40562" RESULT="0"/>
+                <Convexity VAL="97.19222" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="52.25614" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="149" RESULT="0">
+            <LOCATION X="243" Y="679" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="73.65854" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.68640" RESULT="0"/>
+                <Convexity VAL="97.41935" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.03031" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="150" RESULT="0">
+            <LOCATION X="613" Y="715" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.38211" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="82.07450" RESULT="0"/>
+                <Convexity VAL="96.06127" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.27890" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="151" RESULT="0">
+            <LOCATION X="659" Y="715" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="74.30894" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="78.73480" RESULT="0"/>
+                <Convexity VAL="96.82203" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.24230" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="152" RESULT="0">
+            <LOCATION X="707" Y="715" Z="0" W="22" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.61789" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.35315" RESULT="0"/>
+                <Convexity VAL="97.23502" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.59783" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="153" RESULT="0">
+            <LOCATION X="383" Y="715" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.86992" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.95324" RESULT="0"/>
+                <Convexity VAL="97.35683" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="85.76066" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="154" RESULT="0">
+            <LOCATION X="567" Y="716" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.70732" RESULT="0"/>
+                <void VAL="0.16260" RESULT="0"/>
+                <circularity VAL="94.77784" RESULT="0"/>
+                <Convexity VAL="98.00443" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="55.01129" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="155" RESULT="0">
+            <LOCATION X="752" Y="717" Z="0" W="23" H="20" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="60.32520" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="78.51836" RESULT="0"/>
+                <Convexity VAL="97.37533" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.88599" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="156" RESULT="0">
+            <LOCATION X="291" Y="716" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.05691" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="96.20128" RESULT="0"/>
+                <Convexity VAL="98.20225" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="96.52845" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="157" RESULT="0">
+            <LOCATION X="337" Y="716" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.75610" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.36112" RESULT="0"/>
+                <Convexity VAL="97.72210" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.35947" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="158" RESULT="0">
+            <LOCATION X="430" Y="717" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.03252" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="85.02773" RESULT="0"/>
+                <Convexity VAL="97.79249" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.95740" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="159" RESULT="0">
+            <LOCATION X="244" Y="717" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.43089" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.53086" RESULT="0"/>
+                <Convexity VAL="97.26651" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.77333" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="160" RESULT="0">
+            <LOCATION X="659" Y="753" Z="0" W="25" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.03252" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="76.75523" RESULT="0"/>
+                <Convexity VAL="96.30435" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="85.56707" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="161" RESULT="0">
+            <LOCATION X="568" Y="753" Z="0" W="22" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.99187" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.81334" RESULT="0"/>
+                <Convexity VAL="97.63033" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.00537" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="162" RESULT="0">
+            <LOCATION X="613" Y="754" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="72.84553" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.14312" RESULT="0"/>
+                <Convexity VAL="97.81659" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.61208" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="163" RESULT="1">
+            <LOCATION X="706" Y="754" Z="0" W="25" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="1">
+                <Area VAL="61.30081" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="63.34161" RESULT="1"/>
+                <Convexity VAL="91.72749" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="79.82904" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="164" RESULT="0">
+            <LOCATION X="755" Y="754" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.04065" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.35279" RESULT="0"/>
+                <Convexity VAL="97.79951" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.19571" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="165" RESULT="0">
+            <LOCATION X="337" Y="753" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.24390" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.38137" RESULT="0"/>
+                <Convexity VAL="97.95918" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.74586" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="166" RESULT="0">
+            <LOCATION X="384" Y="753" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="63.73984" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.62475" RESULT="0"/>
+                <Convexity VAL="96.55172" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.99563" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="167" RESULT="0">
+            <LOCATION X="431" Y="754" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.24390" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.95539" RESULT="0"/>
+                <Convexity VAL="98.18182" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.74586" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="168" RESULT="0">
+            <LOCATION X="290" Y="754" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.89431" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.18415" RESULT="0"/>
+                <Convexity VAL="98.19820" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="86.94085" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="169" RESULT="0">
+            <LOCATION X="244" Y="755" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.96748" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.47971" RESULT="0"/>
+                <Convexity VAL="97.89227" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.39781" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="170" RESULT="0">
+            <LOCATION X="569" Y="790" Z="0" W="24" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.43089" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.66961" RESULT="0"/>
+                <Convexity VAL="97.48858" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="85.66850" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="171" RESULT="0">
+            <LOCATION X="614" Y="791" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.80488" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="75.72264" RESULT="0"/>
+                <Convexity VAL="96.97674" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.60020" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="172" RESULT="0">
+            <LOCATION X="659" Y="791" Z="0" W="25" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.29268" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="73.46213" RESULT="0"/>
+                <Convexity VAL="94.38202" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.99592" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="173" RESULT="0">
+            <LOCATION X="707" Y="791" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="60.32520" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.91948" RESULT="0"/>
+                <Convexity VAL="97.12042" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.88599" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="174" RESULT="0">
+            <LOCATION X="384" Y="790" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.45528" RESULT="0"/>
+                <void VAL="0.32520" RESULT="0"/>
+                <circularity VAL="91.05276" RESULT="0"/>
+                <Convexity VAL="97.46544" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="65.80572" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="175" RESULT="0">
+            <LOCATION X="429" Y="791" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.80488" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.30386" RESULT="0"/>
+                <Convexity VAL="97.20280" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="84.60020" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="176" RESULT="0">
+            <LOCATION X="752" Y="792" Z="0" W="23" H="20" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="55.28455" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="65.48113" RESULT="0"/>
+                <Convexity VAL="93.66391" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="78.15447" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="177" RESULT="0">
+            <LOCATION X="292" Y="791" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.61789" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="94.84900" RESULT="0"/>
+                <Convexity VAL="98.82904" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.82515" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="178" RESULT="0">
+            <LOCATION X="338" Y="791" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.69106" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.73789" RESULT="0"/>
+                <Convexity VAL="98.29684" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.49366" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="179" RESULT="0">
+            <LOCATION X="246" Y="792" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="63.90244" RESULT="0"/>
+                <void VAL="1.62602" RESULT="0"/>
+                <circularity VAL="92.61524" RESULT="0"/>
+                <Convexity VAL="98.53301" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="41.36890" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="180" RESULT="0">
+            <LOCATION X="708" Y="828" Z="0" W="21" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="60.00000" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.70131" RESULT="0"/>
+                <Convexity VAL="96.59686" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="78.31125" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="181" RESULT="0">
+            <LOCATION X="755" Y="828" Z="0" W="20" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="54.47154" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.93853" RESULT="0"/>
+                <Convexity VAL="95.44160" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.06523" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="182" RESULT="0">
+            <LOCATION X="568" Y="828" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.01626" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.98841" RESULT="0"/>
+                <Convexity VAL="96.43705" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="86.89233" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="183" RESULT="0">
+            <LOCATION X="615" Y="829" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="63.57724" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="85.28945" RESULT="0"/>
+                <Convexity VAL="97.26368" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.22579" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="184" RESULT="0">
+            <LOCATION X="660" Y="829" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.22764" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="84.25232" RESULT="0"/>
+                <Convexity VAL="97.05160" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="82.54608" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="185" RESULT="0">
+            <LOCATION X="385" Y="828" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="66.50407" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="95.60714" RESULT="0"/>
+                <Convexity VAL="97.84689" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="92.68022" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="186" RESULT="0">
+            <LOCATION X="431" Y="829" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.75610" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="86.96472" RESULT="0"/>
+                <Convexity VAL="96.83973" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="85.26911" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="187" RESULT="0">
+            <LOCATION X="245" Y="829" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.52846" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="93.64713" RESULT="0"/>
+                <Convexity VAL="97.34300" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="90.71821" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="188" RESULT="0">
+            <LOCATION X="291" Y="829" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="70.73171" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="88.22808" RESULT="0"/>
+                <Convexity VAL="97.75281" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="87.14072" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="189" RESULT="0">
+            <LOCATION X="338" Y="829" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="71.21951" RESULT="0"/>
+                <void VAL="2.27642" RESULT="0"/>
+                <circularity VAL="82.85592" RESULT="0"/>
+                <Convexity VAL="98.04772" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="55.38808" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="190" RESULT="0">
+            <LOCATION X="613" Y="866" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="63.57724" RESULT="0"/>
+                <void VAL="1.95122" RESULT="0"/>
+                <circularity VAL="80.38489" RESULT="0"/>
+                <Convexity VAL="94.60094" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="48.84465" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="191" RESULT="0">
+            <LOCATION X="658" Y="866" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.55285" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="81.81339" RESULT="0"/>
+                <Convexity VAL="92.54079" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="61.10826" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="192" RESULT="0">
+            <LOCATION X="708" Y="866" Z="0" W="20" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="57.07317" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="89.26223" RESULT="0"/>
+                <Convexity VAL="97.22992" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.39310" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="193" RESULT="0">
+            <LOCATION X="752" Y="866" Z="0" W="21" H="20" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="53.65854" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="77.31688" RESULT="0"/>
+                <Convexity VAL="95.93023" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.95215" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="194" RESULT="0">
+            <LOCATION X="567" Y="866" Z="0" W="23" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="68.45528" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="92.88845" RESULT="0"/>
+                <Convexity VAL="96.55963" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="83.79640" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="195" RESULT="0">
+            <LOCATION X="291" Y="866" Z="0" W="22" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="65.20325" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.77030" RESULT="0"/>
+                <Convexity VAL="98.28431" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="91.17067" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="196" RESULT="0">
+            <LOCATION X="338" Y="866" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="69.26829" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="85.99095" RESULT="0"/>
+                <Convexity VAL="97.48284" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="85.86960" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="197" RESULT="0">
+            <LOCATION X="384" Y="866" Z="0" W="24" H="23" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.47967" RESULT="0"/>
+                <void VAL="0.81301" RESULT="0"/>
+                <circularity VAL="84.24017" RESULT="0"/>
+                <Convexity VAL="97.22222" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="48.33608" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="198" RESULT="0">
+            <LOCATION X="430" Y="867" Z="0" W="23" H="22" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="67.31707" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="90.01014" RESULT="0"/>
+                <Convexity VAL="97.64151" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="88.35857" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+        <PIN NAME="199" RESULT="0">
+            <LOCATION X="245" Y="867" Z="0" W="22" H="21" D="1"/>
+            <ALGORITHM NAME="Weldability" RESULT="0">
+                <Area VAL="64.06504" RESULT="0"/>
+                <void VAL="0.00000" RESULT="0"/>
+                <circularity VAL="91.56002" RESULT="0"/>
+                <Convexity VAL="98.50000" RESULT="0"/>
+                <distance VAL="0.00000" RESULT="0"/>
+                <angle VAL="0.00000" RESULT="0"/>
+                <Eccentricity VAL="89.53879" RESULT="0"/>
+                <foreign VAL="0.00000" RESULT="0"/>
+            </ALGORITHM>
+        </PIN>
+    </COMPONENT>
+</TV_INSPECTION_RESULT>
