@@ -18,8 +18,8 @@ const CustomTooltip = ({ active, payload, label }) => {
         const okPercent = total > 0 ? (((data.ok || 0) / total) * 100).toFixed(1) : "0.0";
         const ngPercent = total > 0 ? (((data.ng || 0) / total) * 100).toFixed(1) : "0.0";
         return (
-            <div style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', padding: '12px', color: '#fff', fontSize: '0.85rem' }}>
-                <p style={{ marginBottom: '8px', fontWeight: 'bold' }}>Ngày {label}</p>
+            <div style={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '12px', padding: '12px', color: '#fff', fontSize: '0.85rem', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)' }}>
+                <p style={{ margin: 0, fontWeight: 'bold', marginBottom: '8px', color: '#94a3b8' }}>{label}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                     <div style={{ color: '#fff' }}>Tổng quét: {total}</div>
                     <div style={{ color: '#22c55e' }}>OK: {data.ok || 0} ({okPercent}%)</div>
@@ -47,6 +47,7 @@ function Analysis() {
         overall: { total: 0, ok: 0, ng: 0, ai_ok: 0, ok_rate: 0, ng_rate: 0 },
         machines: [], jobs: [], shots: [], arrays: [] 
     }));
+    const [baselineData, setBaselineData] = useState(data); // Dữ liệu gốc để giữ các cột máy/job
     const [trends, setTrends] = useState(() => getCache('ana_trends', []));
     const [filters, setFilters] = useState({ 
         machineId: null, 
@@ -97,6 +98,11 @@ function Analysis() {
 
             setData(processedData);
             setTrends(trendsWithLabels);
+            
+            // Nếu không có bộ lọc máy/job, cập nhật baselineData làm khung cho biểu đồ
+            if (!filters.machineId && !filters.jobFile) {
+                setBaselineData(processedData);
+            }
             
             // Xử lý cache nếu không có lọc
             if (!filters.machineId && !filters.jobFile && !filters.date && !filters.startDate && !filters.endDate) {
@@ -156,9 +162,9 @@ function Analysis() {
     };
 
     const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
-
+    
     return (
-        <div className="fade-in">
+        <div className="fade-in analysis-page-root">
             <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', position: 'relative' }}>
                 <div style={{
                     position: 'absolute',
@@ -210,55 +216,57 @@ function Analysis() {
                 </div>
             </header>
 
-            {/* Filter Status Bar */}
-            {(filters.machineId || filters.jobFile || filters.date || (filters.startDate && filters.endDate)) && (
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: '600' }}>Bộ lọc đang áp dụng:</span>
-                    {filters.startDate && filters.endDate && (
-                        <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa' }}>
-                            <Calendar size={14} />
-                            <span>Khoảng: {formatDateDisplay(filters.startDate)} - {formatDateDisplay(filters.endDate)}</span>
-                        </div>
-                    )}
-                    {filters.machineId && (
-                        <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px' }}>
-                            <span>Máy: {filters.machineName}</span>
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={removeMachineFilter} />
-                        </div>
-                    )}
-                    {filters.jobFile && (
-                        <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa' }}>
-                            <span>Job: {filters.jobFile}</span>
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={removeJobFilter} />
-                        </div>
-                    )}
-                    {filters.date && (
-                        <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
-                            <Calendar size={14} />
-                            <span>Ngày: {formatDateDisplay(filters.date)}</span>
-                            <X size={14} style={{ cursor: 'pointer' }} onClick={removeDateFilter} />
-                        </div>
-                    )}
-                    <button onClick={resetFilters} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', marginRight: 'auto' }}>
-                        Xóa tất cả
-                    </button>
-
-                    {/* Status Indicators */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', color: 'var(--text-secondary)', fontSize: '0.8rem', marginLeft: 'auto', background: 'rgba(255,255,255,0.03)', padding: '5px 15px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            {loading ? (
-                                <RefreshCw size={12} className="spin" style={{ color: 'var(--primary-color)' }} />
-                            ) : (
-                                <CheckCircle2 size={12} style={{ color: '#22c55e' }} />
+            {/* Filter Bar with Fixed Height to stabilize layout */}
+            <div style={{ minHeight: '60px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    {(filters.machineId || filters.jobFile || filters.date) ? (
+                        <>
+                            <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Đang lọc:</span>
+                            {filters.machineId && (
+                                <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px' }}>
+                                    <span>Máy: {filters.machineName}</span>
+                                    <X size={14} style={{ cursor: 'pointer' }} onClick={removeMachineFilter} />
+                                </div>
                             )}
-                            <span>{loading ? 'Đang đồng bộ...' : `Đã cập nhật: ${lastUpdated || '--:--:--'}`}</span>
-                        </div>
-                        <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />
-                        <div>Xử lý: <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>{processTime !== null ? `${processTime}s` : '--'}</span></div>
-                    </div>
+                            {filters.jobFile && (
+                                <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(139, 92, 246, 0.2)', color: '#a78bfa' }}>
+                                    <span>Job: {filters.jobFile}</span>
+                                    <X size={14} style={{ cursor: 'pointer' }} onClick={removeJobFilter} />
+                                </div>
+                            )}
+                            {filters.date && (
+                                <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
+                                    <Calendar size={14} />
+                                    <span>Ngày: {formatDateDisplay(filters.date)}</span>
+                                    <X size={14} style={{ cursor: 'pointer' }} onClick={removeDateFilter} />
+                                </div>
+                            )}
+                            <button onClick={resetFilters} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline' }}>
+                                Xóa tất cả
+                            </button>
+                        </>
+                    ) : (
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', opacity: 0.6 }}>Chưa áp dụng bộ lọc chi tiết (Click vào biểu đồ để lọc)</span>
+                    )}
                 </div>
-            )}
 
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', color: 'var(--text-secondary)', fontSize: '0.8rem', background: 'rgba(255,255,255,0.03)', padding: '5px 15px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {loading ? (
+                            <RefreshCw size={12} className="spin" style={{ color: 'var(--primary-color)' }} />
+                        ) : (
+                            <CheckCircle2 size={12} style={{ color: '#22c55e' }} />
+                        )}
+                        <span>{loading ? 'Đang đồng bộ...' : `Cập nhật: ${lastUpdated || '--:--:--'}`}</span>
+                    </div>
+                    {!loading && processTime !== null && (
+                        <>
+                            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />
+                            <div>Xử lý: <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>{processTime}s</span></div>
+                        </>
+                    )}
+                </div>
+            </div>
             {/* 1. Trends Row */}
             <div className="data-table-container" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
@@ -266,7 +274,12 @@ function Analysis() {
                 </h3>
                 <div style={{ height: '300px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={trends} margin={{ top: 20, right: 30, left: 10, bottom: 10 }} onClick={handleTrendClick}>
+                        <BarChart 
+                            data={trends} 
+                            margin={{ top: 20, right: 30, left: 10, bottom: 10 }} 
+                            onClick={handleTrendClick}
+                            style={{ outline: 'none' }}
+                        >
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                             <XAxis 
                                 dataKey="date" 
@@ -278,6 +291,7 @@ function Analysis() {
                             />
                             <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} unit="%" />
                             <Tooltip
+                                cursor={false}
                                 content={<CustomTooltip />}
                             />
                                 <Bar 
@@ -285,6 +299,7 @@ function Analysis() {
                                     name="Tỉ lệ NG (%)"
                                     radius={[4, 4, 0, 0]}
                                     barSize={40}
+                                    activeBar={false}
                                 >
                                     {trends.map((entry, index) => (
                                         <Cell 
@@ -292,10 +307,10 @@ function Analysis() {
                                             fill="#ef4444"
                                             style={{ 
                                                 cursor: 'pointer',
-                                                transition: 'opacity 0.15s ease',
-                                                filter: (!filters.date || filters.date === entry.date) ? 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.4))' : 'none'
+                                                transition: 'all 0.3s ease',
+                                                filter: (!filters.date || filters.date === entry.date) ? 'brightness(1.3) contrast(1.1)' : 'none'
                                             }}
-                                            opacity={(!filters.date || filters.date === entry.date) ? 1 : 0.3}
+                                            opacity={(!filters.date || filters.date === entry.date) ? 1 : 0.25}
                                         />
                                     ))}
                                     <LabelList 
@@ -319,35 +334,47 @@ function Analysis() {
                     <div style={{ height: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={data.machines}
+                                data={baselineData.machines}
                                 margin={{ top: 30, right: 10, left: 10, bottom: 5 }}
+                                style={{ outline: 'none' }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                 <XAxis dataKey="display_name" stroke="var(--text-secondary)" fontSize={12} />
                                 <YAxis stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
-                                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px' }} />
+                                <Tooltip 
+                                    cursor={false} 
+                                    contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
+                                    itemStyle={{ color: '#fff' }}
+                                />
                                 <Bar 
                                     dataKey="ng_rate" 
                                     name="Tỉ lệ NG (%)" 
                                     radius={[5, 5, 0, 0]} 
                                     isAnimationActive={false}
-                                    onClick={(data) => {
-                                        if (filters.machineId === data.id) {
+                                    activeBar={false}
+                                    onClick={(payload) => {
+                                        if (!payload) return;
+                                        const clickedId = payload.id;
+                                        if (String(filters.machineId) === String(clickedId)) {
                                             removeMachineFilter();
                                         } else {
-                                            setFilters(prev => ({ ...prev, machineId: data.id, machineName: data.display_name }));
+                                            setFilters(prev => ({ ...prev, machineId: clickedId, machineName: payload.display_name }));
                                         }
                                     }}
                                 >
-                                    {data.machines.map((entry, index) => {
-                                        const isSelected = entry.id === filters.machineId;
+                                    {baselineData.machines.map((entry, index) => {
+                                        const isSelected = filters.machineId && String(entry.id) === String(filters.machineId);
                                         const isAnySelected = filters.machineId !== null;
                                         return (
                                             <Cell
                                                 key={`cell-${index}`}
-                                                fill={isSelected ? '#22c55e' : COLORS[index % COLORS.length]}
-                                                fillOpacity={!isAnySelected || isSelected ? 1 : 0.3}
-                                                style={{ cursor: 'pointer', transition: 'all 0.3s' }}
+                                                fill={COLORS[index % COLORS.length]}
+                                                fillOpacity={!isAnySelected || isSelected ? 1 : 0.25}
+                                                style={{ 
+                                                    cursor: 'pointer', 
+                                                    transition: 'all 0.3s',
+                                                    filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none'
+                                                }}
                                             />
                                         );
                                     })}
@@ -371,12 +398,20 @@ function Analysis() {
                     </h3>
                     <div style={{ height: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data.shots} margin={{ top: 30, right: 10, left: 10, bottom: 5 }}>
+                            <BarChart 
+                                data={data.shots} 
+                                margin={{ top: 30, right: 10, left: 10, bottom: 5 }}
+                                style={{ outline: 'none' }}
+                            >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                 <XAxis dataKey="shot" stroke="var(--text-secondary)" fontSize={12} />
                                 <YAxis stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
-                                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px' }} />
-                                <Bar dataKey="ng_rate" fill="#ef4444" name="Tỉ lệ NG (%)" radius={[5, 5, 0, 0]} isAnimationActive={false}>
+                                <Tooltip 
+                                    cursor={false} 
+                                    contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
+                                    itemStyle={{ color: '#fff' }}
+                                />
+                                <Bar dataKey="ng_rate" fill="#ef4444" name="Tỉ lệ NG (%)" radius={[5, 5, 0, 0]} isAnimationActive={false} activeBar={false}>
                                     <LabelList 
                                         dataKey="displayLabel" 
                                         position="top" 
@@ -399,12 +434,20 @@ function Analysis() {
                     </h3>
                     <div style={{ height: '300px' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={data.arrays} margin={{ top: 30, right: 10, left: 10, bottom: 5 }}>
+                            <BarChart 
+                                data={data.arrays} 
+                                margin={{ top: 30, right: 10, left: 10, bottom: 5 }}
+                                style={{ outline: 'none' }}
+                            >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                 <XAxis dataKey="displayLabel" stroke="var(--text-secondary)" fontSize={12} />
                                 <YAxis stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
-                                <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px' }} />
-                                <Bar dataKey="ng_rate" fill="#f59e0b" name="Tỉ lệ NG (%)" radius={[5, 5, 0, 0]} isAnimationActive={false}>
+                                <Tooltip 
+                                    cursor={false} 
+                                    contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
+                                    itemStyle={{ color: '#fff' }}
+                                />
+                                <Bar dataKey="ng_rate" fill="#f59e0b" name="Tỉ lệ NG (%)" radius={[5, 5, 0, 0]} isAnimationActive={false} activeBar={false}>
                                     <LabelList 
                                         dataKey="displayLabel" 
                                         position="top" 
@@ -439,16 +482,21 @@ function Analysis() {
                             data={data.jobs}
                             layout="vertical"
                             margin={{ top: 5, right: 80, left: 10, bottom: 5 }}
+                            style={{ outline: 'none' }}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
                             <XAxis type="number" stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
                             <YAxis type="category" dataKey="job" stroke="var(--text-secondary)" fontSize={10} width={180} />
-                            <Tooltip cursor={{ fill: 'rgba(255,255,255,0.05)' }} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px' }} />
+                            <Tooltip 
+                                cursor={false}                                contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
+                                itemStyle={{ color: '#fff' }}
+                            />
                             <Bar 
                                 dataKey="ng_rate" 
                                 name="Tỉ lệ NG (%)" 
                                 radius={[0, 5, 5, 0]} 
                                 isAnimationActive={false}
+                                activeBar={false}
                                 onClick={(data) => {
                                     if (filters.jobFile === data.job) {
                                         removeJobFilter();
@@ -458,14 +506,18 @@ function Analysis() {
                                 }}
                             >
                                 {data.jobs.map((entry, index) => {
-                                    const isSelected = entry.job === filters.jobFile;
+                                    const isSelected = filters.jobFile && String(entry.job) === String(filters.jobFile);
                                     const isAnySelected = filters.jobFile !== null;
                                     return (
                                         <Cell
                                             key={`cell-job-${index}`}
-                                            fill={isSelected ? '#22c55e' : '#8b5cf6'}
-                                            fillOpacity={!isAnySelected || isSelected ? 1 : 0.3}
-                                            style={{ cursor: 'pointer', transition: 'all 0.3s' }}
+                                            fill="#8b5cf6"
+                                            fillOpacity={!isAnySelected || isSelected ? 1 : 0.25}
+                                            style={{ 
+                                                cursor: 'pointer', 
+                                                transition: 'all 0.3s',
+                                                filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none'
+                                            }}
                                         />
                                     );
                                 })}

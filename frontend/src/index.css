@@ -346,6 +346,41 @@ body {
   color: var(--text-main);
 }
 
+/* Fix Recharts Focus Outline & Cursor Aggressively */
+.recharts-wrapper, 
+.recharts-surface,
+.recharts-layer,
+.recharts-rectangle,
+.recharts-wrapper:focus, 
+.recharts-surface:focus,
+.recharts-layer:focus,
+.recharts-rectangle:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.recharts-tooltip-cursor {
+  display: none !important;
+}
+
+.recharts-wrapper {
+  user-select: none !important;
+}
+
+/* Aggressive Global Reset for Analysis Page UI Noise */
+.analysis-page-root *:focus,
+.analysis-page-root *:active,
+.analysis-page-root svg:focus,
+.analysis-page-root .recharts-surface:focus,
+.analysis-page-root .recharts-layer:focus,
+.analysis-page-root .recharts-rectangle:focus,
+.analysis-page-root .recharts-wrapper:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 /* Premium User Profile */
 .user-profile-premium {
   display: flex;
