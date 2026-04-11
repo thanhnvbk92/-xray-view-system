@@ -33,7 +33,7 @@ function Settings() {
     try {
       const [lRes, mRes, tRes] = await Promise.all([
         api.get('/api/lines'),
-        api.get('/api/machines'),
+        api.get('/api/machines/'),
         api.get('/api/machine-types')
       ]);
       setLines(lRes.data);
@@ -103,7 +103,7 @@ function Settings() {
     e.preventDefault();
     if (!newMachine.line_id) return alert("Vui lòng chọn Line");
     try {
-      await api.post('/api/machines', newMachine);
+      await api.post('/api/machines/', newMachine);
       setNewMachine({ name: '', ip_address: '', line_id: '', machine_type_id: '' });
       fetchData();
     } catch (err) { alert(err.response?.data?.detail || "Lỗi khi thêm Máy"); }

@@ -45,7 +45,7 @@ function Trace() {
             if (endDate) params.append('end_date', endDate);
 
             console.log("Trace: Searching with params:", params.toString());
-            const res = await api.get(`/api/trace/search?${params.toString()}`);
+            const res = await api.get(`/api/pcbs/trace/search?${params.toString()}`);
             setResults(res.data);
         } catch (error) {
             console.error("Search failed:", error);

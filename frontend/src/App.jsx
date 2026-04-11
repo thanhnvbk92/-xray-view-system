@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { LayoutDashboard, Settings, Cpu, LogOut, BarChart3, Search, Users, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Settings, Cpu, LogOut, BarChart3, Search, Users, UserCircle, Shield } from 'lucide-react';
 import Dashboard from './pages/Dashboard';
 import MachineDetail from './pages/MachineDetail';
 import Analysis from './pages/Analysis';
@@ -31,11 +31,14 @@ const Sidebar = ({ user, logout }) => (
       <h2>X-RAY VISION</h2>
     </div>
 
-    <div className="user-profile">
-      <div className="user-avatar">{user?.full_name?.charAt(0) || 'U'}</div>
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        <div style={{ fontWeight: 'bold', fontSize: '0.9rem', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>{user?.full_name}</div>
-        <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{user?.role}</div>
+    <div className="user-profile-premium">
+      <div className="avatar-gradient">{user?.full_name?.charAt(0) || 'U'}</div>
+      <div className="user-info-text">
+        <div className="user-name">{user?.full_name}</div>
+        <div className="user-role-badge">
+          <Shield size={12} />
+          <span>{user?.role}</span>
+        </div>
       </div>
     </div>
 

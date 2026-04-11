@@ -14,7 +14,7 @@ function UserManagement() {
     const fetchUsers = async () => {
         try {
             console.log("UserManagement: Fetching users...");
-            const res = await api.get('/api/admin/users');
+            const res = await api.get('/api/auth/users');
             setUsers(res.data);
         } catch (error) {
             console.error("Error fetching users:", error);
@@ -67,7 +67,7 @@ function UserManagement() {
             
             // Chuyển danh sách quyền sang JSON string để API parse
             const permsJson = JSON.stringify(perms);
-            await api.post(`/api/admin/users/${id}/approve?role=${role}&permissions=${encodeURIComponent(permsJson)}`);
+            await api.post(`/api/auth/users/${id}/approve?role=${role}&permissions=${encodeURIComponent(permsJson)}`);
             fetchUsers();
         } catch (error) {
             alert("Lỗi khi phê duyệt người dùng");
@@ -78,7 +78,7 @@ function UserManagement() {
         if (!window.confirm("Bạn có chắc chắn muốn xóa người dùng này?")) return;
         try {
             console.log(`UserManagement: Rejecting user ${id}`);
-            await api.post(`/api/admin/users/${id}/reject`);
+            await api.post(`/api/auth/users/${id}/reject`);
             fetchUsers();
         } catch (error) {
             alert("Lỗi khi từ chối người dùng");
