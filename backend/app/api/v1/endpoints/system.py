@@ -6,8 +6,16 @@ from app import config
 router = APIRouter()
 
 def get_latest_version_info():
-    """Giả lập lấy thông tin phiên bản từ tệp hoặc DB"""
-    return {"version": "1.0.5"}
+    """Lấy thông tin phiên bản từ tệp version.json"""
+    import json
+    version_file = os.path.join(config.DOWNLOAD_DIR, "version.json")
+    try:
+        if os.path.exists(version_file):
+            with open(version_file, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"Error reading version file: {e}")
+    return {"version": "1.0.0"}
 
 @router.get("/version")
 async def get_version():

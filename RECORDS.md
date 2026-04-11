@@ -35,3 +35,7 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 ### Phiên làm việc: 11/04/2026 - Sửa lỗi đồng bộ ảnh từ Collector
 - **Yêu cầu 13**: Khắc phục lỗi Collector không tìm thấy ảnh do sai Search Pattern (thiếu dấu gạch dưới trước timestamp). [Hoàn thành]
 - **Yêu cầu 14**: Đồng bộ lại logic tìm kiếm để hỗ trợ mọi định dạng tên file bắt đầu bằng Timestamp. [Hoàn thành]
+
+### Phiên làm việc: 11/04/2026 - Hoàn thiện hệ thống Cập nhật tự động (Auto-Update)
+- **Yêu cầu 15**: Chuyển đổi logic Backend từ "phiên bản viết cứng" sang "phiên bản động" đọc từ file `version.json`. [Hoàn thành]
+- **Yêu cầu 16**: Hướng dẫn quy trình triển khai bản cập nhật mới lên Server. [Hoàn thành]
