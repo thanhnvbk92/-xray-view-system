@@ -3,8 +3,11 @@ import os
 # Thư mục gốc của Backend
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# Thư mục gốc dự án (Xray View System)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(BASE_DIR))
+
 # Thư mục lưu trữ dữ liệu (ngoài source code)
-DATA_ROOT = os.path.join(os.path.dirname(BASE_DIR), "data")
+DATA_ROOT = os.path.join(PROJECT_ROOT, "data")
 
 # Các đường dẫn cụ thể
 UPLOAD_DIR = os.path.join(DATA_ROOT, "images")
@@ -12,7 +15,7 @@ STORAGE_DIR = r"D:\3.Xray Image\storage" # Ổ mạng đã sửa cú pháp
 
 # DOWNLOAD và FRONTEND
 DOWNLOAD_DIR = os.path.join(BASE_DIR, "static/downloads")
-FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend/dist")
+FRONTEND_DIR = os.path.join(PROJECT_ROOT, "frontend/dist")
 
 # Cấu hình Engine xử lý (Sử dụng GPU cho 2x Titan X)
 IMAGE_ENGINE = "GPU" 

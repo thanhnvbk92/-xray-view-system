@@ -52,7 +52,7 @@ def test_integration():
                 "result": "OK",
                 "test_time": datetime.now().isoformat()
             }
-            response = requests.post(f"{API_URL}/upload-scan", data=data, files=files)
+            response = requests.post(f"{API_URL}/api/pcbs/upload-scan", data=data, files=files)
             print(f"Upload Result: {response.json()}")
         
         # 3. Verify in DB

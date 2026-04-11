@@ -175,11 +175,11 @@ def init_db():
             # MACHINES table: machine_type_id và các ràng buộc mới
             try:
                 # 1. Đảm bảo có ít nhất 1 Line và 1 MachineType để gán làm mặc định nếu cần
-                conn.execute(text("INSERT IGNORE INTO lines (name) VALUES ('Default Line')"))
+                conn.execute(text("INSERT IGNORE INTO `lines` (name) VALUES ('Default Line')"))
                 conn.execute(text("INSERT IGNORE INTO machine_types (name) VALUES ('Default Type')"))
                 
                 # 2. Xử lý dữ liệu NULL trước khi đặt NOT NULL
-                conn.execute(text("UPDATE machines SET line_id = (SELECT id FROM lines LIMIT 1) WHERE line_id IS NULL"))
+                conn.execute(text("UPDATE machines SET line_id = (SELECT id FROM `lines` LIMIT 1) WHERE line_id IS NULL"))
                 conn.execute(text("UPDATE machines SET machine_type_id = (SELECT id FROM machine_types LIMIT 1) WHERE machine_type_id IS NULL"))
                 
                 # 3. Thay đổi các ràng buộc cột

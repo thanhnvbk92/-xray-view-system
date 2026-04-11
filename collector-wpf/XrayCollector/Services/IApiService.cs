@@ -37,7 +37,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/v1/machines/heartbeat", new { 
+                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/machines/heartbeat", new { 
                     machine_id = machineId,
                     ip_address = ipAddress
                 });
@@ -63,7 +63,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/v1/machines/offline", new { machine_id = machineId });
+                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/machines/offline", new { machine_id = machineId });
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
@@ -74,7 +74,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.GetAsync($"{baseUrl}/api/v1/system/version");
+                var response = await _httpClient.GetAsync($"{baseUrl}/api/system/version");
                 return response.IsSuccessStatusCode;
             }
             catch
@@ -88,7 +88,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<LineDto>>($"{baseUrl}/api/v1/lines") ?? new List<LineDto>();
+                return await _httpClient.GetFromJsonAsync<List<LineDto>>($"{baseUrl}/api/lines") ?? new List<LineDto>();
             }
             catch { return new List<LineDto>(); }
         }
@@ -98,7 +98,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<MachineDto>>($"{baseUrl}/api/v1/machines") ?? new List<MachineDto>();
+                return await _httpClient.GetFromJsonAsync<List<MachineDto>>($"{baseUrl}/api/machines") ?? new List<MachineDto>();
             }
             catch { return new List<MachineDto>(); }
         }
@@ -108,7 +108,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<MachineTypeDto>>($"{baseUrl}/api/v1/machine-types") ?? new List<MachineTypeDto>();
+                return await _httpClient.GetFromJsonAsync<List<MachineTypeDto>>($"{baseUrl}/api/machine-types") ?? new List<MachineTypeDto>();
             }
             catch { return new List<MachineTypeDto>(); }
         }
@@ -118,7 +118,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.GetAsync($"{baseUrl}/api/v1/lines");
+                var response = await _httpClient.GetAsync($"{baseUrl}/api/lines");
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
@@ -160,7 +160,7 @@ namespace XrayCollector.Services
                     }
                 }
 
-                var response = await _httpClient.PostAsync($"{baseUrl}/api/v1/pcbs/upload-scan", content);
+                var response = await _httpClient.PostAsync($"{baseUrl}/api/pcbs/upload-scan", content);
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
@@ -170,7 +170,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<MachineDetailDto>($"{baseUrl}/api/v1/machines/{machineId}");
+                return await _httpClient.GetFromJsonAsync<MachineDetailDto>($"{baseUrl}/api/machines/{machineId}");
             }
             catch { return null; }
         }

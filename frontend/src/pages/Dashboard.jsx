@@ -119,6 +119,8 @@ function Dashboard() {
 
   if (loading) return <div className="loading">Đang tải dữ liệu vận hành...</div>;
 
+  const pendingRate = stats.total > 0 ? ((totalUnconfirmed / stats.total) * 100).toFixed(1) : "0.0";
+
   return (
     <div className="fade-in">
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
@@ -138,7 +140,9 @@ function Dashboard() {
             <div className="stat-icon" style={{ color: '#f59e0b', padding: '6px' }}><AlertTriangle size={18} /></div>
             <div className="stat-label" style={{ fontSize: '0.75rem' }}>Chờ duyệt</div>
           </div>
-          <div className="stat-value" style={{ color: '#f59e0b', fontSize: '1.25rem', marginTop: '4px' }}>{totalUnconfirmed}</div>
+          <div className="stat-value" style={{ color: '#f59e0b', fontSize: '1.25rem', marginTop: '4px' }}>
+            {totalUnconfirmed} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({pendingRate}%)</span>
+          </div>
         </div>
         <div className="stat-card" style={{ padding: '0.75rem 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

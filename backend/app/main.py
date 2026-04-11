@@ -44,8 +44,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Đăng ký API v1 chuẩn chuyên nghiệp
-app.include_router(api_router, prefix="/api/v1")
+# Đăng ký API chuẩn
+app.include_router(api_router, prefix="/api")
 
 # Phục vụ file Static (Ảnh và Downloads)
 if not os.path.exists(config.UPLOAD_DIR): os.makedirs(config.UPLOAD_DIR)

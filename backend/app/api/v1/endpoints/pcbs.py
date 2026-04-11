@@ -6,12 +6,12 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
 from sqlalchemy.orm import Session
 
-from app.database import get_db, PCB, PCBImage, Machine, User
-from app import schemas, config, database
-from app.core.security import get_current_user, check_permission
-from app.core.websocket import manager
-from app.core.cache import global_stats_cache
-from app.workers.image_worker import image_queue
+from ....database import get_db, PCB, PCBImage, Machine, User
+from .... import schemas, config, database
+from ....core.security import get_current_user, check_permission
+from ....core.websocket import manager
+from ....core.cache import global_stats_cache
+from ....workers.image_worker import image_queue
 
 router = APIRouter()
 

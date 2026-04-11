@@ -22,7 +22,9 @@ if (-not (Test-Path "$currentDir\backend")) {
 } else {
     try {
         # Sử dụng Python 3.12 từ môi trường ảo (.venv)
-        .\backend\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 0.0.0.0 --port $port --reload
+        # Thêm PYTHONPATH để Python tìm thấy package 'app'
+        $env:PYTHONPATH = "$currentDir\backend"
+        .\backend\.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 0.0.0.0 --port $port --reload
     } catch {
         Write-Host "PowerShell Error: $_" -ForegroundColor Red
     }

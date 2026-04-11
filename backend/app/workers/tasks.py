@@ -3,10 +3,10 @@ import json
 from datetime import datetime, timedelta
 from sqlalchemy import or_
 
-from app import database
-from app.database import Machine, PCBImage
-from app.core.websocket import manager
-from app.workers.image_worker import image_queue
+from .. import database
+from ..database import Machine, PCBImage
+from ..core.websocket import manager
+from .image_worker import image_queue
 
 async def check_offline_machines():
     """Tác vụ định kỳ: Tự chuyển máy sang OFFLINE nếu quá 90s chưa nhận heartbeat"""

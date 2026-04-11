@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func, case, and_
 from sqlalchemy.orm import Session
 
-from app.database import get_db, PCB, PCBImage, Machine, Line, User
-from app import database
-from app.core.security import get_current_user
-from app.core.cache import global_stats_cache
+from ....database import get_db, PCB, PCBImage, Machine, Line, User
+from .... import database
+from ....core.security import get_current_user
+from ....core.cache import global_stats_cache
 
 router = APIRouter()
 
@@ -104,15 +104,53 @@ async def get_trends(
         func.date(PCB.system_time).label('day'),
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng'),
-        func.sum(case((PCB.final_result == 'OK', 1), else_=0)).label('ok')
+        func.sum(case((PCB.final_result == 'OK', 1), else_=0)).label('ok'),
+        func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
+        func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
     ).filter(PCB.system_time >= start_dt, PCB.system_time <= end_dt)
 
     if machine_id: query = query.filter(PCB.machine_id == machine_id)
     if job_file: query = query.filter(PCB.job_file == job_file)
 
     results = query.group_by(func.date(PCB.system_time)).all()
-    # Format kết quả cho Frontend
-    trends = [{"date": str(r[0]), "total": r[1], "ok": int(r[3] or 0), "ng": int(r[2] or 0)} for r in results]
+    
+    # 3. Logic Zero-filling: Đảm bảo luôn có dữ liệu cho 7 ngày gần nhất
+    current_trends = {str(r[0]): {
+        "total": r[1], 
+        "ok": int(r[3] or 0), 
+        "ng": int(r[2] or 0),
+        "ai_ok": int(r[4] or 0),
+        "user_ok": int(r[5] or 0)
+    } for r in results}
+    trends = []
+    
+    # Iterate từ start_dt đến end_dt (7 ngày)
+    for i in range(7):
+        d = (start_dt + timedelta(days=i)).date()
+        d_str = str(d)
+        
+        if d_str in current_trends:
+            data = current_trends[d_str]
+            total = data["total"]
+            trends.append({
+                "date": d_str,
+                "total": total,
+                "ok": data["ok"],
+                "ng": data["ng"],
+                "ai_ok": data["ai_ok"],
+                "user_ok": data["user_ok"],
+                "ng_rate": round((data["ng"] / total * 100), 1) if total > 0 else 0
+            })
+        else:
+            trends.append({
+                "date": d_str,
+                "total": 0,
+                "ok": 0,
+                "ng": 0,
+                "ai_ok": 0,
+                "user_ok": 0,
+                "ng_rate": 0
+            })
     
     global_stats_cache.set(cache_key, trends)
     return trends

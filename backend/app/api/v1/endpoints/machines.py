@@ -4,10 +4,10 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.database import get_db, Machine, Line, User
-from app import schemas
-from app.core.security import get_current_user, check_permission
-from app.core.websocket import manager
+from ....database import get_db, Machine, Line, User
+from .... import schemas
+from ....core.security import get_current_user, check_permission
+from ....core.websocket import manager
 
 router = APIRouter()
 

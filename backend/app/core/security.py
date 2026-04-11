@@ -7,8 +7,8 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from app.database import get_db, User
-from app import schemas
+from ..database import get_db, User
+from .. import schemas
 
 # --- AUTH CONFIGURATION ---
 SECRET_KEY = "antigravity_xray_secret_key" # Trong thực tế nên dùng env
