@@ -77,15 +77,16 @@ async def get_analysis_summary(
         "ng_rate": get_rate(ng, total)
     }
 
-    # 3. Stats by Machine
+    # 3. Stats by Machine - Sử dụng Outer Join để luôn giữ đủ danh sách máy kể cả khi không có data theo bộ lọc
     machine_stats = db.query(
         Machine.id,
         Machine.name,
         Line.name.label('line_name'),
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).join(PCB, PCB.machine_id == Machine.id).join(Line, Machine.line_id == Line.id)\
-        .filter(*filters).group_by(Machine.id).order_by(Line.name, Machine.name).all()
+    ).join(Line, Machine.line_id == Line.id)\
+        .outerjoin(PCB, and_(PCB.machine_id == Machine.id, *filters))\
+        .group_by(Machine.id).order_by(Line.name, Machine.name).all()
 
     machines = []
     for row in machine_stats:
@@ -152,8 +153,7 @@ async def get_analysis_summary(
     # Sắp xếp theo thứ tự shot
     shots.sort(key=lambda x: x["shot"])
 
-    # 7. Lọc các danh sách khác chỉ lấy những mục có dữ liệu (total > 0)
-    machines = [m for m in machines if m["total"] > 0]
+    # 7. Lọc các danh sách khác chỉ lấy những mục có dữ liệu (total > 0), riêng machines giữ nguyên để hiện skeleton
     jobs = [j for j in jobs if j["total"] > 0]
     arrays = [a for a in arrays if a["total"] > 0]
 

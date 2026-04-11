@@ -48,7 +48,6 @@ function Analysis() {
         overall: { total: 0, ok: 0, ng: 0, ai_ok: 0, ok_rate: 0, ng_rate: 0 },
         machines: [], jobs: [], shots: [], arrays: [] 
     }));
-    const [baselineData, setBaselineData] = useState(data); // Dữ liệu gốc để giữ các cột máy/job
     const [trends, setTrends] = useState(() => getCache('ana_trends', []));
     const [filters, setFilters] = useState({ 
         machineId: null, 
@@ -104,10 +103,6 @@ function Analysis() {
             setData(processedData);
             setTrends(trendsWithLabels);
             
-            // Nếu không có bộ lọc máy/job, cập nhật baselineData làm khung cho biểu đồ
-            if (!filters.machineId && !filters.jobFile && !filters.arrayIndex && !filters.shotIdx) {
-                setBaselineData(processedData);
-            }
             
             // Xử lý cache nếu không có lọc
             if (!filters.machineId && !filters.jobFile && !filters.arrayIndex && !filters.shotIdx && !filters.date && !filters.startDate && !filters.endDate) {
@@ -345,7 +340,7 @@ function Analysis() {
                     <div style={{ height: '240px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
-                                data={baselineData.machines}
+                                data={data.machines}
                                 margin={{ top: 25, right: 10, left: 10, bottom: 40 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -377,7 +372,7 @@ function Analysis() {
                                         }
                                     }}
                                 >
-                                    {baselineData.machines.map((entry, index) => {
+                                    {data.machines.map((entry, index) => {
                                         const isSelected = filters.machineId && String(entry.id) === String(filters.machineId);
                                         const isAnySelected = filters.machineId !== null;
                                         return (
