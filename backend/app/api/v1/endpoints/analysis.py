@@ -84,7 +84,8 @@ async def get_analysis_summary(
         Line.name.label('line_name'),
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng')
-    ).join(PCB, PCB.machine_id == Machine.id).join(Line, Machine.line_id == Line.id).filter(*filters).group_by(Machine.id).all()
+    ).join(PCB, PCB.machine_id == Machine.id).join(Line, Machine.line_id == Line.id)\
+        .filter(*filters).group_by(Machine.id).order_by(Line.name, Machine.name).all()
 
     machines = []
     for row in machine_stats:

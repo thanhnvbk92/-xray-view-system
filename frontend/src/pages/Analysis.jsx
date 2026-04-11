@@ -346,17 +346,17 @@ function Analysis() {
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 data={baselineData.machines}
-                                margin={{ top: 25, right: 10, left: 10, bottom: 60 }}
+                                margin={{ top: 25, right: 10, left: 10, bottom: 40 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                                 <XAxis 
                                     dataKey="display_name" 
                                     stroke="var(--text-secondary)" 
-                                    fontSize={10} 
+                                    fontSize={9} 
                                     interval={0}
                                     angle={-45}
                                     textAnchor="end"
-                                    height={60}
+                                    height={40}
                                 />
                                 <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
                                 <Tooltip 
