@@ -72,7 +72,7 @@ function MachineDetail() {
             const formData = new FormData();
             formData.append('user_result', result);
             console.log(`MachineDetail: Confirming image ${selectedImage.id} as ${result}`);
-            await api.post(`/api/images/confirm/${selectedImage.id}`, formData);
+            await api.post(`/api/pcbs/confirm-image/${selectedImage.id}`, formData);
 
             // 2. Cập nhật state local ngay để giao diện đổi màu
             const updatedImages = selectedPcb.images.map(img => {
