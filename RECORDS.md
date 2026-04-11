@@ -56,3 +56,4 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 - **Yêu cầu 31**: (2026-04-11 22:37) Điều chỉnh cơ chế Heartbeat: Chỉ kích hoạt gửi tín hiệu Online sau khi người dùng nhấn nút START và dừng khi nhấn STOP. [Hoàn thành]
 - **Yêu cầu 32**: (2026-04-11 22:55) Tinh chỉnh đồ thị Máy: Khôi phục chiều cao 240px, thu nhỏ nhãn và đẩy sát xuống dưới viền để tối đa hóa không gian hiển thị cột dữ liệu. [Hoàn thành]
 - **Yêu cầu 33**: (2026-04-11 22:56) Sắp xếp thứ tự máy trên đồ thị: Dữ liệu được sắp xếp theo Line trước, sau đó đến tên Máy từ trái sang phải. [Hoàn thành]
+- **Yêu cầu 34**: (2026-04-11 23:00) Thay đổi nguồn dữ liệu trang Phân tích: Sử dụng kết quả gốc từ máy (`machine_result`) thay vì kết quả sau xác nhận để đánh giá chính xác năng lực máy. [Hoàn thành]

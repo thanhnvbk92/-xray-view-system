@@ -57,8 +57,8 @@ async def get_analysis_summary(
     # 2. Overall Stats
     overall_stats = db.query(
         func.count(PCB.id).label('total'),
-        func.sum(case((PCB.final_result == 'OK', 1), else_=0)).label('ok'),
-        func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng'),
+        func.sum(case((PCB.machine_result == 'OK', 1), else_=0)).label('ok'),
+        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng'),
         func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
         func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
     ).filter(*filters).first()
@@ -83,7 +83,7 @@ async def get_analysis_summary(
         Machine.name,
         Line.name.label('line_name'),
         func.count(PCB.id).label('total'),
-        func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng')
+        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
     ).join(PCB, PCB.machine_id == Machine.id).join(Line, Machine.line_id == Line.id)\
         .filter(*filters).group_by(Machine.id).order_by(Line.name, Machine.name).all()
 
@@ -101,8 +101,8 @@ async def get_analysis_summary(
     job_stats = db.query(
         PCB.job_file,
         func.count(PCB.id).label('total'),
-        func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*filters).group_by(PCB.job_file).order_by(func.sum(case((PCB.final_result == 'NG', 1), else_=0)).desc()).limit(20).all()
+        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
+    ).filter(*filters).group_by(PCB.job_file).order_by(func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).desc()).limit(20).all()
 
     jobs = []
     for row in job_stats:
@@ -118,7 +118,7 @@ async def get_analysis_summary(
     array_stats = db.query(
         PCB.array_index,
         func.count(PCB.id).label('total'),
-        func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng')
+        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
     ).filter(*filters).group_by(PCB.array_index).all()
 
     arrays = []
