@@ -97,7 +97,7 @@ class PCB(Base):
     system_time = Column(DateTime, default=datetime.utcnow, index=True) # Thời gian ghi nhận tại server
     
     image_path = Column(String(255))
-    user_confirmed = Column(Boolean, default=False)
+    user_confirmed = Column(Boolean, default=False, index=True)
     confirmed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     confirmed_at = Column(DateTime, nullable=True)
     
@@ -158,6 +158,8 @@ def init_db():
             try: conn.execute(text("CREATE INDEX idx_pcb_ai_result ON pcbs(ai_result)"))
             except: pass
             try: conn.execute(text("CREATE INDEX idx_pcb_client_time ON pcbs(client_time)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_pcb_user_confirmed ON pcbs(user_confirmed)"))
             except: pass
 
             # MACHINE_TYPES table

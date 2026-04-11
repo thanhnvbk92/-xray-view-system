@@ -4,7 +4,7 @@ import shutil
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from ....database import get_db, PCB, PCBImage, Machine, User
 from .... import schemas, config, database
@@ -140,11 +140,11 @@ async def upload_scan(
 @router.get("/unconfirmed/{machine_id}", response_model=List[schemas.PCBResponse])
 async def get_unconfirmed_pcbs(machine_id: int, db: Session = Depends(get_db)):
     """Lấy danh sách các PCB NG chưa duyệt của 1 máy"""
-    pcbs = db.query(PCB).filter(
+    pcbs = db.query(PCB).options(joinedload(PCB.images)).filter(
         PCB.machine_id == machine_id,
         PCB.final_result == "NG",
         PCB.user_confirmed == False
-    ).order_by(PCB.client_time.desc()).all()
+    ).order_by(PCB.client_time.desc()).limit(50).all()
     return pcbs
 
 @router.get("/{pcb_id}/images", response_model=List[schemas.PCBImageResponse])

@@ -39,3 +39,5 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 ### Phiên làm việc: 11/04/2026 - Hoàn thiện hệ thống Cập nhật tự động (Auto-Update)
 - **Yêu cầu 15**: Chuyển đổi logic Backend từ "phiên bản viết cứng" sang "phiên bản động" đọc từ file `version.json`. [Hoàn thành]
 - **Yêu cầu 16**: Hướng dẫn quy trình triển khai bản cập nhật mới lên Server. [Hoàn thành]
+- **Yêu cầu 17**: Sửa lỗi Route `/api/version` (loại bỏ prefix `/system` để khớp với Collector). [Hoàn thành]
+- **Yêu cầu 18**: Tối ưu hóa trang Confirm (Turbo Load) bằng kỹ thuật `joinedload`, Index và Phân trang. [Hoàn thành]
