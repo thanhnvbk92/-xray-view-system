@@ -10,12 +10,15 @@ namespace XrayCollector.Services
 {
     public interface IApiService
     {
-        Task<bool> SendHeartbeatAsync(int machineId);
+        Task<(bool Success, string Message)> SendHeartbeatAsync(int machineId, string ipAddress);
         Task<bool> SendOfflineAsync(int machineId);
         Task<bool> CheckUpdateAsync();
         Task<List<LineDto>> GetLinesAsync();
         Task<List<MachineDto>> GetMachinesAsync();
-        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, System.Collections.Generic.List<string> imagePaths, System.Collections.Generic.List<string> imageResults);
+        Task<List<MachineTypeDto>> GetMachineTypesAsync();
+        Task<bool> PingAsync();
+        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, System.Collections.Generic.List<string> imagePaths, System.Collections.Generic.List<string> imageResults);
+        Task<MachineDetailDto> GetMachineDetailAsync(int machineId);
     }
 
     public class ApiService : IApiService
@@ -29,15 +32,30 @@ namespace XrayCollector.Services
             _settings = settings;
         }
 
-        public async Task<bool> SendHeartbeatAsync(int machineId)
+        public async Task<(bool Success, string Message)> SendHeartbeatAsync(int machineId, string ipAddress)
         {
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/heartbeat", new { machine_id = machineId });
-                return response.IsSuccessStatusCode;
+                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/v1/machines/heartbeat", new { 
+                    machine_id = machineId,
+                    ip_address = ipAddress
+                });
+                
+                if (response.IsSuccessStatusCode)
+                    return (true, "OK");
+                
+                var error = await response.Content.ReadAsStringAsync();
+                // Phổ biến là {"detail": "..."} từ FastAPI
+                try {
+                    var json = System.Text.Json.JsonDocument.Parse(error);
+                    var detail = json.RootElement.GetProperty("detail").GetString();
+                    return (false, detail ?? "Lỗi không xác định");
+                } catch {
+                    return (false, error);
+                }
             }
-            catch { return false; }
+            catch (Exception ex) { return (false, ex.Message); }
         }
 
         public async Task<bool> SendOfflineAsync(int machineId)
@@ -45,7 +63,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/offline", new { machine_id = machineId });
+                var response = await _httpClient.PostAsJsonAsync($"{baseUrl}/api/v1/machines/offline", new { machine_id = machineId });
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
@@ -56,7 +74,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.GetAsync($"{baseUrl}/api/version");
+                var response = await _httpClient.GetAsync($"{baseUrl}/api/v1/system/version");
                 return response.IsSuccessStatusCode;
             }
             catch
@@ -70,7 +88,7 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<LineDto>>($"{baseUrl}/api/lines") ?? new List<LineDto>();
+                return await _httpClient.GetFromJsonAsync<List<LineDto>>($"{baseUrl}/api/v1/lines") ?? new List<LineDto>();
             }
             catch { return new List<LineDto>(); }
         }
@@ -80,12 +98,33 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<MachineDto>>($"{baseUrl}/api/machines") ?? new List<MachineDto>();
+                return await _httpClient.GetFromJsonAsync<List<MachineDto>>($"{baseUrl}/api/v1/machines") ?? new List<MachineDto>();
             }
             catch { return new List<MachineDto>(); }
         }
 
-        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, List<string> imagePaths, List<string> imageResults)
+        public async Task<List<MachineTypeDto>> GetMachineTypesAsync()
+        {
+            try
+            {
+                var baseUrl = _settings.ServerUrl.TrimEnd('/');
+                return await _httpClient.GetFromJsonAsync<List<MachineTypeDto>>($"{baseUrl}/api/v1/machine-types") ?? new List<MachineTypeDto>();
+            }
+            catch { return new List<MachineTypeDto>(); }
+        }
+
+        public async Task<bool> PingAsync()
+        {
+            try
+            {
+                var baseUrl = _settings.ServerUrl.TrimEnd('/');
+                var response = await _httpClient.GetAsync($"{baseUrl}/api/v1/lines");
+                return response.IsSuccessStatusCode;
+            }
+            catch { return false; }
+        }
+
+        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults)
         {
             try
             {
@@ -95,6 +134,7 @@ namespace XrayCollector.Services
                 content.Add(new StringContent(machineId.ToString()), "machine_id");
                 content.Add(new StringContent(result), "machine_result");
                 content.Add(new StringContent(clientTime), "client_time");
+                content.Add(new StringContent(arrayIndex.ToString()), "array_index");
                 
                 if (!string.IsNullOrEmpty(jobFile))
                 {
@@ -120,10 +160,27 @@ namespace XrayCollector.Services
                     }
                 }
 
-                var response = await _httpClient.PostAsync($"{baseUrl}/upload-scan", content);
+                var response = await _httpClient.PostAsync($"{baseUrl}/api/v1/pcbs/upload-scan", content);
                 return response.IsSuccessStatusCode;
             }
             catch { return false; }
         }
+        public async Task<MachineDetailDto> GetMachineDetailAsync(int machineId)
+        {
+            try
+            {
+                var baseUrl = _settings.ServerUrl.TrimEnd('/');
+                return await _httpClient.GetFromJsonAsync<MachineDetailDto>($"{baseUrl}/api/v1/machines/{machineId}");
+            }
+            catch { return null; }
+        }
+    }
+
+    public class MachineDetailDto
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+        public string line_name { get; set; }
+        public string machine_type_name { get; set; }
     }
 }

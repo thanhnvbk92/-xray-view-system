@@ -8,14 +8,15 @@ DATA_ROOT = os.path.join(os.path.dirname(BASE_DIR), "data")
 
 # Các đường dẫn cụ thể
 UPLOAD_DIR = os.path.join(DATA_ROOT, "images")
-STORAGE_DIR = r"\\10.7.12.61\3.Xray Image\storage" # Ổ mạng đã sửa cú pháp
+STORAGE_DIR = r"D:\3.Xray Image\storage" # Ổ mạng đã sửa cú pháp
 
 # DOWNLOAD và FRONTEND
 DOWNLOAD_DIR = os.path.join(BASE_DIR, "static/downloads")
 FRONTEND_DIR = os.path.join(os.path.dirname(BASE_DIR), "frontend/dist")
 
-# Cấu hình Engine xử lý (Tạm thời chuyển về CPU để sửa lỗi crash)
-IMAGE_ENGINE = os.getenv("IMAGE_ENGINE", "CPU") 
+# Cấu hình Engine xử lý (Sử dụng GPU cho 2x Titan X)
+IMAGE_ENGINE = "GPU" 
+GPU_COUNT = 2
 
 # Đảm bảo các thư mục tồn tại
 os.makedirs(UPLOAD_DIR, exist_ok=True)

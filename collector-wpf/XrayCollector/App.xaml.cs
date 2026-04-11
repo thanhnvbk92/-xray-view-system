@@ -15,6 +15,7 @@ namespace XrayCollector
                 // Services
                 services.AddSingleton<ISettingsService, SettingsService>();
                 services.AddSingleton<IUpdateService, UpdateService>();
+                services.AddSingleton<ISyncPersistenceService, SyncPersistenceService>();
                 services.AddTransient<IApiService, ApiService>();
                 services.AddTransient<IFileWatcherService, FileWatcherService>();
                 services.AddHttpClient<IApiService, ApiService>();

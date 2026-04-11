@@ -21,7 +21,8 @@ if (-not (Test-Path "$currentDir\backend")) {
     Write-Host "Error: Could not find 'backend' directory in $currentDir" -ForegroundColor Red
 } else {
     try {
-        python -m uvicorn backend.main:app --host 0.0.0.0 --port $port --reload
+        # Sử dụng Python 3.12 từ môi trường ảo (.venv)
+        .\backend\.venv\Scripts\python.exe -m uvicorn backend.main:app --host 0.0.0.0 --port $port --reload
     } catch {
         Write-Host "PowerShell Error: $_" -ForegroundColor Red
     }

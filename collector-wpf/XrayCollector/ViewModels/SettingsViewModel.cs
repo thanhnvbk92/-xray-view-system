@@ -80,16 +80,33 @@ namespace XrayCollector.ViewModels
             SelectedMachine = null;
         }
 
+        partial void OnSelectedMachineChanged(MachineDto? value)
+        {
+            if (value != null && value.MachineType != null)
+            {
+                // Tự động gợi ý Log Extension từ cấu hình trung tâm nếu đang để mặc định hoặc trống
+                if (string.IsNullOrEmpty(TempLogExtension) || TempLogExtension == ".log")
+                {
+                    TempLogExtension = value.MachineType.LogExtension;
+                }
+            }
+        }
+
         [RelayCommand]
         private void SaveSettings()
         {
             if (SelectedMachine == null)
             {
-                MessageBox.Show("Vui lòng chọn Máy quét trước khi lưu!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                //    MessageBox.Show("Vui lòng chọn Máy quét trước khi lưu!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+                //    return;
+            }
+            else
+            {
+                _settings.MachineId = SelectedMachine.Id.ToString();
             }
 
-            _settings.MachineId = SelectedMachine.Id.ToString();
+
             _settings.ServerUrl = TempServerUrl;
             _settings.ImagePath = TempImagePath;
             _settings.LogPath = TempLogPath;

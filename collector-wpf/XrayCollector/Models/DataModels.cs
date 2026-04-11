@@ -15,6 +15,21 @@ namespace XrayCollector.Models
         public string? Description { get; set; }
     }
 
+    public class MachineTypeDto
+    {
+        [JsonPropertyName("id")]
+        public int Id { get; set; }
+        
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+        
+        [JsonPropertyName("part_no")]
+        public string? PartNo { get; set; }
+        
+        [JsonPropertyName("log_extension")]
+        public string LogExtension { get; set; } = ".log";
+    }
+
     public class MachineDto
     {
         [JsonPropertyName("id")]
@@ -31,5 +46,11 @@ namespace XrayCollector.Models
         
         [JsonPropertyName("status")]
         public string Status { get; set; } = "OFFLINE";
+
+        [JsonPropertyName("machine_type_id")]
+        public int? MachineTypeId { get; set; }
+
+        [JsonPropertyName("machine_type")]
+        public MachineTypeDto? MachineType { get; set; }
     }
 }

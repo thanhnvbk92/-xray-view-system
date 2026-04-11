@@ -40,25 +40,31 @@ const Sidebar = ({ user, logout }) => (
     </div>
 
     <nav className="nav-links">
-      <div className="nav-item">
-        <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
-        </NavLink>
-      </div>
-      <div className="nav-item">
-        <NavLink to="/analysis" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-          <BarChart3 size={20} />
-          <span>Phân tích</span>
-        </NavLink>
-      </div>
-      <div className="nav-item">
-        <NavLink to="/trace" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-          <Search size={20} />
-          <span>Truy vết</span>
-        </NavLink>
-      </div>
-      {user?.role === 'ADMIN' && (
+      {(user?.role === 'ADMIN' || user?.permissions?.includes('CAN_VIEW_DASHBOARD')) && (
+        <div className="nav-item">
+          <NavLink to="/dashboard" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <LayoutDashboard size={20} />
+            <span>Dashboard</span>
+          </NavLink>
+        </div>
+      )}
+      {(user?.role === 'ADMIN' || user?.permissions?.includes('CAN_VIEW_REPORTS')) && (
+        <>
+          <div className="nav-item">
+            <NavLink to="/analysis" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <BarChart3 size={20} />
+              <span>Phân tích</span>
+            </NavLink>
+          </div>
+          <div className="nav-item">
+            <NavLink to="/trace" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+              <Search size={20} />
+              <span>Truy vết</span>
+            </NavLink>
+          </div>
+        </>
+      )}
+      {(user?.role === 'ADMIN' || user?.permissions?.includes('CAN_MANAGE_USERS')) && (
         <div className="nav-item">
           <NavLink to="/admin/users" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
             <Users size={20} />
@@ -66,12 +72,14 @@ const Sidebar = ({ user, logout }) => (
           </NavLink>
         </div>
       )}
-      <div className="nav-item">
-        <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-          <Settings size={20} />
-          <span>Cấu hình</span>
-        </NavLink>
-      </div>
+      {(user?.role === 'ADMIN' || user?.permissions?.includes('CAN_MANAGE_SYSTEM')) && (
+        <div className="nav-item">
+          <NavLink to="/settings" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
+            <Settings size={20} />
+            <span>Cấu hình</span>
+          </NavLink>
+        </div>
+      )}
     </nav>
 
     <div style={{ marginTop: 'auto' }}>

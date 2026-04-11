@@ -76,13 +76,16 @@ export const AuthProvider = ({ children }) => {
         formData.append('username', username);
         formData.append('password', password);
 
+        console.log("AuthContext: Attempting login for", username);
         const res = await api.post('/api/auth/login', formData);
-        const { access_token, role, full_name } = res.data;
+        
+        const { access_token, role, full_name, permissions } = res.data;
+        console.log("AuthContext: Login success, permissions:", permissions);
 
         localStorage.setItem('token', access_token);
         api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
-        const userData = { username, role, full_name };
+        const userData = { username, role, full_name, permissions };
         setUser(userData);
         return userData;
     };

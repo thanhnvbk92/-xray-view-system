@@ -13,10 +13,11 @@ namespace XrayCollector.ViewModels
             IFileWatcherService imgWatcher, 
             IFileWatcherService logWatcher, 
             ISettingsService settings, 
-            IUpdateService updateService)
+            IUpdateService updateService,
+            ISyncPersistenceService persistence)
         {
             // Khởi tạo các sub-ViewModels
-            _home = new HomeViewModel(apiService, imgWatcher, logWatcher, settings, updateService);
+            _home = new HomeViewModel(apiService, imgWatcher, logWatcher, settings, updateService, persistence);
             _settings = new SettingsViewModel(apiService, settings);
         }
     }

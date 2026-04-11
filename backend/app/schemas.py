@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
+import json
 from datetime import datetime
 from typing import Optional, List
 import enum
@@ -29,11 +30,30 @@ class LineResponse(LineBase):
     class Config:
         from_attributes = True
 
+# --- MACHINE TYPE SCHEMAS ---
+class MachineTypeBase(BaseModel):
+    name: str
+    part_no: Optional[str] = None
+    log_extension: Optional[str] = ".log"
+
+class MachineTypeCreate(MachineTypeBase):
+    pass
+
+class MachineTypeUpdate(MachineTypeBase):
+    name: Optional[str] = None
+
+class MachineTypeResponse(MachineTypeBase):
+    id: int
+    
+    class Config:
+        from_attributes = True
+
 # --- MACHINE SCHEMAS ---
 class MachineBase(BaseModel):
     name: str
-    ip_address: str
+    ip_address: Optional[str] = None
     line_id: int
+    machine_type_id: Optional[int] = None
 
 class MachineCreate(MachineBase):
     pass
@@ -47,6 +67,7 @@ class MachineResponse(MachineBase):
     id: int
     status: str
     last_heartbeat: datetime
+    machine_type: Optional[MachineTypeResponse] = None
 
     class Config:
         from_attributes = True
@@ -62,8 +83,21 @@ class PCBImageResponse(BaseModel):
     class Config:
         from_attributes = True
 
+    @field_validator('image_path', mode='after')
+    @classmethod
+    def format_image_url(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return v
+        if v.startswith("/") or v.startswith("http"):
+            return v
+        # Nếu là đường dẫn cục bộ (Local Path), chuyển đổi thành web path /images/
+        import os
+        return f"/images/{os.path.basename(v)}"
+
 class PCBCreate(BaseModel):
     pid: str
+    board_pid: Optional[str] = None
+    array_index: Optional[int] = 1
     machine_id: int
     machine_result: str
     client_time: datetime
@@ -92,7 +126,18 @@ class UserResponse(UserBase):
     role: str
     is_approved: bool
     created_at: datetime
+    permissions: Optional[List[str]] = []
     
+    @field_validator('permissions', mode='before')
+    @classmethod
+    def parse_permissions(cls, v):
+        if isinstance(v, str) and v:
+            try:
+                return json.loads(v)
+            except:
+                return []
+        return v or []
+
     class Config:
         from_attributes = True
 
@@ -106,6 +151,17 @@ class Token(BaseModel) :
     username: str
     role: str
     full_name: str
+    permissions: Optional[List[str]] = []
+    
+    @field_validator('permissions', mode='before')
+    @classmethod
+    def parse_permissions(cls, v):
+        if isinstance(v, str) and v:
+            try:
+                return json.loads(v)
+            except:
+                return []
+        return v or []
 
 class TokenData(BaseModel):
     username: Optional[str] = None
@@ -113,6 +169,7 @@ class TokenData(BaseModel):
 # --- HEARTBEAT SCHEMAS ---
 class HeartbeatRequest(BaseModel):
     machine_id: int
+    ip_address: Optional[str] = None
 
 # --- UPDATED PCB RESPONSE ---
 class PCBResponse(BaseModel):
@@ -135,3 +192,14 @@ class PCBResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @field_validator('image_path', mode='after')
+    @classmethod
+    def format_image_url(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return v
+        if v.startswith("/") or v.startswith("http"):
+            return v
+        # Nếu là đường dẫn cục bộ (Local Path), chuyển đổi thành web path /images/
+        import os
+        return f"/images/{os.path.basename(v)}"

@@ -23,17 +23,51 @@ function UserManagement() {
         }
     };
 
+    const AVAILABLE_PERMISSIONS = [
+        { id: 'CAN_VIEW_DASHBOARD', name: 'Xem Dashboard' },
+        { id: 'CAN_VIEW_REPORTS', name: 'Xem Báo cáo/Truy vết' },
+        { id: 'CAN_CONFIRM_RESULTS', name: 'Xác nhận kết quả OK/NG' },
+        { id: 'CAN_MANAGE_SYSTEM', name: 'Cấu hình Hệ thống' },
+        { id: 'CAN_MANAGE_USERS', name: 'Quản lý Nhân sự' },
+    ];
+
     const [selectedRoles, setSelectedRoles] = useState({});
+    const [userPerms, setUserPerms] = useState({}); // { userId: ['PERM1', 'PERM2'] }
 
     const handleRoleChange = (userId, role) => {
         setSelectedRoles({ ...selectedRoles, [userId]: role });
+        
+        // Auto-assign default permissions based on role
+        let defaultPerms = [];
+        if (role === 'ADMIN') {
+            defaultPerms = AVAILABLE_PERMISSIONS.map(p => p.id);
+        } else if (role === 'OPERATOR') {
+            defaultPerms = ['CAN_VIEW_DASHBOARD', 'CAN_VIEW_REPORTS', 'CAN_CONFIRM_RESULTS'];
+        } else {
+            defaultPerms = ['CAN_VIEW_DASHBOARD', 'CAN_VIEW_REPORTS'];
+        }
+        setUserPerms({ ...userPerms, [userId]: defaultPerms });
+    };
+
+    const togglePermission = (userId, permId) => {
+        const current = userPerms[userId] || [];
+        if (current.includes(permId)) {
+            setUserPerms({ ...userPerms, [userId]: current.filter(p => p !== permId) });
+        } else {
+            setUserPerms({ ...userPerms, [userId]: [...current, permId] });
+        }
     };
 
     const handleApprove = async (id) => {
         try {
             const role = selectedRoles[id] || "OPERATOR";
-            console.log(`UserManagement: Approving user ${id} with role ${role}`);
-            await api.post(`/api/admin/users/${id}/approve?role=${role}`);
+            const perms = userPerms[id] || (role === 'OPERATOR' ? ['CAN_VIEW_DASHBOARD', 'CAN_VIEW_REPORTS', 'CAN_CONFIRM_RESULTS'] : ['CAN_VIEW_DASHBOARD', 'CAN_VIEW_REPORTS']);
+            
+            console.log(`UserManagement: Approving user ${id} with role ${role} and perms`, perms);
+            
+            // Chuyển danh sách quyền sang JSON string để API parse
+            const permsJson = JSON.stringify(perms);
+            await api.post(`/api/admin/users/${id}/approve?role=${role}&permissions=${encodeURIComponent(permsJson)}`);
             fetchUsers();
         } catch (error) {
             alert("Lỗi khi phê duyệt người dùng");
@@ -109,22 +143,38 @@ function UserManagement() {
                                 </td>
                                 <td style={{ textAlign: 'right' }}>
                                     {!item.is_approved ? (
-                                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', alignItems: 'center' }}>
-                                            <select
-                                                value={selectedRoles[item.id] || "OPERATOR"}
-                                                onChange={(e) => handleRoleChange(item.id, e.target.value)}
-                                                style={{ padding: '6px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', fontSize: '0.8rem' }}
-                                            >
-                                                <option value="OPERATOR">OPERATOR</option>
-                                                <option value="VIEWER">VIEWER</option>
-                                                <option value="ADMIN">ADMIN</option>
-                                            </select>
-                                            <button className="btn" title="Phê duyệt" style={{ padding: '6px 12px', background: 'rgba(76, 175, 80, 0.1)', color: '#4caf50' }} onClick={() => handleApprove(item.id)}>
-                                                <UserCheck size={16} />
-                                            </button>
-                                            <button className="btn" title="Từ chối" style={{ padding: '6px 12px', background: 'rgba(244, 67, 54, 0.1)', color: '#f44336' }} onClick={() => handleReject(item.id)}>
-                                                <UserX size={16} />
-                                            </button>
+                                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '12px' }}>
+                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                <select
+                                                    value={selectedRoles[item.id] || "OPERATOR"}
+                                                    onChange={(e) => handleRoleChange(item.id, e.target.value)}
+                                                    style={{ padding: '6px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--glass-border)', color: 'white', fontSize: '0.8rem' }}
+                                                >
+                                                    <option value="OPERATOR">OPERATOR</option>
+                                                    <option value="VIEWER">VIEWER</option>
+                                                    <option value="ADMIN">ADMIN</option>
+                                                </select>
+                                                <button className="btn btn-primary" style={{ padding: '6px 16px', fontSize: '0.8rem' }} onClick={() => handleApprove(item.id)}>
+                                                    Xác nhận & Phê duyệt
+                                                </button>
+                                                <button className="btn" title="Từ chối" style={{ padding: '6px 12px', background: 'rgba(244, 67, 54, 0.1)', color: '#f44336' }} onClick={() => handleReject(item.id)}>
+                                                    <UserX size={16} />
+                                                </button>
+                                            </div>
+                                            
+                                            {/* Danh sách quyền hạn tùy chỉnh */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', background: 'rgba(255,255,255,0.02)', padding: '12px', borderRadius: '8px', border: '1px solid var(--glass-border)', width: '300px', textAlign: 'left' }}>
+                                                {AVAILABLE_PERMISSIONS.map(p => (
+                                                    <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.75rem', cursor: 'pointer' }}>
+                                                        <input 
+                                                            type="checkbox" 
+                                                            checked={(userPerms[item.id] || (selectedRoles[item.id] === 'ADMIN' ? AVAILABLE_PERMISSIONS.map(x=>x.id) : (selectedRoles[item.id] === 'OPERATOR' ? ['CAN_VIEW_DASHBOARD', 'CAN_VIEW_REPORTS', 'CAN_CONFIRM_RESULTS'] : ['CAN_VIEW_DASHBOARD', 'CAN_VIEW_REPORTS']))).includes(p.id)}
+                                                            onChange={() => togglePermission(item.id, p.id)}
+                                                        />
+                                                        {p.name}
+                                                    </label>
+                                                ))}
+                                            </div>
                                         </div>
                                     ) : (
                                         item.role !== 'ADMIN' && (

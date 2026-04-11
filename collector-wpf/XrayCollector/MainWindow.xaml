@@ -12,6 +12,10 @@
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="#F0F2F5"
         FontFamily="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+    
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolVisConverter"/>
+    </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -81,5 +85,37 @@
                 <views:SettingsView DataContext="{Binding Settings}"/>
             </TabItem>
         </TabControl>
+
+        <!-- Update Progress Overlay -->
+        <Grid Grid.RowSpan="2" Background="#80000000" 
+              Visibility="{Binding Home.IsUpdating, Converter={StaticResource BoolVisConverter}}"
+              Panel.ZIndex="999">
+            <materialDesign:Card Width="350" Padding="30" UniformCornerRadius="20" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="ĐANG TẢI BẢN CẬP NHẬT" 
+                             Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
+                             HorizontalAlignment="Center" 
+                             FontWeight="Bold" 
+                             Margin="0,0,0,10"/>
+                    
+                    <TextBlock Text="Vui lòng chờ trong giây lát..." 
+                             Style="{StaticResource MaterialDesignBody2TextBlock}" 
+                             Opacity="0.7" 
+                             HorizontalAlignment="Center" 
+                             Margin="0,0,0,25"/>
+
+                    <ProgressBar Value="{Binding Home.UpdateProgress}" 
+                                Minimum="0" Maximum="100" 
+                                Height="10"
+                                Margin="0,5"/>
+
+                    <TextBlock Text="{Binding Home.UpdateProgress, StringFormat={}{0:0}%}" 
+                             HorizontalAlignment="Right" 
+                             Margin="0,4,0,0" 
+                             FontWeight="Bold" 
+                             Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                </StackPanel>
+            </materialDesign:Card>
+        </Grid>
     </Grid>
 </Window>

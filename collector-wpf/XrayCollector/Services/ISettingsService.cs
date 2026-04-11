@@ -21,7 +21,7 @@ namespace XrayCollector.Services
         private readonly string _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.json");
 
         public string MachineId { get; set; } = "1";
-        public string ServerUrl { get; set; } = "http://10.224.142.245:8000";
+        public string ServerUrl { get; set; } = "http://10.224.189.245:8000";
         public string ImagePath { get; set; } = "";
         public string LogPath { get; set; } = "";
         public string LogExtension { get; set; } = ".log";

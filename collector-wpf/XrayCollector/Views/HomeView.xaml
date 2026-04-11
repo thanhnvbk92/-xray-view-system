@@ -31,6 +31,10 @@
                         <TextBlock Text="ĐANG GIÁM SÁT" Style="{StaticResource MaterialDesignOverlineTextBlock}" Opacity="0.5" FontWeight="Bold" Margin="0,0,0,8"/>
                         <TextBlock Text="{Binding CurrentLineName}" Style="{StaticResource MaterialDesignHeadline5TextBlock}" FontWeight="Bold" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                         <TextBlock Text="{Binding CurrentMachineName}" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" FontWeight="Medium" Opacity="0.7"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <materialDesign:PackIcon Kind="IpNetwork" Opacity="0.5" VerticalAlignment="Center" Width="14" Height="14"/>
+                            <TextBlock Text="{Binding LocalIpAddress}" Margin="4,0,0,0" Style="{StaticResource MaterialDesignCaptionTextBlock}" Opacity="0.6"/>
+                        </StackPanel>
                     </StackPanel>
                     
                     <Border Grid.Column="1" VerticalAlignment="Top" Padding="12,6" CornerRadius="12" Background="{Binding StatusColor}" Opacity="0.15">
@@ -43,7 +47,10 @@
                 <Grid>
                     <StackPanel VerticalAlignment="Center">
                         <TextBlock Text="KẾT NỐI SERVER" Style="{StaticResource MaterialDesignCaptionTextBlock}" Opacity="0.5" Margin="0,0,0,4"/>
-                        <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="8" Height="8" Fill="{Binding ConnectionStatusColor}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="SemiBold"/>
+                        </StackPanel>
                     </StackPanel>
                     
                     <Button HorizontalAlignment="Right"

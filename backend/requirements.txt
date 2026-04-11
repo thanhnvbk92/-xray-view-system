@@ -7,3 +7,10 @@ python-multipart
 websockets
 python-dotenv
 Pillow
+torch
+torchvision
+passlib
+python-jose[cryptography]
+pymysql
+cryptography
+
