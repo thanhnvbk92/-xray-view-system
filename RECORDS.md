@@ -31,3 +31,7 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 - **Yêu cầu 11**: Tăng số lượng Worker lên 12 để tận dụng tối đa 16 luồng CPU. [Hoàn thành]
 - **Yêu cầu 12**: Loại bỏ bước trung chuyển GPU dư thừa cho nén JPEG để giải phóng băng thông I/O. [Hoàn thành]
 - **Kết quả**: Tốc độ nén đạt mức ms cho mỗi ảnh, đáp ứng tốt lưu lượng ảnh lớn từ máy quét Xray. [Hoàn thành]
+
+### Phiên làm việc: 11/04/2026 - Sửa lỗi đồng bộ ảnh từ Collector
+- **Yêu cầu 13**: Khắc phục lỗi Collector không tìm thấy ảnh do sai Search Pattern (thiếu dấu gạch dưới trước timestamp). [Hoàn thành]
+- **Yêu cầu 14**: Đồng bộ lại logic tìm kiếm để hỗ trợ mọi định dạng tên file bắt đầu bằng Timestamp. [Hoàn thành]

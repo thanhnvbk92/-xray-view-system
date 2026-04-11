@@ -482,8 +482,8 @@ namespace XrayCollector.ViewModels
                         string targetPath = Path.Combine(jobPath, cfg.Dir);
                         if (Directory.Exists(targetPath))
                         {
-                            // Tìm các file có chứa timestamp và unitIndex theo pattern: *_{timestamp}_{unitIndex}_*
-                            string searchPattern = $"*_{timestamp}_{unitIndex}_*";
+                            // Tìm các file có chứa timestamp và unitIndex theo pattern: *{timestamp}_{unitIndex}_*
+                            string searchPattern = $"*{timestamp}_{unitIndex}_*";
                             var matches = Directory.GetFiles(targetPath, searchPattern);
                             foreach (var match in matches)
                             {
