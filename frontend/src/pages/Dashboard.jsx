@@ -240,49 +240,58 @@ function Dashboard() {
               {/* Chỉ tối đa 2 máy nên để Grid 2 cột cố định */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                 {lineMachines.sort((a, b) => a.name.localeCompare(b.name)).map(m => (
-                  <div
-                    key={m.id}
-                    className={`machine-card ${m.has_ng ? 'has-ng' : 'is-ok'}`}
-                    style={{ 
-                      cursor: 'pointer', 
-                      margin: 0, 
-                      padding: '4px 8px',
-                      opacity: m.status === 'ONLINE' ? 1 : 0.5,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'flex-start',
-                      gap: '0px',
-                      minHeight: '32px',
-                      justifyContent: 'center',
-                      borderRadius: '6px'
-                    }}
-                    onClick={() => handleMachineClick(m.id)}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', minWidth: 0 }}>
-                      <div style={{ position: 'relative', flexShrink: 0 }}>
-                        <Monitor size={14} color={m.has_ng ? 'var(--status-ng)' : 'var(--status-ok)'} />
+                    <div
+                      key={m.id}
+                      className={`machine-card ${m.has_ng ? 'has-ng' : 'is-ok'}`}
+                      style={{ 
+                        cursor: 'pointer', 
+                        margin: 0, 
+                        padding: '4px 10px',
+                        opacity: m.status === 'ONLINE' ? 1 : 0.5,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'flex-start',
+                        gap: '1px',
+                        minHeight: '40px', // Cố định 40px theo yêu cầu
+                        height: '40px',
+                        justifyContent: 'center',
+                        borderRadius: '6px',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onClick={() => handleMachineClick(m.id)}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', minWidth: 0 }}>
+                        <div style={{ position: 'relative', flexShrink: 0 }}>
+                          <Monitor size={14} color={m.has_ng ? 'var(--status-ng)' : 'var(--status-ok)'} />
+                          <div style={{ 
+                            position: 'absolute', top: -1, right: -1, width: 6, height: 6, borderRadius: '50%', 
+                            background: m.status === 'ONLINE' ? 'var(--status-ok)' : '#64748b'
+                          }}></div>
+                        </div>
                         <div style={{ 
-                          position: 'absolute', top: -1, right: -1, width: 6, height: 6, borderRadius: '50%', 
-                          background: m.status === 'ONLINE' ? 'var(--status-ok)' : '#64748b'
-                        }}></div>
+                          fontWeight: 'bold', 
+                          fontSize: '0.75rem', 
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1
+                        }}>
+                          {m.name.replace('Machine', 'M')}
+                        </div>
                       </div>
+                      
+                      {/* Dòng trạng thái NG nằm dưới, giữ chỗ 40px */}
                       <div style={{ 
+                        fontSize: '0.65rem', 
+                        color: m.has_ng ? 'var(--status-ng)' : 'var(--status-ok)', 
                         fontWeight: 'bold', 
-                        fontSize: '0.75rem', 
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        flex: 1
+                        marginLeft: '22px',
+                        lineHeight: '1',
+                        opacity: m.has_ng ? 1 : 0.3
                       }}>
-                        {m.name.replace('Machine', 'M')}
+                         {m.has_ng ? `${m.unconfirmed_ng_count} NG` : '0 NG'}
                       </div>
                     </div>
-                    {m.has_ng && (
-                      <div style={{ fontSize: '0.65rem', color: 'var(--status-ng)', fontWeight: 'bold', marginLeft: '20px' }}>
-                         {m.unconfirmed_ng_count} NG
-                      </div>
-                    )}
-                  </div>
                 ))}
               </div>
             </div>
