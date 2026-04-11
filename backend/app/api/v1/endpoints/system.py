@@ -20,7 +20,7 @@ def get_latest_version_info():
 @router.get("/version")
 async def get_version():
     info = get_latest_version_info()
-    return {"version": info.get("version", "1.0.0"), "download_url": "/api/v1/system/download/collector"}
+    return {"version": info.get("version", "1.0.0"), "download_url": "/api/download/collector"}
 
 @router.get("/download/collector")
 async def download_collector():
