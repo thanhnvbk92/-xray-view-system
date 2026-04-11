@@ -85,32 +85,24 @@ namespace XrayCollector.Services
 
         public async Task<List<LineDto>> GetLinesAsync()
         {
-            try
-            {
-                var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<LineDto>>($"{baseUrl}/api/lines") ?? new List<LineDto>();
-            }
-            catch { return new List<LineDto>(); }
+            var baseUrl = _settings.ServerUrl.TrimEnd('/');
+            var result = await _httpClient.GetFromJsonAsync<List<LineDto>>($"{baseUrl}/api/lines");
+            return result ?? new List<LineDto>();
         }
 
         public async Task<List<MachineDto>> GetMachinesAsync()
         {
-            try
-            {
-                var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<MachineDto>>($"{baseUrl}/api/machines") ?? new List<MachineDto>();
-            }
-            catch { return new List<MachineDto>(); }
+            var baseUrl = _settings.ServerUrl.TrimEnd('/');
+            // Thêm dấu / cuối để đảm bảo tương thích tốt nhất với FastAPI router
+            var result = await _httpClient.GetFromJsonAsync<List<MachineDto>>($"{baseUrl}/api/machines/");
+            return result ?? new List<MachineDto>();
         }
 
         public async Task<List<MachineTypeDto>> GetMachineTypesAsync()
         {
-            try
-            {
-                var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                return await _httpClient.GetFromJsonAsync<List<MachineTypeDto>>($"{baseUrl}/api/machine-types") ?? new List<MachineTypeDto>();
-            }
-            catch { return new List<MachineTypeDto>(); }
+            var baseUrl = _settings.ServerUrl.TrimEnd('/');
+            var result = await _httpClient.GetFromJsonAsync<List<MachineTypeDto>>($"{baseUrl}/api/machine-types");
+            return result ?? new List<MachineTypeDto>();
         }
 
         public async Task<bool> PingAsync()

@@ -5,7 +5,8 @@ import {
 } from 'recharts';
 import {
     TrendingUp, BarChart3, Database, Layers, X,
-    Filter, Download, Calendar, RefreshCw, CheckCircle2, AlertTriangle
+    Filter, Download, Calendar, RefreshCw, CheckCircle2, 
+    AlertTriangle, Zap, Layout, Monitor, FileText
 } from 'lucide-react';
 import { api } from '../context/AuthContext';
 
@@ -165,7 +166,15 @@ function Analysis() {
     
     return (
         <div className="fade-in analysis-page-root">
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', position: 'relative' }}>
+            <style>
+                {`
+                    @keyframes loading-bar {
+                        0% { background-position: 200% 0; }
+                        100% { background-position: -200% 0; }
+                    }
+                `}
+            </style>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', position: 'relative' }}>
                 <div style={{
                     position: 'absolute',
                     top: '-20px',
@@ -177,22 +186,15 @@ function Analysis() {
                     animation: loading ? 'loading-bar 1.5s infinite linear' : 'none',
                     zIndex: 10
                 }} />
-                <style>
-                    {`
-                        @keyframes loading-bar {
-                            0% { background-position: 200% 0; }
-                            100% { background-position: -200% 0; }
-                        }
-                    `}
-                </style>
                 <div>
                     <h1 style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>Phân tích Tương quan</h1>
                     <p style={{ color: 'var(--text-secondary)' }}>Click vào các biểu đồ để lọc dữ liệu chuyên sâu</p>
                 </div>
+                
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '5px 15px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
                         <Calendar size={16} color="var(--primary-color)" />
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginLeft: '4px' }}>Từ:</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Từ:</span>
                         <input 
                             type="date" 
                             value={filters.startDate} 
@@ -216,7 +218,7 @@ function Analysis() {
                 </div>
             </header>
 
-            {/* Filter Bar with Fixed Height to stabilize layout */}
+            {/* Filter Bar (Stabilized Height) */}
             <div style={{ minHeight: '60px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 10px' }}>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                     {(filters.machineId || filters.jobFile || filters.date) ? (
@@ -236,60 +238,50 @@ function Analysis() {
                             )}
                             {filters.date && (
                                 <div className="badge badge-ok" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 12px', background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24' }}>
-                                    <Calendar size={14} />
                                     <span>Ngày: {formatDateDisplay(filters.date)}</span>
                                     <X size={14} style={{ cursor: 'pointer' }} onClick={removeDateFilter} />
                                 </div>
                             )}
-                            <button onClick={resetFilters} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline' }}>
-                                Xóa tất cả
-                            </button>
+                            <button onClick={resetFilters} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline' }}>Xóa tất cả</button>
                         </>
                     ) : (
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', opacity: 0.6 }}>Chưa áp dụng bộ lọc chi tiết (Click vào biểu đồ để lọc)</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', opacity: 0.6 }}>Chưa áp dụng bộ lọc (Click đồ thị để lọc)</span>
                     )}
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px', color: 'var(--text-secondary)', fontSize: '0.8rem', background: 'rgba(255,255,255,0.03)', padding: '5px 15px', borderRadius: '20px', border: '1px solid var(--glass-border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {loading ? (
-                            <RefreshCw size={12} className="spin" style={{ color: 'var(--primary-color)' }} />
-                        ) : (
-                            <CheckCircle2 size={12} style={{ color: '#22c55e' }} />
-                        )}
-                        <span>{loading ? 'Đang đồng bộ...' : `Cập nhật: ${lastUpdated || '--:--:--'}`}</span>
+                        {loading ? <RefreshCw size={12} className="spin" /> : <CheckCircle2 size={12} style={{ color: '#22c55e' }} />}
+                        <span>{loading ? 'Đang cập nhật...' : `Cập nhật: ${lastUpdated || '--:--'}`}</span>
                     </div>
                     {!loading && processTime !== null && (
-                        <>
-                            <div style={{ width: '1px', height: '12px', background: 'rgba(255,255,255,0.1)' }} />
-                            <div>Xử lý: <span style={{ color: 'var(--text-primary)', fontWeight: 'bold' }}>{processTime}s</span></div>
-                        </>
+                        <span>Xử lý: <b>{processTime}s</b></span>
                     )}
                 </div>
             </div>
-            {/* 1. Trends Row */}
-            <div className="data-table-container" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-                    <TrendingUp size={20} /> Xu hướng Tỉ lệ lỗi {filters.machineName ? `của ${filters.machineName}` : filters.jobFile ? `của ${filters.jobFile}` : 'Tổng hệ thống'}
+
+            {/* 1. Trends Row - Adaptive */}
+            <div className="data-table-container" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', fontSize: '1.2rem' }}>
+                    <TrendingUp size={22} /> Xu hướng Tỉ lệ lỗi {filters.machineName ? `(${filters.machineName})` : filters.jobFile ? `(${filters.jobFile})` : 'Hệ thống'}
                 </h3>
-                <div style={{ height: '300px' }}>
+                <div style={{ height: '280px' }}>
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart 
                             data={trends} 
-                            margin={{ top: 20, right: 30, left: 10, bottom: 10 }} 
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }} 
                             onClick={handleTrendClick}
-                            style={{ outline: 'none' }}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                             <XAxis 
                                 dataKey="date" 
                                 stroke="#94a3b8" 
-                                fontSize={12} 
+                                fontSize={11} 
                                 tickLine={false} 
                                 axisLine={false} 
                                 tickFormatter={(val) => formatDateDisplay(val)}
                             />
-                            <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} unit="%" />
+                            <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit="%" />
                             <Tooltip
                                 cursor={false}
                                 content={<CustomTooltip />}
@@ -297,8 +289,8 @@ function Analysis() {
                                 <Bar 
                                     dataKey="ng_rate" 
                                     name="Tỉ lệ NG (%)"
-                                    radius={[4, 4, 0, 0]}
-                                    barSize={40}
+                                    radius={[5, 5, 0, 0]}
+                                    barSize={45}
                                     activeBar={false}
                                 >
                                     {trends.map((entry, index) => (
@@ -325,40 +317,37 @@ function Analysis() {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                {/* 2. Machine Comparison */}
+            {/* 2. Responsive Grid 2x2 */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+                {/* 2.1 Machine Comparison */}
                 <div className="data-table-container" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', fontSize: '1.1rem' }}>
                         <BarChart3 size={20} /> So sánh giữa các Máy
                     </h3>
-                    <div style={{ height: '300px' }}>
+                    <div style={{ height: '240px' }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
                                 data={baselineData.machines}
-                                margin={{ top: 30, right: 10, left: 10, bottom: 5 }}
-                                style={{ outline: 'none' }}
+                                margin={{ top: 25, right: 10, left: 10, bottom: 5 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis dataKey="display_name" stroke="var(--text-secondary)" fontSize={12} />
-                                <YAxis stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
+                                <XAxis dataKey="display_name" stroke="var(--text-secondary)" fontSize={11} />
+                                <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
                                 <Tooltip 
                                     cursor={false} 
                                     contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
-                                    itemStyle={{ color: '#fff' }}
                                 />
                                 <Bar 
                                     dataKey="ng_rate" 
-                                    name="Tỉ lệ NG (%)" 
                                     radius={[5, 5, 0, 0]} 
-                                    isAnimationActive={false}
                                     activeBar={false}
-                                    onClick={(payload) => {
-                                        if (!payload) return;
-                                        const clickedId = payload.id;
+                                    onClick={(entry) => {
+                                        if (!entry) return;
+                                        const clickedId = entry.id;
                                         if (String(filters.machineId) === String(clickedId)) {
                                             removeMachineFilter();
                                         } else {
-                                            setFilters(prev => ({ ...prev, machineId: clickedId, machineName: payload.display_name }));
+                                            setFilters(prev => ({ ...prev, machineId: clickedId, machineName: entry.display_name }));
                                         }
                                     }}
                                 >
@@ -370,168 +359,92 @@ function Analysis() {
                                                 key={`cell-${index}`}
                                                 fill={COLORS[index % COLORS.length]}
                                                 fillOpacity={!isAnySelected || isSelected ? 1 : 0.25}
-                                                style={{ 
-                                                    cursor: 'pointer', 
-                                                    transition: 'all 0.3s',
-                                                    filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none'
-                                                }}
+                                                style={{ filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none' }}
                                             />
                                         );
                                     })}
-                                    <LabelList 
-                                        dataKey="displayLabel" 
-                                        position="top" 
-                                        style={{ fill: '#ffffff', fontSize: '11px', fontWeight: 'bold' }}
-                                        offset={10}
-                                    />
+                                    <LabelList dataKey="displayLabel" position="top" style={{ fill: '#fff', fontSize: '10px', fontWeight: 'bold' }} offset={10} />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '10px' }}>* Click vào cột để lọc theo Máy</p>
                 </div>
 
-                {/* 3. Shot Comparison */}
+                {/* 2.2 Job Comparison */}
                 <div className="data-table-container" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-                        <Layers size={20} /> Lỗi theo vị trí (Shot Heatmap)
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', fontSize: '1.1rem' }}>
+                        <Database size={20} /> Tỉ lệ lỗi theo Job File
                     </h3>
-                    <div style={{ height: '300px' }}>
+                    <div style={{ height: '240px' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart 
-                                data={data.shots} 
-                                margin={{ top: 30, right: 10, left: 10, bottom: 5 }}
-                                style={{ outline: 'none' }}
-                            >
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis dataKey="shot" stroke="var(--text-secondary)" fontSize={12} />
-                                <YAxis stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
+                            <BarChart layout="vertical" data={data.jobs} margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                                <XAxis type="number" hide />
+                                <YAxis dataKey="job" type="category" stroke="var(--text-secondary)" fontSize={9} width={120} />
                                 <Tooltip 
-                                    cursor={false} 
-                                    contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
-                                    itemStyle={{ color: '#fff' }}
+                                    cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
                                 />
-                                <Bar dataKey="ng_rate" fill="#ef4444" name="Tỉ lệ NG (%)" radius={[5, 5, 0, 0]} isAnimationActive={false} activeBar={false}>
-                                    <LabelList 
-                                        dataKey="displayLabel" 
-                                        position="top" 
-                                        style={{ fill: '#ffffff', fontSize: '11px', fontWeight: 'bold' }}
-                                        offset={10}
-                                    />
+                                <Bar 
+                                    dataKey="ng_rate" 
+                                    radius={[0, 5, 5, 0]} 
+                                    activeBar={false}
+                                    onClick={(entry) => {
+                                        if (!entry) return;
+                                        const job = entry.job;
+                                        if (filters.jobFile === job) removeJobFilter();
+                                        else setFilters(prev => ({ ...prev, jobFile: job }));
+                                    }}
+                                >
+                                    {data.jobs.map((entry, index) => {
+                                        const isSelected = filters.jobFile && entry.job === filters.jobFile;
+                                        return <Cell key={`job-${index}`} fill="#8b5cf6" fillOpacity={!filters.jobFile || isSelected ? 1 : 0.25} style={{ filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none' }} />;
+                                    })}
+                                    <LabelList dataKey="displayLabel" position="right" style={{ fill: '#fff', fontSize: '10px', fontWeight: 'bold' }} offset={10} />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '10px' }}>Phân bổ lỗi theo vị trí ảnh trên PCB (Shot-by-Shot)</p>
                 </div>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-                {/* 4. Array Index Comparison */}
+                {/* 2.3 Array Comparison */}
                 <div className="data-table-container" style={{ padding: '1.5rem' }}>
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', fontSize: '1.1rem' }}>
                         <Filter size={20} /> Tỉ lệ lỗi theo Array Index
                     </h3>
-                    <div style={{ height: '300px' }}>
+                    <div style={{ height: '240px' }}>
                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart 
-                                data={data.arrays} 
-                                margin={{ top: 30, right: 10, left: 10, bottom: 5 }}
-                                style={{ outline: 'none' }}
-                            >
+                            <BarChart data={data.arrays} margin={{ top: 25, right: 10, left: 10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis dataKey="displayLabel" stroke="var(--text-secondary)" fontSize={12} />
-                                <YAxis stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
-                                <Tooltip 
-                                    cursor={false} 
-                                    contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
-                                    itemStyle={{ color: '#fff' }}
-                                />
-                                <Bar dataKey="ng_rate" fill="#f59e0b" name="Tỉ lệ NG (%)" radius={[5, 5, 0, 0]} isAnimationActive={false} activeBar={false}>
-                                    <LabelList 
-                                        dataKey="displayLabel" 
-                                        position="top" 
-                                        style={{ fill: '#ffffff', fontSize: '11px', fontWeight: 'bold' }}
-                                        offset={10}
-                                    />
+                                <XAxis dataKey="displayLabel" stroke="var(--text-secondary)" fontSize={11} />
+                                <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
+                                <Tooltip cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} />
+                                <Bar dataKey="ng_rate" fill="#f59e0b" radius={[5, 5, 0, 0]} activeBar={false}>
+                                    <LabelList dataKey="displayLabel" position="top" style={{ fill: '#fff', fontSize: '10px', fontWeight: 'bold' }} offset={10} />
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '10px' }}>Phân tích chất lượng theo vị trí bản mạch trong mảng</p>
                 </div>
 
-                {/* Placeholder or other small info if needed, keeping grid 1fr 1fr */}
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px dashed var(--glass-border)', padding: '2rem', textAlign: 'center' }}>
-                    <AlertTriangle size={32} color="var(--text-secondary)" style={{ marginBottom: '1rem', opacity: 0.5 }} />
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        Dữ liệu được tổng hợp thời gian thực từ Log máy quét.<br/>
-                        Sử dụng các bộ lọc ở trên để xem chi tiết hơn.
-                    </p>
+                {/* 2.4 Shot Comparison */}
+                <div className="data-table-container" style={{ padding: '1.5rem' }}>
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem', fontSize: '1.1rem' }}>
+                        <Layers size={20} /> Lỗi theo vị trí (Shot Heatmap)
+                    </h3>
+                    <div style={{ height: '240px' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={data.shots} margin={{ top: 25, right: 10, left: 10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                <XAxis dataKey="shot" stroke="var(--text-secondary)" fontSize={11} />
+                                <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
+                                <Tooltip cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} />
+                                <Bar dataKey="ng_rate" fill="#ef4444" radius={[5, 5, 0, 0]} activeBar={false}>
+                                    <LabelList dataKey="displayLabel" position="top" style={{ fill: '#fff', fontSize: '10px', fontWeight: 'bold' }} offset={10} />
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-            </div>
-
-            {/* 4. Job Comparison */}
-            <div className="data-table-container" style={{ padding: '1.5rem' }}>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.5rem' }}>
-                    <Database size={20} /> Tỉ lệ lỗi theo Job File
-                </h3>
-                <div style={{ height: '400px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart
-                            data={data.jobs}
-                            layout="vertical"
-                            margin={{ top: 5, right: 80, left: 10, bottom: 5 }}
-                            style={{ outline: 'none' }}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                            <XAxis type="number" stroke="var(--text-secondary)" fontSize={12} axisLine={false} tickLine={false} />
-                            <YAxis type="category" dataKey="job" stroke="var(--text-secondary)" fontSize={10} width={180} />
-                            <Tooltip 
-                                cursor={false}                                contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
-                                itemStyle={{ color: '#fff' }}
-                            />
-                            <Bar 
-                                dataKey="ng_rate" 
-                                name="Tỉ lệ NG (%)" 
-                                radius={[0, 5, 5, 0]} 
-                                isAnimationActive={false}
-                                activeBar={false}
-                                onClick={(data) => {
-                                    if (filters.jobFile === data.job) {
-                                        removeJobFilter();
-                                    } else {
-                                        setFilters(prev => ({ ...prev, jobFile: data.job }));
-                                    }
-                                }}
-                            >
-                                {data.jobs.map((entry, index) => {
-                                    const isSelected = filters.jobFile && String(entry.job) === String(filters.jobFile);
-                                    const isAnySelected = filters.jobFile !== null;
-                                    return (
-                                        <Cell
-                                            key={`cell-job-${index}`}
-                                            fill="#8b5cf6"
-                                            fillOpacity={!isAnySelected || isSelected ? 1 : 0.25}
-                                            style={{ 
-                                                cursor: 'pointer', 
-                                                transition: 'all 0.3s',
-                                                filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none'
-                                            }}
-                                        />
-                                    );
-                                })}
-                                <LabelList 
-                                    dataKey="displayLabel" 
-                                    position="right" 
-                                    style={{ fill: '#ffffff', fontSize: '11px', fontWeight: 'bold' }}
-                                    offset={10}
-                                />
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '10px' }}>* Click vào hàng để lọc theo mã Job</p>
             </div>
         </div>
     );

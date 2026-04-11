@@ -227,10 +227,10 @@ function Dashboard() {
             <div key={lineName} style={{ 
               background: 'rgba(255,255,255,0.015)', 
               borderRadius: '8px', 
-              padding: '0.6rem 0.75rem', 
+              padding: '0.25rem 0.75rem', 
               border: '1px solid var(--glass-border)',
             }}>
-              <div style={{ marginBottom: '0.6rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ marginBottom: '0.2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontWeight: 'bold', fontSize: '0.8rem', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <TrendingUp size={12} /> {lineName}
                 </span>
@@ -246,19 +246,19 @@ function Dashboard() {
                     style={{ 
                       cursor: 'pointer', 
                       margin: 0, 
-                      padding: '0.3rem 0.6rem',
+                      padding: '4px 8px',
                       opacity: m.status === 'ONLINE' ? 1 : 0.5,
                       display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: '8px',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                      gap: '0px',
                       minHeight: '32px',
-                      justifyContent: 'space-between',
+                      justifyContent: 'center',
                       borderRadius: '6px'
                     }}
                     onClick={() => handleMachineClick(m.id)}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', width: '100%', minWidth: 0 }}>
                       <div style={{ position: 'relative', flexShrink: 0 }}>
                         <Monitor size={14} color={m.has_ng ? 'var(--status-ng)' : 'var(--status-ok)'} />
                         <div style={{ 
@@ -271,13 +271,14 @@ function Dashboard() {
                         fontSize: '0.75rem', 
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
+                        whiteSpace: 'nowrap',
+                        flex: 1
                       }}>
                         {m.name.replace('Machine', 'M')}
                       </div>
                     </div>
                     {m.has_ng && (
-                      <div style={{ fontSize: '0.65rem', color: 'var(--status-ng)', fontWeight: 'bold', flexShrink: 0 }}>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--status-ng)', fontWeight: 'bold', marginLeft: '20px' }}>
                          {m.unconfirmed_ng_count} NG
                       </div>
                     )}

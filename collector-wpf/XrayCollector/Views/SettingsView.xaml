@@ -22,12 +22,31 @@
                         </Grid.ColumnDefinitions>
                         <TextBox Text="{Binding TempServerUrl, UpdateSourceTrigger=PropertyChanged}"
                                  materialDesign:HintAssist.Hint="http://ip:port"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
+                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                 IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"/>
                         <Button Grid.Column="1" Margin="10,0,0,0" 
                                 Style="{StaticResource MaterialDesignIconButton}"
                                 Padding="0" Width="40" Height="40"
-                                Command="{Binding LoadDataCommand}">
-                            <materialDesign:PackIcon Kind="Update" Width="22" Height="22"/>
+                                Command="{Binding LoadDataCommand}"
+                                IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                            <Grid>
+                                <materialDesign:PackIcon Kind="Update" Width="22" Height="22">
+                                    <materialDesign:PackIcon.Style>
+                                        <Style TargetType="materialDesign:PackIcon" BasedOn="{StaticResource {x:Type materialDesign:PackIcon}}">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </materialDesign:PackIcon.Style>
+                                </materialDesign:PackIcon>
+                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                           Value="0" IsIndeterminate="True"
+                                           Width="20" Height="20"
+                                           Visibility="{Binding IsLoading, Converter={StaticResource BoolVisConverter}}"/>
+                            </Grid>
                         </Button>
                     </Grid>
                 </StackPanel>

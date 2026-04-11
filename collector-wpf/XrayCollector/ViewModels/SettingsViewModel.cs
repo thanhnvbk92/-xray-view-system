@@ -21,6 +21,7 @@ namespace XrayCollector.ViewModels
         [ObservableProperty] private string _tempLogPath;
         [ObservableProperty] private string _tempLogExtension;
         [ObservableProperty] private bool _tempIsPidMappingIncrease;
+        [ObservableProperty] private bool _isLoading;
         
         [ObservableProperty] private ObservableCollection<LineDto> _lines = new();
         [ObservableProperty] private ObservableCollection<MachineDto> _allMachines = new();
@@ -49,21 +50,42 @@ namespace XrayCollector.ViewModels
         private async Task LoadData()
         {
             if (string.IsNullOrEmpty(TempServerUrl)) return;
-            
-            var lines = await _apiService.GetLinesAsync();
-            var machines = await _apiService.GetMachinesAsync();
 
-            Lines = new ObservableCollection<LineDto>(lines);
-            AllMachines = new ObservableCollection<MachineDto>(machines);
-            
-            if (!string.IsNullOrEmpty(TempMachineId))
+            // Chuẩn hóa URL
+            string url = TempServerUrl.Trim();
+            if (!url.StartsWith("http://") && !url.StartsWith("https://"))
             {
-                var machine = AllMachines.FirstOrDefault(m => m.Id.ToString() == TempMachineId);
-                if (machine != null)
+                url = "http://" + url;
+            }
+            TempServerUrl = url.TrimEnd('/');
+
+            IsLoading = true;
+            try
+            {
+                var lines = await _apiService.GetLinesAsync();
+                var machines = await _apiService.GetMachinesAsync();
+
+                Lines = new ObservableCollection<LineDto>(lines);
+                AllMachines = new ObservableCollection<MachineDto>(machines);
+
+                if (!string.IsNullOrEmpty(TempMachineId))
                 {
-                    SelectedLine = Lines.FirstOrDefault(l => l.Id == machine.LineId);
-                    SelectedMachine = machine;
+                    var machine = AllMachines.FirstOrDefault(m => m.Id.ToString() == TempMachineId);
+                    if (machine != null)
+                    {
+                        SelectedLine = Lines.FirstOrDefault(l => l.Id == machine.LineId);
+                        SelectedMachine = machine;
+                    }
                 }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show($"Không thể kết nối tới máy chủ API:\n{ex.Message}\n\nLưu ý: Đảm bảo máy chủ đang chạy và URL chính xác.", 
+                    "Lỗi Kết Nối", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
