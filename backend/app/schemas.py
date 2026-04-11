@@ -203,3 +203,7 @@ class PCBResponse(BaseModel):
         # Nếu là đường dẫn cục bộ (Local Path), chuyển đổi thành web path /images/
         import os
         return f"/images/{os.path.basename(v)}"
+
+class PCBListResponse(BaseModel):
+    total: int
+    pcbs: List[PCBResponse]

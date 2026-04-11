@@ -16,6 +16,7 @@ function MachineDetail() {
     const [selectedImage, setSelectedImage] = useState(null);
     const [showOriginal, setShowOriginal] = useState(false);
     const [onlyShowNg, setOnlyShowNg] = useState(false);
+    const [totalUnconfirmed, setTotalUnconfirmed] = useState(0);
 
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,12 +34,13 @@ function MachineDetail() {
                 api.get(`/api/machines/${id}`)
             ]);
             
-            setPcbs(resPcbs.data);
+            setPcbs(resPcbs.data.pcbs);
+            setTotalUnconfirmed(resPcbs.data.total);
             setMachineInfo(resMachine.data);
             
             setLoading(false);
-            if (resPcbs.data.length > 0 && !selectedPcb) {
-                handlePcbSelect(resPcbs.data[0]);
+            if (resPcbs.data.pcbs.length > 0 && !selectedPcb) {
+                handlePcbSelect(resPcbs.data.pcbs[0]);
             }
         } catch (error) {
             console.error("Error fetching machine results:", error);
@@ -103,8 +105,9 @@ function MachineDetail() {
                 // Đã duyệt hết NG của PCB này -> Load lại danh sách PCB và chuyển sang cái tiếp
                 console.log("MachineDetail: PCB finished, reloading list...");
                 const res = await api.get(`/api/pcbs/unconfirmed/${id}`);
-                const nextPcbList = res.data;
+                const nextPcbList = res.data.pcbs;
                 setPcbs(nextPcbList);
+                setTotalUnconfirmed(res.data.total);
 
                 if (nextPcbList.length > 0) {
                     const stillCurrent = nextPcbList.find(p => p.id === selectedPcb.id);
@@ -183,7 +186,7 @@ function MachineDetail() {
                         `Máy #${id} - Kiểm duyệt NG`
                     )}
                 </h1>
-                <div className="badge badge-ng">{pcbs.length} PCB chờ</div>
+                <div className="badge badge-ng">{totalUnconfirmed} PCB chờ</div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '320px 300px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>

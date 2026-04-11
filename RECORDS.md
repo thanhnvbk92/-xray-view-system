@@ -43,3 +43,4 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 - **Yêu cầu 18**: Tối ưu hóa trang Confirm (Turbo Load) bằng kỹ thuật `joinedload`, Index và Phân trang. [Hoàn thành]
 - **Yêu cầu 19**: Sửa lỗi nút xác nhận OK không phản hồi (Bổ sung WebSocket Broadcast và đồng bộ hóa `machine_result`). [Hoàn thành]
 - **Yêu cầu 20**: Sửa lỗi 405 Method Not Allowed tận gốc tại Frontend (`MachineDetail.jsx`), gọi đúng API `/api/pcbs/confirm-image`. [Hoàn thành]
+- **Yêu cầu 21**: Hiển thị tổng số lượng PCB chờ duyệt thực tế trên trang chi tiết máy (thay vì bị giới hạn ở con số 50). [Hoàn thành]
