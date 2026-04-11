@@ -54,3 +54,4 @@ Tài liệu này ghi lại toàn bộ lộ trình phát triển và các yêu c�
 - **Yêu cầu 29**: (2026-04-11 22:20) Loại bỏ logic so sánh `lastTime` bên trong `ProcessLogFile`. Mốc thời gian giờ đây chỉ dùng để lọc danh sách file lúc bắt đầu, đảm bảo mọi file đã mở đều được xử lý đầy đủ nội dung. [Hoàn thành]
 - **Yêu cầu 30**: (2026-04-11 22:35) Nâng cấp trang Phân tích: Hỗ trợ lọc (drill-down) khi click vào biểu đồ Array Index và Shot Heatmap. Cập nhật đồng bộ cả Backend API và Frontend UI. [Hoàn thành]
 - **Yêu cầu 31**: (2026-04-11 22:37) Điều chỉnh cơ chế Heartbeat: Chỉ kích hoạt gửi tín hiệu Online sau khi người dùng nhấn nút START và dừng khi nhấn STOP. [Hoàn thành]
+- **Yêu cầu 32**: (2026-04-11 22:46) Tối ưu hiển thị đồ thị Máy trên trang Phân tích: Ép hiển thị tất cả tên máy và xoay nghiêng 45 độ để tên không bị ẩn hoặc chồng lấn. [Hoàn thành]
