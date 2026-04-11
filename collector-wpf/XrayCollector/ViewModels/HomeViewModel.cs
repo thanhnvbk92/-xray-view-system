@@ -19,11 +19,11 @@ namespace XrayCollector.ViewModels
     public partial class HomeViewModel : ObservableObject
     {
         private readonly IApiService _apiService;
-        private readonly IFileWatcherService _imgWatcher;
         private readonly IFileWatcherService _logWatcher;
         private readonly ISettingsService _settings;
         private readonly IUpdateService _updateService;
         private readonly ISyncPersistenceService _persistence;
+        private readonly SemaphoreSlim _processLock = new(1, 1);
         private DispatcherTimer? _heartbeatTimer;
         private DispatcherTimer? _retryTimer;
         private bool _isSynchronizing = false;
@@ -49,10 +49,9 @@ namespace XrayCollector.ViewModels
 
         public ObservableCollection<string> Logs { get; } = new();
 
-        public HomeViewModel(IApiService apiService, IFileWatcherService imgWatcher, IFileWatcherService logWatcher, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence)
+        public HomeViewModel(IApiService apiService, IFileWatcherService logWatcher, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence)
         {
             _apiService = apiService;
-            _imgWatcher = imgWatcher;
             _logWatcher = logWatcher;
             _settings = settings;
             _updateService = updateService;
@@ -62,12 +61,23 @@ namespace XrayCollector.ViewModels
             
             // Lắng nghe thông điệp khi cài đặt thay đổi
             WeakReferenceMessenger.Default.Register<SettingsChangedMessage>(this, (r, m) => RefreshDisplayInfo());
+
+            // Chạy các tác vụ khởi tạo ngay khi Startup (không đợi nhấn START)
+            _ = InitializeStartupAsync();
+        }
+
+        private async Task InitializeStartupAsync()
+        {
+            await Task.Yield(); // Chuyển sang background ngay lập tức
+            RefreshDisplayInfo();
+            await Task.Delay(1000); // Đợi 1 chút cho mạng ổn định rồi check update
+            CheckForUpdatesCommand.Execute(null);
         }
 
         private async void RefreshDisplayInfo()
         {
             _settings.Load();
-            LocalIpAddress = GetLocalIpAddress();
+            LocalIpAddress = await Task.Run(() => GetLocalIpAddress());
             
             if (int.TryParse(_settings.MachineId, out int mid))
             {
@@ -197,12 +207,6 @@ namespace XrayCollector.ViewModels
             // 1. Quét dữ liệu lịch sử chưa được đọc (Bù đắp khi App bị tắt)
             _ = SynchronizeHistoricalDataAsync(_settings.LogPath, logFilter);
 
-            _imgWatcher.Start(_settings.ImagePath, "*.*", (path, type) => 
-            {
-                if (type == "ERROR") AddLog($"[LỖI ẢNH] {path}");
-                else AddLog($"[{type}] Ảnh: {System.IO.Path.GetFileName(path)}");
-            });
-
             _logWatcher.Start(_settings.LogPath, logFilter, (path, type) => 
             {
                 if (type == "ERROR") 
@@ -212,39 +216,13 @@ namespace XrayCollector.ViewModels
                 }
 
                 AddLog($"[{type}] Log: {System.IO.Path.GetFileName(path)}");
-                if (type == "EDITED" || type == "CREATED")
+                if (type == "EDITED")
                 {
                     _ = ProcessLogFile(path);
                 }
             });
 
-            // 3. Khởi tạo và chạy các tác vụ nền sau khi START
-            RefreshDisplayInfo();
-            CheckForUpdatesCommand.Execute(null);
-
-            // Khởi tạo timer thử lại ghi ngầm (mỗi 1 phút) nếu chưa có
-            if (_retryTimer == null)
-            {
-                _retryTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
-                _retryTimer.Tick += async (s, e) => await ProcessRetryQueueAsync();
-            }
-            _retryTimer.Start();
-
-            if (int.TryParse(_settings.MachineId, out int mid))
-            {
-                LocalIpAddress = GetLocalIpAddress();
-                var result = await _apiService.SendHeartbeatAsync(mid, LocalIpAddress);
-                UpdateConnectionStatus(result.Success, result.Message);
-
-                _heartbeatTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(30) };
-                _heartbeatTimer.Tick += async (s, e) => 
-                {
-                    var hb = await _apiService.SendHeartbeatAsync(mid, LocalIpAddress);
-                    UpdateConnectionStatus(hb.Success, hb.Message);
-                };
-                _heartbeatTimer.Start();
-            }
-
+            // 3. Các tác vụ nền khác (Refresh và Update) nay đã được thực hiện ở constructor lúc startup
             AddLog("Bắt đầu giám sát hệ thống.");
         }
 
@@ -252,24 +230,64 @@ namespace XrayCollector.ViewModels
         {
             if (_isSynchronizing) return;
             _isSynchronizing = true;
+            await Task.Yield(); // Tuyệt đối không treo UI thread khi liệt kê hàng nghìn file
             
             try
             {
-                AddLog("Đang quét dữ liệu chưa đồng bộ...");
+                AddLog($"Đang quét dữ liệu chưa đồng bộ... {logPath} {filter}");
                 var state = _persistence.LoadState();
-                var logFiles = Directory.GetFiles(logPath, filter)
+
+                // TỐI ƯU HÓA: Thay vì quét toàn bộ subdirectories (SearchOption.AllDirectories) làm treo UI,
+                // Chúng ta chỉ quét thư mục gốc và các thư mục yyyyMMdd >= ngày xử lý cuối.
+                var directoriesToScan = new List<string> { logPath };
+                string startDirName = state.LastProcessedTime.ToString("yyyyMMdd");
+
+                try
+                {
+                    if (Directory.Exists(logPath))
+                    {
+                        var subDirs = Directory.GetDirectories(logPath);
+                        foreach (var dir in subDirs)
+                        {
+                            string dirName = Path.GetFileName(dir);
+                            // Kiểm tra nếu thư mục có tên là 8 chữ số (yyyyMMdd)
+                            if (dirName.Length == 8 && dirName.All(char.IsDigit))
+                            {
+                                // Chỉ quét nếu thư mục này mới hơn hoặc bằng ngày cuối cùng đã xử lý
+                                if (string.Compare(dirName, startDirName) >= 0)
+                                {
+                                    directoriesToScan.Add(dir);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AddLog($"Lỗi khi liệt kê thư mục con: {ex.Message}");
+                }
+
+                // Thu thập file từ các thư mục đã chọn (chỉ quét TopDirectoryOnly cho từng thư mục cụ thể)
+                var logFiles = directoriesToScan
+                    .SelectMany(d => Directory.GetFiles(d, filter, SearchOption.TopDirectoryOnly))
                     .Select(f => new FileInfo(f))
                     .Where(f => f.LastWriteTime > state.LastProcessedTime.AddSeconds(-1)) // Trừ 1s để an toàn
-                    .OrderBy(f => f.LastWriteTime);
+                    .OrderBy(f => f.LastWriteTime)
+                    .ToList();
+
+                AddLog($"Tìm thấy {logFiles.Count} tệp log cần quét bù sau thời điểm {state.LastProcessedTime}");
 
                 int count = 0;
                 foreach (var file in logFiles)
                 {
-                    var lines = File.ReadAllLines(file.FullName);
-                    if (lines.Any(line => line.Contains("Start inspection")))
+                    try
                     {
                         await ProcessLogFile(file.FullName);
                         count++;
+                    }
+                    catch (Exception ex)
+                    {
+                        AddLog($"Lỗi khi xử lý file {Path.GetFileName(file.FullName)}: {ex.Message}");
                     }
                 }
                 
@@ -325,39 +343,40 @@ namespace XrayCollector.ViewModels
 
         private async Task ProcessLogFile(string filePath)
         {
-            // Cơ chế Retry để tránh lỗi Access Denied khi file đang bị tester software khóa
-            int retryCount = 0;
-            string[]? lines = null;
-            Exception? lastEx = null;
-
-            while (retryCount < 5 && lines == null)
-            {
-                try
-                {
-                    await Task.Delay(500); // Đợi mỗi lần retry
-                    lines = File.ReadAllLines(filePath);
-                }
-                catch (IOException ex)
-                {
-                    lastEx = ex;
-                    retryCount++;
-                    AddLog($"Thử lại lần {retryCount} do file bị khóa...");
-                }
-                catch (Exception ex)
-                {
-                    AddLog($"Lỗi không xác định khi đọc file: {ex.Message}");
-                    return;
-                }
-            }
-
-            if (lines == null)
-            {
-                AddLog($"Không thể đọc file sau 5 lần thử: {lastEx?.Message}");
-                return;
-            }
-
+            await _processLock.WaitAsync();
             try
             {
+                // Cơ chế Retry để tránh lỗi Access Denied khi file đang bị tester software khóa
+                int retryCount = 0;
+                string[]? lines = null;
+                Exception? lastEx = null;
+
+                while (retryCount < 5 && lines == null)
+                {
+                    try
+                    {
+                        await Task.Delay(500); // Đợi mỗi lần retry
+                        lines = File.ReadAllLines(filePath);
+                    }
+                    catch (IOException ex)
+                    {
+                        lastEx = ex;
+                        retryCount++;
+                        AddLog($"Thử lại lần {retryCount} do file bị khóa...");
+                    }
+                    catch (Exception ex)
+                    {
+                        AddLog($"Lỗi không xác định khi đọc file: {ex.Message}");
+                        return;
+                    }
+                }
+
+                if (lines == null)
+                {
+                    AddLog($"Không thể đọc file sau 5 lần thử: {lastEx?.Message}");
+                    return;
+                }
+
                 if (lines.Length <= 1) return; // Chỉ có header
                 
                 var state = _persistence.LoadState();
@@ -388,8 +407,8 @@ namespace XrayCollector.ViewModels
                         } catch { }
                     }
 
-                    // KIỂM TRA CHECKPOINT: Nếu bản ghi này cũ hơn mốc cuối cùng đã xử lý thì bỏ qua
-                    if (currentLogTime <= lastTime) continue;
+                    // ĐÃ LOẠI BỎ KIỂM TRA CHECKPOINT: Backend đã dùng cơ chế Upsert nên gửi trùng 1 vài record cũng không sao.
+                    // Việc bỏ check này giúp xử lý trọn vẹn file dù mốc thời gian global bị nhảy cóc.
 
                     // Lưu PID của Unit 1 làm mốc
                     if (unitIndex == 1)
@@ -463,6 +482,10 @@ namespace XrayCollector.ViewModels
             {
                 AddLog($"Lỗi xử lý file log: {ex.Message}");
             }
+            finally
+            {
+                _processLock.Release();
+            }
         }
 
         private (string jobFile, List<(string Path, string Result)> images) FindImagesAndJobFile(string timestamp, int unitIndex)
@@ -523,7 +546,6 @@ namespace XrayCollector.ViewModels
             StatusMessage = "Sẵn sàng hoạt động";
             StatusColor = "Red";
 
-            _imgWatcher.Stop();
             _logWatcher.Stop();
             _heartbeatTimer?.Stop();
 
@@ -559,31 +581,30 @@ namespace XrayCollector.ViewModels
 
         public void AddLog(string message)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            // Sử dụng BeginInvoke để không nén (block) luồng xử lý nếu UI đang bận
+            Application.Current?.Dispatcher?.BeginInvoke(new Action(() =>
             {
                 var now = DateTime.Now;
                 var timeStr = now.ToString("HH:mm:ss");
                 var fullMessage = $"[{timeStr}] {message}";
                 
                 Logs.Insert(0, fullMessage);
-                if (Logs.Count > 50) Logs.RemoveAt(50);
+                if (Logs.Count > 100) Logs.RemoveAt(100); // Tăng lên 100 log
 
-                // Ghi log ra tệp tin theo cấu trúc: Logs/yyyy/MM/yyyyMMdd.log
+                // Ghi log ra tệp tin
                 try {
                     string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs", now.ToString("yyyy"), now.ToString("MM"));
-                    Directory.CreateDirectory(logDir);
+                    if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
                     string logFile = Path.Combine(logDir, now.ToString("yyyyMMdd") + ".log");
                     
-                    // Định dạng log đặc biệt cho việc Upload thành công hoặc các lỗi mapping
                     string fileLogEntry = fullMessage;
                     if (message.Contains("Đồng bộ thành công")) {
-                        // Trích xuất PID và Result từ message để tạo format: Upload completed {PID} - {Result}
                         fileLogEntry = $"[{timeStr}] Upload completed {message.Replace("Đồng bộ thành công: ", "")}";
                     }
                     
                     File.AppendAllText(logFile, fileLogEntry + Environment.NewLine);
                 } catch { /* Bỏ qua lỗi ghi file để không làm treo UI */ }
-            });
+            }));
         }
     }
 
