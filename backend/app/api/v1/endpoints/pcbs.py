@@ -171,6 +171,7 @@ async def confirm_pcb(
     pcb.confirmed_at = datetime.utcnow()
     
     db.query(PCBImage).filter(PCBImage.pcb_id == pcb_id).update({
+        "machine_result": user_result, # Cập nhật để giao diện đổi màu
         "user_result": user_result,
         "confirmed_by_id": current_user.id
     })
@@ -180,6 +181,19 @@ async def confirm_pcb(
     all_images = db.query(PCBImage).filter(PCBImage.pcb_id == pcb_id).all()
     for img in all_images:
         await image_queue.put(img.id)
+
+    # Xóa cache stats
+    global_stats_cache.clear()
+
+    # Thông báo qua WebSocket
+    await manager.broadcast(json.dumps({
+        "type": "PCB_CONFIRMED",
+        "data": {
+            "pcb_id": pcb_id,
+            "final_result": user_result,
+            "confirmed_by": current_user.full_name
+        }
+    }))
         
     return {"status": "success", "pcb_id": pcb_id, "final_result": user_result}
 
@@ -226,9 +240,24 @@ async def confirm_image(
             pcb.confirmed_at = datetime.utcnow()
             
     db.commit()
+
+    # Nén ảnh sau khi confirm
     await image_queue.put(img.id)
     if orig_img:
         await image_queue.put(orig_img.id)
+
+    # Xóa cache stats
+    global_stats_cache.clear()
+
+    # Thông báo qua WebSocket
+    await manager.broadcast(json.dumps({
+        "type": "IMAGE_CONFIRMED",
+        "data": {
+            "image_id": image_id,
+            "pcb_id": img.pcb_id,
+            "user_result": user_result
+        }
+    }))
 
     return {"status": "success", "image_id": image_id, "user_result": user_result}
 
