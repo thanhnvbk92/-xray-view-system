@@ -37,7 +37,7 @@ class User(Base):
     position = Column(String(100)) # Chức vụ
     role = Column(String(20), default="OPERATOR") # ADMIN/OPERATOR
     is_approved = Column(Boolean, default=False) # Chờ admin phê duyệt
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.now)
     permissions = Column(Text, nullable=True) # JSON list of permissions
     
     confirmed_pcbs = relationship("PCB", back_populates="confirmed_by")
@@ -58,7 +58,7 @@ class Machine(Base):
     ip_address = Column(String(45), unique=True, nullable=True) # Thêm unique=True, cho phép nullable
     line_id = Column(Integer, ForeignKey("lines.id"), nullable=False) # Thêm nullable=False
     status = Column(String(20), default="OFFLINE") # ONLINE/OFFLINE
-    last_heartbeat = Column(DateTime, default=datetime.utcnow)
+    last_heartbeat = Column(DateTime, default=datetime.now)
     
     line = relationship("Line", back_populates="machines")
     pcbs = relationship("PCB", back_populates="machine")
@@ -94,7 +94,7 @@ class PCB(Base):
     
     # Double-Timestamp
     client_time = Column(DateTime, index=True)          # Thời gian ghi nhận tại máy quét (từ log)
-    system_time = Column(DateTime, default=datetime.utcnow, index=True) # Thời gian ghi nhận tại server
+    system_time = Column(DateTime, default=datetime.now, index=True) # Thời gian ghi nhận tại server
     
     image_path = Column(String(255)) # Sử dụng để lưu tên file log gốc (ví dụ: Xray_20260411.log)
     user_confirmed = Column(Boolean, default=False, index=True)
@@ -135,6 +135,8 @@ class PCBImage(Base):
     ai_result = Column(String(20), default="PENDING")
     user_result = Column(String(20), default="PENDING")
     is_processed = Column(Boolean, default=False) # Cờ đánh dấu đã nén và chuyển vào storage
+    shot_num = Column(Integer, default=1) # Số thứ tự shot (dành cho máy 9730)
+    image_type = Column(String(20), default="origin") # origin, marked, mask
     confirmed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     
     pcb = relationship("PCB", back_populates="images")
@@ -226,6 +228,13 @@ def init_db():
                 conn.execute(text("ALTER TABLE pcb_images ADD COLUMN confirmed_by_id INT NULL"))
                 conn.execute(text("ALTER TABLE pcb_images ADD CONSTRAINT fk_img_user FOREIGN KEY (confirmed_by_id) REFERENCES users(id)"))
             except: pass
+
+            try:
+                conn.execute(text("ALTER TABLE pcb_images ADD COLUMN shot_num INT DEFAULT 1"))
+            except: pass
+            try:
+                conn.execute(text("ALTER TABLE pcb_images ADD COLUMN image_type VARCHAR(20) DEFAULT 'origin'"))
+            except: pass
             
             # 4. Đảm bảo có tài khoản ADMIN mặc định
             from passlib.context import CryptContext
@@ -238,7 +247,7 @@ def init_db():
                 conn.execute(text("""
                     INSERT INTO users (username, hashed_password, full_name, role, is_approved, created_at)
                     VALUES ('admin', :hp, 'System Administrator', 'ADMIN', 1, :now)
-                """), {"hp": hashed_pw, "now": datetime.utcnow()})
+                """), {"hp": hashed_pw, "now": datetime.now()})
                 
             conn.commit()
             print("Database migration and admin initialization completed.")

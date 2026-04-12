@@ -16,6 +16,8 @@ namespace XrayCollector.Models
         public string JobFile { get; set; } = string.Empty;
         public List<string> ImagePaths { get; set; } = new();
         public List<string> ImageResults { get; set; } = new();
+        public List<int> ShotNums { get; set; } = new();
+        public List<string> ImageTypes { get; set; } = new();
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 

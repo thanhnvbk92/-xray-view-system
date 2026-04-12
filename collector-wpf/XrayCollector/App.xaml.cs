@@ -18,6 +18,8 @@ namespace XrayCollector
                 services.AddSingleton<ISyncPersistenceService, SyncPersistenceService>();
                 services.AddTransient<IApiService, ApiService>();
                 services.AddTransient<IFileWatcherService, FileWatcherService>();
+                services.AddTransient<IImageMarkingService, ImageMarkingService>();
+                services.AddTransient<IXray9730CollectorService, Xray9730CollectorService>();
                 services.AddHttpClient<IApiService, ApiService>();
                 services.AddHttpClient<IUpdateService, UpdateService>();
 

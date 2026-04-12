@@ -14,7 +14,7 @@ async def check_offline_machines():
         await asyncio.sleep(30)
         try:
             db = next(database.get_db())
-            timeout = datetime.utcnow() - timedelta(seconds=90)
+            timeout = datetime.now() - timedelta(seconds=90)
             stale = db.query(Machine).filter(
                 Machine.status == "ONLINE",
                 Machine.last_heartbeat < timeout

@@ -59,7 +59,7 @@ async def get_overall_stats(current_user: User = Depends(get_current_user), db: 
         func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng'),
         func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
         func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
-    ).filter(PCB.system_time >= start_time).first()
+    ).filter(PCB.client_time >= start_time).first()
     
     total = stats.total or 0
     ok = int(stats.ok or 0)
@@ -107,12 +107,12 @@ async def get_trends(
         func.sum(case((PCB.final_result == 'OK', 1), else_=0)).label('ok'),
         func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
         func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
-    ).filter(PCB.system_time >= start_dt, PCB.system_time <= end_dt)
+    ).filter(PCB.client_time >= start_dt, PCB.client_time <= end_dt)
 
     if machine_id: query = query.filter(PCB.machine_id == machine_id)
     if job_file: query = query.filter(PCB.job_file == job_file)
 
-    results = query.group_by(func.date(PCB.system_time)).all()
+    results = query.group_by(func.date(PCB.client_time)).all()
     
     # 3. Logic Zero-filling: Đảm bảo luôn có dữ liệu cho 7 ngày gần nhất
     current_trends = {str(r[0]): {

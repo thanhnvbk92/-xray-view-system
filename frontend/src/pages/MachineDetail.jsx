@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Check, X, Eye, Clock, Hash, Monitor, ShieldAlert, Filter, ZoomIn, ZoomOut, Maximize, Move } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, X, Eye, Clock, Hash, Monitor, ShieldAlert, Filter, ZoomIn, ZoomOut, Maximize, Move } from 'lucide-react';
 import { useAuth, api } from '../context/AuthContext';
 
 const API_URL = `http://${window.location.hostname}:8000`;
@@ -52,12 +52,29 @@ function MachineDetail() {
         try {
             console.log(`MachineDetail: Fetching images for PCB ${pcb.id}`);
             const res = await api.get(`/api/pcbs/${pcb.id}/images`);
-            const images = res.data;
-            const updatedPcb = { ...pcb, images };
+            
+            // Chuẩn hóa dữ liệu cho các bản ghi cũ chưa có shot_num/image_type
+            const normalizedImages = res.data.map(img => {
+                let s_num = img.shot_num;
+                let i_type = img.image_type;
+                
+                if (!s_num) {
+                    const match = img.image_path.match(/(\d+)(?:_o)?\.[^.]+$/);
+                    s_num = match ? parseInt(match[1]) : 1;
+                }
+                
+                if (!i_type) {
+                    i_type = img.image_path.toLowerCase().includes('_o.') ? 'origin' : 'marked';
+                }
+                
+                return { ...img, shot_num: s_num, image_type: i_type };
+            });
+
+            const updatedPcb = { ...pcb, images: normalizedImages };
             setSelectedPcb(updatedPcb);
 
-            const firstNg = images.find(img => img.machine_result === 'NG');
-            setSelectedImage(firstNg || images[0]);
+            const firstNg = normalizedImages.find(img => img.machine_result === 'NG');
+            setSelectedImage(firstNg || normalizedImages[0]);
         } catch (error) {
             console.error("Error fetching images for PCB:", error);
         }
@@ -78,15 +95,10 @@ function MachineDetail() {
 
             // 2. Cập nhật state local ngay để giao diện đổi màu
             const updatedImages = selectedPcb.images.map(img => {
-                if (img.id === selectedImage.id) return { ...img, machine_result: result };
-
-                // Logic tìm ảnh gốc tương ứng (JS standard)
-                const imgPath = selectedImage.image_path;
-                const lastDot = imgPath.lastIndexOf('.');
-                const bPath = lastDot !== -1 ? imgPath.substring(0, lastDot) : imgPath;
-                const ext = lastDot !== -1 ? imgPath.substring(lastDot) : '';
-
-                if (img.image_path === `${bPath}_o${ext}`) return { ...img, machine_result: result };
+                // Cập nhật kết quả cho ảnh hiện tại và mọi ảnh có cùng shot_num (cả gốc và marked)
+                if (img.id === selectedImage.id || img.shot_num === selectedImage.shot_num) {
+                    return { ...img, machine_result: result };
+                }
                 return img;
             });
 
@@ -94,7 +106,7 @@ function MachineDetail() {
             setSelectedPcb(updatedPcb);
 
             // 3. Tìm ảnh NG tiếp theo (Chỉ tìm trong ảnh marked)
-            const markedImages = updatedImages.filter(img => !img.image_path.toLowerCase().endsWith('_o.jpg') && !img.image_path.toLowerCase().endsWith('_o.png'));
+            const markedImages = updatedImages.filter(img => img.image_type !== 'origin');
             const currentImgIdx = markedImages.findIndex(img => img.id === selectedImage.id);
             const nextNgInCurrent = markedImages.slice(currentImgIdx + 1).find(img => img.machine_result === 'NG');
 
@@ -136,14 +148,72 @@ function MachineDetail() {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape') setIsModalOpen(false);
-            if (e.key === ' ' && isModalOpen) { // Space to toggle Original/Marked only when modal is open
+            
+            // Phím tắt Toggle Gốc/Lỗi
+            if (e.key === ' ' && (isModalOpen || selectedImage)) {
                 e.preventDefault();
                 setShowOriginal(prev => !prev);
             }
+
+            // Phím tắt xác nhận (1: OK, 2: NG)
+            if (selectedImage && !isViewer) {
+                if (e.key === '1') { e.preventDefault(); handleConfirm('OK'); }
+                if (e.key === '2') { e.preventDefault(); handleConfirm('NG'); }
+                if (e.key === '3') { e.preventDefault(); handleNextNgImage(); } // Bỏ qua shot này
+            }
+
+            // Điều hướng Shot (Mũi tên)
+            if (e.key === 'ArrowRight') handleNextNgImage();
+            if (e.key === 'ArrowLeft') handlePrevNgImage();
+
+            // Điều hướng PCB (A/D)
+            if (e.key === 'd' || e.key === 'D') handleNextPcb();
+            if (e.key === 'a' || e.key === 'A') handlePrevPcb();
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isModalOpen]);
+    }, [isModalOpen, selectedImage, selectedPcb, pcbs, isViewer]);
+
+    const handleNextNgImage = () => {
+        if (!selectedPcb) return;
+        const markedImages = selectedPcb.images.filter(img => img.image_type !== 'origin');
+        const currentIndex = markedImages.findIndex(img => img.id === selectedImage?.id);
+        
+        // Tìm ảnh NG tiếp theo trong PCB hiện tại
+        const nextNg = markedImages.slice(currentIndex + 1).find(img => img.machine_result === 'NG');
+        if (nextNg) {
+            setSelectedImage(nextNg);
+            setShowOriginal(false);
+        } else {
+            handleNextPcb(); // Nếu hết NG thì sang PCB tiếp theo
+        }
+    };
+
+    const handlePrevNgImage = () => {
+        if (!selectedPcb) return;
+        const markedImages = selectedPcb.images.filter(img => img.image_type !== 'origin');
+        const currentIndex = markedImages.findIndex(img => img.id === selectedImage?.id);
+        
+        if (currentIndex > 0) {
+            // Quay lại ảnh trước đó (bất kể NG hay OK để xem lại)
+            setSelectedImage(markedImages[currentIndex - 1]);
+            setShowOriginal(false);
+        }
+    };
+
+    const handleNextPcb = () => {
+        const pcbIndex = pcbs.findIndex(p => p.id === selectedPcb?.id);
+        if (pcbIndex < pcbs.length - 1) {
+            handlePcbSelect(pcbs[pcbIndex + 1]);
+        }
+    };
+
+    const handlePrevPcb = () => {
+        const pcbIndex = pcbs.findIndex(p => p.id === selectedPcb?.id);
+        if (pcbIndex > 0) {
+            handlePcbSelect(pcbs[pcbIndex - 1]);
+        }
+    };
 
     const handleModalWheel = (e) => {
         e.preventDefault();
@@ -192,7 +262,10 @@ function MachineDetail() {
             <div style={{ display: 'grid', gridTemplateColumns: '320px 300px 1fr', gap: '1.5rem', flex: 1, minHeight: 0 }}>
                 {/* 1. Danh sách PCB bên trái */}
                 <div className="data-table-container" style={{ overflowY: 'auto' }}>
-                    <div style={{ padding: '10px', borderBottom: '1px solid var(--glass-border)', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold' }}>DANH SÁCH PCB</div>
+                    <div style={{ padding: '10px', borderBottom: '1px solid var(--glass-border)', fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 'bold', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>DANH SÁCH PCB</span>
+                        <span>{pcbs.findIndex(p => p.id === selectedPcb?.id) + 1} / {pcbs.length}</span>
+                    </div>
                     {pcbs.map(pcb => (
                         <div
                             key={pcb.id}
@@ -237,11 +310,11 @@ function MachineDetail() {
                         </label>
                     </div>
                     {selectedPcb?.images?.filter(img => {
-                        const isOriginal = img.image_path.toLowerCase().endsWith('_o.jpg') || img.image_path.toLowerCase().endsWith('_o.png');
+                        const isOriginal = img.image_type === 'origin';
                         if (isOriginal) return false;
                         if (onlyShowNg) return img.machine_result === 'NG';
                         return true;
-                    }).map((img) => {
+                    }).map((img, index) => {
                         const fullPath = img.image_path.split('/').pop();
                         // Làm gọn tên file: Bỏ tất cả tiền tố trước và bao gồm cả PID_
                         let fileName = fullPath;
@@ -275,7 +348,7 @@ function MachineDetail() {
                                     }}
                                     title={fileName}
                                 >
-                                    {fileName}
+                                    {img.image_type === 'origin' ? 'Original' : `Shot ${img.shot_num || (index + 1)}`}
                                 </span>
                                 <span className={`badge ${img.machine_result === 'OK' ? 'badge-ok' : 'badge-ng'}`} style={{ fontSize: '0.6rem' }}>
                                     {img.machine_result}
@@ -323,17 +396,28 @@ function MachineDetail() {
                                     style={{ height: '45px', minWidth: '150px', backgroundColor: 'var(--status-ok)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: isViewer ? 0.5 : 1, fontWeight: 'bold', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.2)' }}
                                     onClick={() => handleConfirm('OK')}
                                     disabled={isViewer}
+                                    title="Phím tắt: 1"
                                 >
-                                    <Check size={18} /> XÁC NHẬN OK
+                                    <Check size={18} /> (1) XÁC NHẬN OK
                                 </button>
                                 <button
                                     className="btn"
                                     style={{ height: '45px', minWidth: '150px', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--status-ng)', border: '1px solid var(--status-ng)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: isViewer ? 0.5 : 1, fontWeight: 'bold' }}
                                     onClick={() => handleConfirm('NG')}
                                     disabled={isViewer}
+                                    title="Phím tắt: 2"
                                 >
-                                    <X size={18} /> GIỮ KẾT QUẢ NG
+                                    <X size={18} /> (2) GIỮ KẾT QUẢ NG
                                 </button>
+
+                                <div style={{ display: 'flex', gap: '10px', marginLeft: '10px', borderLeft: '1px solid var(--glass-border)', paddingLeft: '20px' }}>
+                                    <button className="btn btn-secondary" onClick={handlePrevPcb} title="PCB Trước (A)">
+                                        <div style={{ transform: 'rotate(180deg)' }}><ArrowRight size={18} /></div>
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={handleNextPcb} title="PCB Sau (D)">
+                                        <ArrowRight size={18} />
+                                    </button>
+                                </div>
                             </div>
                             <div 
                                 style={{ 
@@ -371,11 +455,10 @@ function MachineDetail() {
                                     <img
                                         src={`${API_URL}${(() => {
                                             if (!showOriginal) return selectedImage.image_path;
-                                            // Tìm ảnh gốc tương ứng (_o.jpg)
-                                            const basePath = selectedImage.image_path.substring(0, selectedImage.image_path.lastIndexOf('.'));
-                                            const ext = selectedImage.image_path.substring(selectedImage.image_path.lastIndexOf('.'));
-                                            const originalPath = `${basePath}_o${ext}`;
-                                            const foundOriginal = selectedPcb.images.find(i => i.image_path === originalPath);
+                                            // Tìm ảnh gốc dựa trên shot_num
+                                            const foundOriginal = selectedPcb.images.find(i => 
+                                                i.shot_num === selectedImage.shot_num && i.image_type === 'origin'
+                                            );
                                             return foundOriginal ? foundOriginal.image_path : selectedImage.image_path;
                                         })()}`}
                                         alt="Preview"
@@ -447,10 +530,9 @@ function MachineDetail() {
                              <img
                                 src={`${API_URL}${(() => {
                                     if (!showOriginal) return selectedImage.image_path;
-                                    const basePath = selectedImage.image_path.substring(0, selectedImage.image_path.lastIndexOf('.'));
-                                    const ext = selectedImage.image_path.substring(selectedImage.image_path.lastIndexOf('.'));
-                                    const originalPath = `${basePath}_o${ext}`;
-                                    const foundOriginal = selectedPcb.images.find(i => i.image_path === originalPath);
+                                    const foundOriginal = selectedPcb.images.find(i => 
+                                        i.shot_num === selectedImage.shot_num && i.image_type === 'origin'
+                                    );
                                     return foundOriginal ? foundOriginal.image_path : selectedImage.image_path;
                                 })()}`}
                                 alt="Inspection"

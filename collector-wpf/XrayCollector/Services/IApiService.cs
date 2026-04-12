@@ -17,8 +17,8 @@ namespace XrayCollector.Services
         Task<List<MachineDto>> GetMachinesAsync();
         Task<List<MachineTypeDto>> GetMachineTypesAsync();
         Task<bool> PingAsync();
-        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, System.Collections.Generic.List<string> imagePaths, System.Collections.Generic.List<string> imageResults, string logFile = null);
-        Task<MachineDetailDto> GetMachineDetailAsync(int machineId);
+        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string? logFile = null, List<int>? shotNums = null, List<string>? imageTypes = null);
+        Task<MachineDetailDto?> GetMachineDetailAsync(int machineId);
     }
 
     public class ApiService : IApiService
@@ -116,7 +116,7 @@ namespace XrayCollector.Services
             catch { return false; }
         }
 
-        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string logFile = null)
+        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string? logFile = null, List<int>? shotNums = null, List<string>? imageTypes = null)
         {
             try
             {
@@ -143,6 +143,16 @@ namespace XrayCollector.Services
                     content.Add(new StringContent(string.Join(",", imageResults)), "image_results");
                 }
 
+                if (shotNums != null && shotNums.Count > 0)
+                {
+                    content.Add(new StringContent(string.Join(",", shotNums)), "shot_nums");
+                }
+
+                if (imageTypes != null && imageTypes.Count > 0)
+                {
+                    content.Add(new StringContent(string.Join(",", imageTypes)), "image_types");
+                }
+
                 if (imagePaths != null && imagePaths.Count > 0)
                 {
                     foreach (var path in imagePaths)
@@ -162,7 +172,7 @@ namespace XrayCollector.Services
             }
             catch { return false; }
         }
-        public async Task<MachineDetailDto> GetMachineDetailAsync(int machineId)
+        public async Task<MachineDetailDto?> GetMachineDetailAsync(int machineId)
         {
             try
             {
@@ -176,8 +186,9 @@ namespace XrayCollector.Services
     public class MachineDetailDto
     {
         public int id { get; set; }
-        public string name { get; set; }
-        public string line_name { get; set; }
-        public string machine_type_name { get; set; }
+        public string name { get; set; } = string.Empty;
+        public string line_name { get; set; } = string.Empty;
+        public string machine_type_name { get; set; } = string.Empty;
+        public string machine_type_part_no { get; set; } = string.Empty;
     }
 }

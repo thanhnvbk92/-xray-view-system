@@ -125,14 +125,14 @@ async def heartbeat(request: schemas.HeartbeatRequest, db: Session = Depends(get
             error_msg = f"Trùng IP {request.ip_address} với máy {duplicate.name} tại Line {line_name}"
             
             # Vẫn cập nhật trạng thái Online nhưng báo lỗi trùng
-            machine.last_heartbeat = datetime.utcnow()
+            machine.last_heartbeat = datetime.now()
             machine.status = "ONLINE"
             db.commit()
             raise HTTPException(status_code=400, detail=error_msg)
             
         machine.ip_address = request.ip_address
 
-    machine.last_heartbeat = datetime.utcnow()
+    machine.last_heartbeat = datetime.now()
     machine.status = "ONLINE"
     db.commit()
     

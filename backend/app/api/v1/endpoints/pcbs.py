@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+import re
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
@@ -26,6 +27,8 @@ async def upload_scan(
     client_time: str = Form(...),
     job_file: Optional[str] = Form(None),
     image_results: Optional[str] = Form(None),
+    shot_nums: Optional[str] = Form(None), # Thêm: danh sách shot_num của các ảnh
+    image_types: Optional[str] = Form(None), # Thêm: danh sách image_type (origin/marked)
     log_file: Optional[str] = Form(None), # Thêm tham số log_file
     files: Optional[List[UploadFile]] = File(None),
     db: Session = Depends(get_db)
@@ -45,6 +48,8 @@ async def upload_scan(
         
     # 1. Parse kết quả từng ảnh
     img_result_list = image_results.split(",") if image_results else []
+    shot_num_list = shot_nums.split(",") if shot_nums else []
+    image_type_list = image_types.split(",") if image_types else []
     
     # 2. Lấy thông tin Machine để đặt tên file
     machine_info = db.query(Machine).filter(Machine.id == machine_id).first()
@@ -82,8 +87,21 @@ async def upload_scan(
         existing_images_count = db.query(func.count(PCBImage.id)).filter(PCBImage.pcb_id == existing_pcb.id).scalar()
         if existing_images_count == 0 and saved_paths:
             for i, img_path in enumerate(saved_paths):
+                # Xác định image_type và shot_num linh hoạt
                 m_res = img_result_list[i] if i < len(img_result_list) else machine_result
                 a_res = "OK" if m_res == "OK" else "NG"
+                
+                # Logic lấy shot_num từ tên file nếu không được gửi kèm
+                s_num = 1
+                if i < len(shot_num_list):
+                    s_num = int(shot_num_list[i])
+                else:
+                    # Tìm số cuối cùng trong tên file (trước đuôi mở rộng)
+                    match = re.search(r'(\d+)(?:_o)?\.[^.]+$', img_path)
+                    if match:
+                        s_num = int(match.group(1))
+
+                i_type = image_type_list[i] if i < len(image_type_list) else ("origin" if "_o." in img_path.lower() else "marked")
                 
                 new_img = PCBImage(
                     pcb_id=existing_pcb.id,
@@ -91,7 +109,9 @@ async def upload_scan(
                     machine_result=m_res,
                     ai_result=a_res,
                     user_result="PENDING",
-                    is_processed=False
+                    is_processed=False,
+                    shot_num=s_num,
+                    image_type=i_type
                 )
                 db.add(new_img)
                 if m_res == "OK":
@@ -134,13 +154,26 @@ async def upload_scan(
         m_res = img_result_list[i] if i < len(img_result_list) else machine_result
         a_res = "OK" if m_res == "OK" else "NG"
         
+        # Logic lấy shot_num từ tên file nếu không được gửi kèm
+        s_num = 1
+        if i < len(shot_num_list):
+            s_num = int(shot_num_list[i])
+        else:
+            match = re.search(r'(\d+)(?:_o)?\.[^.]+$', img_path)
+            if match:
+                s_num = int(match.group(1))
+
+        i_type = image_type_list[i] if i < len(image_type_list) else ("origin" if "_o." in img_path.lower() else "marked")
+        
         new_img = PCBImage(
             pcb_id=new_pcb.id,
             image_path=img_path,
             machine_result=m_res,
             ai_result=a_res,
             user_result="PENDING",
-            is_processed=False
+            is_processed=False,
+            shot_num=s_num,
+            image_type=i_type
         )
         db.add(new_img)
         db.commit()
@@ -212,7 +245,7 @@ async def confirm_pcb(
     pcb.user_result = user_result
     pcb.final_result = user_result
     pcb.confirmed_by_id = current_user.id
-    pcb.confirmed_at = datetime.utcnow()
+    pcb.confirmed_at = datetime.now()
     
     db.query(PCBImage).filter(PCBImage.pcb_id == pcb_id).update({
         "machine_result": user_result, # Cập nhật để giao diện đổi màu
@@ -281,7 +314,7 @@ async def confirm_image(
             pcb.user_result = "OK"
             pcb.final_result = "OK"
             pcb.confirmed_by_id = current_user.id
-            pcb.confirmed_at = datetime.utcnow()
+            pcb.confirmed_at = datetime.now()
             
     db.commit()
 
@@ -324,8 +357,11 @@ async def search_trace(
     if pid: query = query.filter(PCB.pid.like(f"%{pid}%"))
     if machine_id: query = query.filter(PCB.machine_id == machine_id)
     if result: query = query.filter(PCB.final_result == result)
-    if start_date: query = query.filter(PCB.client_time >= start_date)
-    if end_date: query = query.filter(PCB.client_time <= end_date)
+    
+    if start_date: 
+        query = query.filter(PCB.client_time >= f"{start_date} 00:00:00")
+    if end_date: 
+        query = query.filter(PCB.client_time <= f"{end_date} 23:59:59")
         
     pcbs = query.order_by(PCB.client_time.desc()).limit(200).all()
     return pcbs

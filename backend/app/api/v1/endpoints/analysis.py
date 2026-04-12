@@ -40,15 +40,15 @@ async def get_analysis_summary(
     
     if target_date:
         d = datetime.strptime(target_date, "%Y-%m-%d")
-        base_filters.append(and_(PCB.system_time >= d, PCB.system_time < d + timedelta(days=1)))
+        base_filters.append(and_(PCB.client_time >= d, PCB.client_time < d + timedelta(days=1)))
     elif start_date and end_date:
         sd = datetime.strptime(start_date, "%Y-%m-%d")
         ed = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1)
-        base_filters.append(and_(PCB.system_time >= sd, PCB.system_time < ed))
+        base_filters.append(and_(PCB.client_time >= sd, PCB.client_time < ed))
     else:
         # Mặc định 7 ngày gần nhất
         sd = datetime.now() - timedelta(days=7)
-        base_filters.append(PCB.system_time >= sd)
+        base_filters.append(PCB.client_time >= sd)
 
     # full_filters bao gồm cả machine_id
     full_filters = list(base_filters)
@@ -105,10 +105,10 @@ async def get_analysis_summary(
 
     # 4. Stats by Job File
     trend_stats = db.query(
-        func.date(PCB.system_time).label('date'),
+        func.date(PCB.client_time).label('date'),
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*full_filters).group_by(func.date(PCB.system_time)).order_by(func.date(PCB.system_time)).all()
+    ).filter(*full_filters).group_by(func.date(PCB.client_time)).order_by(func.date(PCB.client_time)).all()
 
     trends = []
     for row in trend_stats:

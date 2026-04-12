@@ -6,8 +6,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
-using System.Windows;
-using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -23,13 +21,16 @@ namespace XrayCollector.ViewModels
         private readonly ISettingsService _settings;
         private readonly IUpdateService _updateService;
         private readonly ISyncPersistenceService _persistence;
+        private readonly IXray9730CollectorService _xray9730Service;
         private readonly SemaphoreSlim _processLock = new(1, 1);
         private DispatcherTimer? _heartbeatTimer;
         private DispatcherTimer? _retryTimer;
         private bool _isSynchronizing = false;
 
-        [ObservableProperty] private string _currentMachineName = "Chưa cấu hình";
-        [ObservableProperty] private string _currentLineName = "Chưa cấu hình";
+        [ObservableProperty] private string _currentMachineName = "Unknown Machine";
+        [ObservableProperty] private string _currentLineName = "Unknown Line";
+        [ObservableProperty] private string _machineTypeName = "Unknown Type";
+        [ObservableProperty] private string _machinePartNo = "N/A";
         [ObservableProperty] private string _statusMessage = "Sẵn sàng hoạt động";
         [ObservableProperty] private string _statusColor = "Red";
         [ObservableProperty] 
@@ -49,13 +50,14 @@ namespace XrayCollector.ViewModels
 
         public ObservableCollection<string> Logs { get; } = new();
 
-        public HomeViewModel(IApiService apiService, IFileWatcherService logWatcher, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence)
+        public HomeViewModel(IApiService apiService, IFileWatcherService logWatcher, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence, IXray9730CollectorService xray9730Service)
         {
             _apiService = apiService;
             _logWatcher = logWatcher;
             _settings = settings;
             _updateService = updateService;
             _persistence = persistence;
+            _xray9730Service = xray9730Service;
 
             _version = $"v{_updateService.CurrentVersion}";
             
@@ -95,6 +97,8 @@ namespace XrayCollector.ViewModels
                 {
                     CurrentMachineName = detail.name;
                     CurrentLineName = detail.line_name;
+                    MachineTypeName = detail.machine_type_name ?? "";
+                    MachinePartNo = detail.machine_type_part_no ?? "";
                 }
                 else
                 {
@@ -206,33 +210,47 @@ namespace XrayCollector.ViewModels
             StatusMessage = "Hệ thống đang hoạt động";
             StatusColor = "Green";
 
-            var logExt = _settings.LogExtension ?? ".log";
-            if (!logExt.StartsWith(".")) logExt = "." + logExt;
-            var logFilter = "*" + logExt;
-
-            AddLog($"Đang giám sát Log: {_settings.LogPath} | Filter: {logFilter}");
-            AddLog($"Đang giám sát Ảnh: {_settings.ImagePath}");
-
-            // 1. Quét dữ liệu lịch sử chưa được đọc (Bù đắp khi App bị tắt)
-            _ = SynchronizeHistoricalDataAsync(_settings.LogPath, logFilter);
-
-            _logWatcher.Start(_settings.LogPath, logFilter, (path, type) => 
+            int mid = 0;
+            // 1. Kiểm tra loại máy để khởi chạy Service tương ứng
+            // Sử dụng Part Number để nhận diện máy 9730
+            if (MachinePartNo.Contains("9730") || MachineTypeName.Contains("9730"))
             {
-                if (type == "ERROR") 
+                if (int.TryParse(_settings.MachineId, out mid))
                 {
-                    AddLog($"[LỖI LOG] {path}");
-                    return;
+                    _xray9730Service.Start(_settings.LogPath, mid, (msg) => AddLog(msg));
                 }
+            }
+            else
+            {
+                // ... (giữ nguyên logic cũ) ...
+                var logExt = _settings.LogExtension ?? ".log";
+                if (!logExt.StartsWith(".")) logExt = "." + logExt;
+                var logFilter = "*" + logExt;
 
-                AddLog($"[{type}] Log: {System.IO.Path.GetFileName(path)}");
-                if (type == "EDITED")
+                AddLog($"Đang giám sát Log: {_settings.LogPath} | Filter: {logFilter}");
+                AddLog($"Đang giám sát Ảnh: {_settings.ImagePath}");
+
+                // Quét dữ liệu lịch sử (9020)
+                _ = SynchronizeHistoricalDataAsync(_settings.LogPath, logFilter);
+
+                _logWatcher.Start(_settings.LogPath, logFilter, (path, type) => 
                 {
-                    _ = ProcessLogFile(path);
-                }
-            });
+                    if (type == "ERROR") 
+                    {
+                        AddLog($"[LỖI LOG] {path}");
+                        return;
+                    }
+
+                    AddLog($"[{type}] Log: {System.IO.Path.GetFileName(path)}");
+                    if (type == "EDITED")
+                    {
+                        _ = ProcessLogFile(path);
+                    }
+                });
+            }
 
             // 3. Kích hoạt Heartbeat báo Online chỉ sau khi đã START thành công
-            if (int.TryParse(_settings.MachineId, out int mid))
+            if (int.TryParse(_settings.MachineId, out mid))
             {
                 // Gửi gói tin báo Online ngay lập tức
                 var result = await _apiService.SendHeartbeatAsync(mid, LocalIpAddress);
@@ -349,9 +367,12 @@ namespace XrayCollector.ViewModels
                     scan.Result, 
                     scan.ClientTime, 
                     scan.JobFile, 
-                    1, // Mặc định 1 cho hàng đợi cũ, hoặc bạn có thể mở rộng Model PendingScan
+                    1, 
                     scan.ImagePaths, 
-                    scan.ImageResults);
+                    scan.ImageResults,
+                    null,
+                    scan.ShotNums,
+                    scan.ImageTypes);
 
                 if (success)
                 {
@@ -460,11 +481,21 @@ namespace XrayCollector.ViewModels
                     
                     var imagePaths = imageInfos.Select(i => i.Path).ToList();
                     var imageResults = imageInfos.Select(i => i.Result).ToList();
+                    
+                    // Trích xuất ShotNum và ImageType cho máy 9020
+                    var shotNums = new List<int>();
+                    var imageTypes = new List<string>();
+                    foreach (var path in imagePaths)
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(path, @"(\d+)(?:_o)?\.[^.]+$");
+                        shotNums.Add(match.Success ? int.Parse(match.Groups[1].Value) : 1);
+                        imageTypes.Add(path.ToLower().Contains("_o") ? "origin" : "marked");
+                    }
 
                     // Đẩy dữ liệu lên Server
                     if (int.TryParse(_settings.MachineId, out int mid))
                     {
-                        var success = await _apiService.UploadScanAsync(mappedPid, mid, result, isoTime, jobFile, unitIndex, imagePaths, imageResults, logFileName);
+                        var success = await _apiService.UploadScanAsync(mappedPid, mid, result, isoTime, jobFile, unitIndex, imagePaths, imageResults, logFileName, shotNums, imageTypes);
                         
                         if (success) 
                         {
@@ -490,7 +521,9 @@ namespace XrayCollector.ViewModels
                                 ClientTime = isoTime,
                                 JobFile = jobFile,
                                 ImagePaths = imagePaths,
-                                ImageResults = imageResults
+                                ImageResults = imageResults,
+                                ShotNums = shotNums,
+                                ImageTypes = imageTypes
                             });
                         }
                     }
@@ -572,6 +605,7 @@ namespace XrayCollector.ViewModels
             StatusColor = "Red";
 
             _logWatcher.Stop();
+            _xray9730Service.Stop();
             _heartbeatTimer?.Stop();
 
             if (int.TryParse(_settings.MachineId, out int mid))

@@ -69,12 +69,31 @@ function Trace() {
         try {
             console.log(`Trace: Fetching details for PCB ${pcb.id}`);
             const res = await api.get(`/api/pcbs/${pcb.id}/images`);
-            const images = res.data;
-            // Lọc bỏ ảnh gốc để xem cho gọn ở danh sách chính
-            const markedOnly = images.filter(img => !img.image_path.toLowerCase().endsWith('_o.jpg') && !img.image_path.toLowerCase().endsWith('_o.png'));
+            // Chuẩn hóa dữ liệu cho các bản ghi cũ chưa có shot_num/image_type
+            const normalizedImages = res.data.map(img => {
+                let s_num = img.shot_num;
+                let i_type = img.image_type;
+                
+                if (!s_num) {
+                    const match = img.image_path.match(/(\d+)(?:_o)?\.[^.]+$/);
+                    s_num = match ? parseInt(match[1]) : 1;
+                }
+                
+                if (!i_type) {
+                    i_type = img.image_path.toLowerCase().includes('_o.') ? 'origin' : 'marked';
+                }
+                
+                return { ...img, shot_num: s_num, image_type: i_type };
+            });
+
+            // Lọc bỏ ảnh gốc để xem cho gọn ở danh sách chính, sắp xếp theo shot_num
+            const markedOnly = normalizedImages
+                .filter(img => img.image_type !== 'origin')
+                .sort((a, b) => a.shot_num - b.shot_num);
+            
             setPcbImages(markedOnly);
-            // Lưu lại full list vào selectedPcb để sau này tìm ảnh gốc nhanh
-            setSelectedPcb({ ...pcb, images });
+            // Lưu lại full list đã chuẩn hóa vào selectedPcb
+            setSelectedPcb({ ...pcb, images: normalizedImages });
         } catch (error) {
             console.error("Error fetching images:", error);
         }
@@ -91,15 +110,82 @@ function Trace() {
     // Keyboard shortcuts for Modal
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.key === 'Escape') setIsImageModalOpen(false);
-            if (e.key === ' ' && isImageModalOpen) {
+            if (e.key === 'Escape') {
+                if (isImageModalOpen) setIsImageModalOpen(false);
+                else if (showModal) setShowModal(false);
+            }
+            
+            if (!isImageModalOpen) return;
+
+            // Chuyển ảnh Gốc/Lỗi
+            if (e.key === ' ') {
                 e.preventDefault();
                 setShowOriginal(prev => !prev);
             }
+
+            // Điều hướng giữa các Shot (Mũi tên)
+            if (e.key === 'ArrowRight') handleNextImage();
+            if (e.key === 'ArrowLeft') handlePrevImage();
+
+            // Điều hướng giữa các PCB (A/D)
+            if (e.key === 'd' || e.key === 'D') handleNextPcb();
+            if (e.key === 'a' || e.key === 'A') handlePrevPcb();
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isImageModalOpen]);
+    }, [isImageModalOpen, showModal, pcbImages, selectedImage, results, selectedPcb]);
+
+    const handleNextImage = () => {
+        const currentIndex = pcbImages.findIndex(img => img.id === selectedImage?.id);
+        if (currentIndex < pcbImages.length - 1) {
+            setSelectedImage(pcbImages[currentIndex + 1]);
+            setShowOriginal(false);
+        } else {
+            handleNextPcb(); // Nếu hết ảnh shot này thì sang PCB tiếp theo
+        }
+    };
+
+    const handlePrevImage = () => {
+        const currentIndex = pcbImages.findIndex(img => img.id === selectedImage?.id);
+        if (currentIndex > 0) {
+            setSelectedImage(pcbImages[currentIndex - 1]);
+            setShowOriginal(false);
+        } else {
+            handlePrevPcb();
+        }
+    };
+
+    const handleNextPcb = () => {
+        const pcbIndex = results.findIndex(p => p.id === selectedPcb?.id);
+        if (pcbIndex < results.length - 1) {
+            const nextPcb = results[pcbIndex + 1];
+            viewDetails(nextPcb);
+            // Sau khi fetch images xong (trong viewDetails), chúng ta cần auto chọn ảnh đầu tiên.
+            // Vì viewDetails là async, ta sẽ xử lý auto-select bằng cách theo dõi sự thay đổi của pcbImages
+        }
+    };
+
+    const handlePrevPcb = () => {
+        const pcbIndex = results.findIndex(p => p.id === selectedPcb?.id);
+        if (pcbIndex > 0) {
+            const prevPcb = results[pcbIndex - 1];
+            viewDetails(prevPcb);
+        }
+    };
+
+    // Tự động chọn ảnh đầu tiên khi chuyển PCB qua phím tắt
+    useEffect(() => {
+        if (isImageModalOpen && pcbImages.length > 0) {
+            // Nếu ảnh hiện tại không thuộc pcb mới thì mới auto-select ảnh đầu
+            const belongsToCurrent = pcbImages.some(img => img.id === selectedImage?.id);
+            if (!belongsToCurrent) {
+                setSelectedImage(pcbImages[0]);
+                setShowOriginal(false);
+                setModalScale(1);
+                setModalPosition({ x: 0, y: 0 });
+            }
+        }
+    }, [pcbImages]);
 
     const handleModalWheel = (e) => {
         if (!isImageModalOpen) return;
@@ -352,7 +438,7 @@ function Trace() {
                                             onClick={() => openImageInspector(img)}
                                         />
                                         <div style={{ padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Unit {img.image_path.split('_').pop().split('.')[0]}</span>
+                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Shot {img.shot_num || img.image_path.split('_').pop().split('.')[0]}</span>
                                             <span className={`badge ${img.machine_result === 'OK' ? 'badge-ok' : 'badge-ng'}`} style={{ fontSize: '0.6rem' }}>{img.machine_result}</span>
                                         </div>
                                     </div>
@@ -412,12 +498,11 @@ function Trace() {
                              <img
                                 src={`${API_URL}${(() => {
                                     if (!showOriginal) return selectedImage.image_path;
-                                    // Tìm ảnh gốc tương ứng (_o.jpg)
-                                    const basePath = selectedImage.image_path.substring(0, selectedImage.image_path.lastIndexOf('.'));
-                                    const ext = selectedImage.image_path.substring(selectedImage.image_path.lastIndexOf('.'));
-                                    const originalPath = `${basePath}_o${ext}`;
-                                    const foundOriginal = selectedPcb?.images?.find(i => i.image_path === originalPath);
-                                    return foundOriginal ? foundOriginal.image_path : selectedImage.image_path;
+                                    // Tìm ảnh gốc dựa trên shot_num và image_type
+                                     const foundOriginal = selectedPcb?.images?.find(i => 
+                                        i.shot_num === selectedImage.shot_num && i.image_type === 'origin'
+                                    );
+                                    return (foundOriginal ? foundOriginal.image_path : selectedImage.image_path).replace(/\\/g, '/');
                                 })()}`}
                                 alt="Inspection"
                                 style={{ maxWidth: '95%', maxHeight: '95%', objectFit: 'contain', pointerEvents: 'none', filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.5))' }}
@@ -456,6 +541,46 @@ function Trace() {
                                     </button>
                                 </div>
                             )}
+
+                            {/* PCB Navigation Buttons */}
+                            <div style={{ display: 'flex', gap: '10px', marginLeft: '20px', borderLeft: '1px solid rgba(255,255,255,0.1)', paddingLeft: '20px' }}>
+                                <button className="btn btn-secondary" onClick={handlePrevPcb} title="PCB Trước (A)">
+                                    <div style={{ transform: 'rotate(180deg)' }}><ArrowRight size={18} /></div>
+                                </button>
+                                <button className="btn btn-secondary" onClick={handleNextPcb} title="PCB Sau (D)">
+                                    <ArrowRight size={18} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Filmstrip / Thumbnail Bar */}
+                        <div style={{ 
+                            position: 'absolute', right: '30px', top: '50%', transform: 'translateY(-50%)',
+                            display: 'flex', flexDirection: 'column', gap: '10px', padding: '15px',
+                            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', borderRadius: '20px',
+                            border: '1px solid rgba(255,255,255,0.1)', maxHeight: '70%', overflowY: 'auto',
+                            scrollbarWidth: 'none'
+                        }}>
+                            {pcbImages.map((img, idx) => (
+                                <div 
+                                    key={img.id}
+                                    onClick={() => { setSelectedImage(img); setShowOriginal(false); }}
+                                    style={{ 
+                                        width: '60px', height: '45px', borderRadius: '8px', overflow: 'hidden', 
+                                        cursor: 'pointer', border: selectedImage.id === img.id ? '2px solid var(--primary)' : '2px solid transparent',
+                                        transition: 'all 0.2s', opacity: selectedImage.id === img.id ? 1 : 0.5,
+                                        position: 'relative'
+                                    }}
+                                >
+                                    <img src={`${API_URL}${img.image_path}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <div style={{ position: 'absolute', bottom: 1, right: 3, fontSize: '8px', color: 'white', fontWeight: 'bold' }}>
+                                        {img.shot_num}
+                                    </div>
+                                    {img.machine_result === 'NG' && (
+                                        <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%', margin: '4px' }} />
+                                    )}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
