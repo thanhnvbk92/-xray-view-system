@@ -218,6 +218,8 @@ namespace XrayCollector.ViewModels
                 if (int.TryParse(_settings.MachineId, out mid))
                 {
                     _xray9730Service.Start(_settings.LogPath, mid, (msg) => AddLog(msg));
+                    // Quét bù dữ liệu lịch sử cho 9730
+                    _ = Synchronize9730HistoricalDataAsync(_settings.LogPath);
                 }
             }
             else
@@ -340,6 +342,53 @@ namespace XrayCollector.ViewModels
             catch (Exception ex)
             {
                 AddLog($"Lỗi khi quét bù dữ liệu: {ex.Message}");
+            }
+            finally
+            {
+                _isSynchronizing = false;
+            }
+        }
+
+        private async Task Synchronize9730HistoricalDataAsync(string logPath)
+        {
+            if (_isSynchronizing || !Directory.Exists(logPath)) return;
+            _isSynchronizing = true;
+            await Task.Yield();
+
+            try
+            {
+                AddLog($"[9730] Đang quét dữ liệu chưa đồng bộ tại: {logPath}");
+                var state = _persistence.LoadState();
+                
+                // Liệt kê các thư mục log (format: yyyyMMddHHmmss_BARCODE)
+                var directories = Directory.GetDirectories(logPath)
+                    .Select(d => new DirectoryInfo(d))
+                    .Where(d => d.Name.Length >= 14 && d.Name.Substring(0, 14).All(char.IsDigit))
+                    .OrderBy(d => d.Name)
+                    .ToList();
+
+                int count = 0;
+                foreach (var dir in directories)
+                {
+                    string ts = dir.Name.Substring(0, 14);
+                    if (DateTime.TryParseExact(ts, "yyyyMMddHHmmss", null, System.Globalization.DateTimeStyles.None, out DateTime logTime))
+                    {
+                        // Chỉ xử lý nếu thư mục này mới hơn mốc thời gian đã xử lý cuối cùng
+                        if (logTime > state.LastProcessedTime)
+                        {
+                            // Gọi Service để xử lý thư mục này
+                            await _xray9730Service.ProcessNewFolderAsync(dir.FullName);
+                            count++;
+                        }
+                    }
+                }
+
+                if (count > 0) AddLog($"[9730] Đã hoàn thành quét bù {count} thư mục log.");
+                else AddLog("[9730] Dữ liệu đã được đồng bộ hóa hoàn toàn.");
+            }
+            catch (Exception ex)
+            {
+                AddLog($"[9730] Lỗi khi quét bù dữ liệu: {ex.Message}");
             }
             finally
             {

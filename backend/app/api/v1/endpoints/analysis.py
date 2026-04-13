@@ -123,17 +123,28 @@ async def get_analysis_summary(
         PCB.job_file,
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*full_filters).group_by(PCB.job_file).order_by(func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).desc()).limit(20).all()
+    ).filter(*full_filters).group_by(PCB.job_file).all()
 
-    jobs = []
+    jobs_data = []
     for row in job_stats:
         if not row.job_file: continue
-        jobs.append({
+        total = row.total or 0
+        ng = int(row.ng or 0)
+        jobs_data.append({
             "job": row.job_file,
-            "total": row.total,
-            "ng": int(row.ng or 0),
-            "ng_rate": get_rate(int(row.ng or 0), row.total)
+            "total": total,
+            "ng": ng,
+            "ng_rate": round((ng / total * 100), 1) if total > 0 else 0
         })
+
+    # Sắp xếp theo tỉ lệ NG giảm dần
+    jobs_data.sort(key=lambda x: x["ng_rate"], reverse=True)
+
+    # Áp dụng logic: Nếu > 10 job, lấy top 10. Ngược lại lấy hết.
+    if len(jobs_data) > 10:
+        jobs = jobs_data[:10]
+    else:
+        jobs = jobs_data
 
     # 5. Stats by Array Index
     array_stats = db.query(

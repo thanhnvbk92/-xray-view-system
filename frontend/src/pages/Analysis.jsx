@@ -407,7 +407,7 @@ function Analysis() {
                             <BarChart layout="vertical" data={data.jobs} margin={{ top: 5, right: 60, left: 10, bottom: 5 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
                                 <XAxis type="number" hide />
-                                <YAxis dataKey="job" type="category" stroke="var(--text-secondary)" fontSize={9} width={120} />
+                                <YAxis dataKey="job" type="category" stroke="var(--text-secondary)" fontSize={9} width={160} />
                                 <Tooltip 
                                     cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
                                 />

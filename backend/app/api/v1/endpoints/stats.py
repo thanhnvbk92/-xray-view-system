@@ -101,7 +101,7 @@ async def get_trends(
         start_dt = (end_dt - timedelta(days=6)).replace(hour=0, minute=0, second=0)
 
     query = db.query(
-        func.date(PCB.system_time).label('day'),
+        func.date(PCB.client_time).label('day'),
         func.count(PCB.id).label('total'),
         func.sum(case((PCB.final_result == 'NG', 1), else_=0)).label('ng'),
         func.sum(case((PCB.final_result == 'OK', 1), else_=0)).label('ok'),

@@ -12,12 +12,14 @@ namespace XrayCollector.Services
     {
         void Start(string path, int machineId, Action<string> onLog);
         void Stop();
+        Task ProcessNewFolderAsync(string folderPath);
     }
 
     public class Xray9730CollectorService : IXray9730CollectorService
     {
         private readonly IApiService _apiService;
         private readonly IImageMarkingService _markingService;
+        private readonly ISyncPersistenceService _persistence;
         private readonly ILogger<Xray9730CollectorService> _logger;
         private FileSystemWatcher? _watcher;
         private int _machineId;
@@ -28,10 +30,12 @@ namespace XrayCollector.Services
         public Xray9730CollectorService(
             IApiService apiService, 
             IImageMarkingService markingService,
+            ISyncPersistenceService persistence,
             ILogger<Xray9730CollectorService> logger)
         {
             _apiService = apiService;
             _markingService = markingService;
+            _persistence = persistence;
             _logger = logger;
         }
 
@@ -79,7 +83,7 @@ namespace XrayCollector.Services
             }
         }
 
-        private async Task ProcessNewFolderAsync(string folderPath)
+        public async Task ProcessNewFolderAsync(string folderPath)
         {
             if (string.IsNullOrEmpty(folderPath)) return;
             
@@ -234,10 +238,35 @@ namespace XrayCollector.Services
                         {
                             _logAction?.Invoke($"[INFO] Đã upload PCB {pid} thành công.");
                             _processedFolders.Add(folderPath);
+
+                            // Cập nhật LastProcessedTime vào SyncState
+                            var state = _persistence.LoadState();
+                            if (currentLogTime > state.LastProcessedTime)
+                            {
+                                state.LastProcessedTime = currentLogTime;
+                                _persistence.SaveState(state);
+                            }
                         }
                         else
                         {
-                            _logAction?.Invoke($"[ERROR] Upload PCB {pid} thất bại.");
+                            _logAction?.Invoke($"[ERROR] Upload PCB {pid} thất bại. Đã thêm vào hàng chờ retry.");
+                            
+                            // Tạo PendingScan để lưu offline
+                            var pending = new Models.PendingScan
+                            {
+                                Id = Guid.NewGuid().ToString(),
+                                Pid = pid,
+                                MachineId = _machineId,
+                                Result = result,
+                                ClientTime = isoTime,
+                                JobFile = modelName,
+                                ImagePaths = imagePaths,
+                                ImageResults = imageResults,
+                                ShotNums = shotNums,
+                                ImageTypes = imageTypes,
+                                CreatedAt = DateTime.Now
+                            };
+                            _persistence.AddToQueue(pending);
                         }
                     }
                 }    
