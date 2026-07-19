@@ -20,6 +20,8 @@ function MachineDetail() {
     const [onlyShowNg, setOnlyShowNg] = useState(true);
     const [totalUnconfirmed, setTotalUnconfirmed] = useState(0);
     const [isImageLoading, setIsImageLoading] = useState(false);
+    const getPreviewUrl = (image) => `${API_URL}/api/pcbs/images/${image.id}/preview`;
+    const getSourceUrl = (image) => `${API_URL}${image.image_path}`;
 
     // Kích hoạt trạng thái loading khi thay đổi ảnh hiển thị
     useEffect(() => {
@@ -130,23 +132,21 @@ function MachineDetail() {
 
             // Xác định danh sách các PCB nằm trong cửa sổ trượt (hiện tại + 2 cái tiếp theo)
             const pcbsToPreload = [];
-            pcbsToPreload.push(selectedPcb); // Luôn ưu tiên tải trước các shot khác của PCB hiện tại
-
+            // Keep disk and image-decoder contention low: preload only the next PCB.
             if (currentIndex + 1 < sortedPcbs.length) {
                 pcbsToPreload.push(sortedPcbs[currentIndex + 1]);
-            }
-            if (currentIndex + 2 < sortedPcbs.length) {
-                pcbsToPreload.push(sortedPcbs[currentIndex + 2]);
             }
 
             console.log(`MachineDetail: Dynamic preloading for PCB indices:`, pcbsToPreload.map(p => p.pid));
 
             pcbsToPreload.forEach((pcb) => {
                 if (pcb.images && pcb.images.length > 0) {
-                    pcb.images.forEach(img => {
+                    // Only the first pending display image (and its origin below) is needed
+                    // for an instant transition to the next PCB.
+                    getDisplayImages(pcb).slice(0, 1).forEach(img => {
                         // 1. Tải trước ảnh lỗi (NG)
                         if (img.machine_result === 'NG') {
-                            const imageUrl = `${API_URL}${img.image_path}`;
+                            const imageUrl = getPreviewUrl(img);
                             fetch(imageUrl, { signal: controller.signal }).catch(err => {
                                 if (err.name !== 'AbortError') {
                                     console.warn(`Preload error for ${imageUrl}:`, err);
@@ -159,7 +159,7 @@ function MachineDetail() {
                             i.shot_num === img.shot_num && i.image_type === 'origin'
                         );
                         if (foundOriginal) {
-                            const originalUrl = `${API_URL}${foundOriginal.image_path}`;
+                            const originalUrl = getPreviewUrl(foundOriginal);
                             fetch(originalUrl, { signal: controller.signal }).catch(err => {
                                 if (err.name !== 'AbortError') {
                                     console.warn(`Preload error for ${originalUrl}:`, err);
@@ -176,7 +176,7 @@ function MachineDetail() {
             clearTimeout(debounceTimer);
             controller.abort();
         };
-    }, [selectedPcb?.id, pcbs]);
+    }, [selectedPcb?.id, pcbs, onlyShowNg]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -786,14 +786,14 @@ function MachineDetail() {
                                 onClick={() => setIsModalOpen(true)}
                                 >
                                     <img
-                                        src={`${API_URL}${(() => {
-                                            if (!showOriginal) return selectedImage.image_path;
+                                        src={getPreviewUrl((() => {
+                                            if (!showOriginal) return selectedImage;
                                             // Tìm ảnh gốc dựa trên shot_num
                                             const foundOriginal = selectedPcb.images.find(i => 
                                                 i.shot_num === selectedImage.shot_num && i.image_type === 'origin'
                                             );
-                                            return foundOriginal ? foundOriginal.image_path : selectedImage.image_path;
-                                        })()}`}
+                                            return foundOriginal || selectedImage;
+                                        })())}
                                         alt="Preview"
                                         style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', pointerEvents: 'none' }}
                                         onDragStart={(e) => e.preventDefault()}
@@ -899,13 +899,13 @@ function MachineDetail() {
                             transition: isModalDragging ? 'none' : 'transform 0.15s ease-out'
                         }}>
                              <img
-                                src={`${API_URL}${(() => {
-                                    if (!showOriginal) return selectedImage.image_path;
+                                src={getSourceUrl((() => {
+                                    if (!showOriginal) return selectedImage;
                                     const foundOriginal = selectedPcb.images.find(i => 
                                         i.shot_num === selectedImage.shot_num && i.image_type === 'origin'
                                     );
-                                    return foundOriginal ? foundOriginal.image_path : selectedImage.image_path;
-                                })()}`}
+                                    return foundOriginal || selectedImage;
+                                })())}
                                 alt="Inspection"
                                 style={{ maxWidth: '95%', maxHeight: '95%', objectFit: 'contain', pointerEvents: 'none', filter: 'drop-shadow(0 0 20px rgba(0,0,0,0.5))' }}
                                 onLoad={() => setIsImageLoading(false)}

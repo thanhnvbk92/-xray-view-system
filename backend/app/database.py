@@ -183,6 +183,11 @@ class DailyStat(Base):
 
 def init_db():
     from sqlalchemy import text
+    # Schema/index migrations can lock multi-million-row tables. Run them only
+    # as an explicit maintenance task, never during normal server startup.
+    if os.getenv("RUN_DB_MIGRATIONS", "false").lower() not in {"1", "true", "yes"}:
+        return
+
     Base.metadata.create_all(bind=engine)
     
     # Migration logic tích hợp

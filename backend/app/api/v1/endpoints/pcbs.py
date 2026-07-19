@@ -5,6 +5,8 @@ import re
 from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, BackgroundTasks
+from fastapi.responses import FileResponse
+from PIL import Image, UnidentifiedImageError
 from sqlalchemy import func, text, and_, or_, exists
 from sqlalchemy.orm import Session, joinedload, selectinload
 
@@ -296,6 +298,51 @@ def get_unconfirmed_pcbs(machine_id: int, db: Session = Depends(get_db)):
 def get_pcb_images(pcb_id: int, db: Session = Depends(get_db)):
     """Lấy danh sách tất cả ảnh thuộc về 1 PCB"""
     return db.query(PCBImage).filter(PCBImage.pcb_id == pcb_id).all()
+
+@router.get("/images/{image_id}/preview")
+def get_image_preview(image_id: int, db: Session = Depends(get_db)):
+    """Return a cached, screen-sized JPEG preview for the confirmation UI."""
+    image = db.query(PCBImage).filter(PCBImage.id == image_id).first()
+    if not image or not image.image_path:
+        raise HTTPException(status_code=404, detail="Image not found")
+
+    if image.image_path.startswith("/storage/"):
+        source_path = os.path.join(
+            config.STORAGE_DIR,
+            image.image_path.removeprefix("/storage/").replace("/", os.sep),
+        )
+    elif image.image_path.startswith("/images/"):
+        source_path = os.path.join(config.UPLOAD_DIR, os.path.basename(image.image_path))
+    else:
+        source_path = image.image_path
+
+    if not os.path.isfile(source_path):
+        raise HTTPException(status_code=404, detail="Image source is unavailable")
+
+    source_stat = os.stat(source_path)
+    preview_dir = os.path.join(config.DATA_ROOT, "previews")
+    os.makedirs(preview_dir, exist_ok=True)
+    preview_path = os.path.join(
+        preview_dir,
+        f"{image.id}-{source_stat.st_mtime_ns}-{source_stat.st_size}.jpg",
+    )
+
+    if not os.path.isfile(preview_path):
+        try:
+            with Image.open(source_path) as source:
+                source.draft("RGB", (1280, 1280))
+                if source.mode != "RGB":
+                    source = source.convert("RGB")
+                source.thumbnail((1280, 1280), Image.Resampling.LANCZOS)
+                source.save(preview_path, "JPEG", quality=75, optimize=False, subsampling=2)
+        except (OSError, UnidentifiedImageError) as exc:
+            raise HTTPException(status_code=422, detail=f"Cannot create preview: {exc}")
+
+    return FileResponse(
+        preview_path,
+        media_type="image/jpeg",
+        headers={"Cache-Control": "public, max-age=300"},
+    )
 
 @router.post("/confirm/{pcb_id}")
 def confirm_pcb(
