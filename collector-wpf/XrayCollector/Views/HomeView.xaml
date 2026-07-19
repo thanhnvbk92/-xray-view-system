@@ -6,80 +6,114 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:vm="clr-namespace:XrayCollector.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="500">
-    <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolVisConverter"/>
-        <!-- Lưu ý: Converter này được định nghĩa ở Window, nhưng nếu dùng trong UserControl thì nên khai báo lại hoặc dùng chung từ App.xaml -->
-    </UserControl.Resources>
+             d:DesignHeight="800" d:DesignWidth="1000">
     
-    <Grid Margin="25">
+    <Grid Margin="16,4,16,16">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/> <!-- Cards Stack -->
+            <RowDefinition Height="*"/>    <!-- Log Stream -->
         </Grid.RowDefinitions>
 
-        <!-- Machine Info Badge Card -->
-        <materialDesign:Card Padding="24" Margin="0,0,0,25" UniformCornerRadius="16" Background="White" materialDesign:ElevationAssist.Elevation="Dp1">
-            <StackPanel>
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <!-- Machine Info & Start/Stop Row -->
+            <materialDesign:Card Padding="16" UniformCornerRadius="16" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <StackPanel>
-                        <TextBlock Text="ĐANG GIÁM SÁT" Style="{StaticResource MaterialDesignOverlineTextBlock}" Opacity="0.5" FontWeight="Bold" Margin="0,0,0,8"/>
-                        <TextBlock Text="{Binding CurrentLineName}" Style="{StaticResource MaterialDesignHeadline5TextBlock}" FontWeight="Bold" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                        <TextBlock Text="{Binding CurrentMachineName}" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" FontWeight="Medium" Opacity="0.7"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,4">
-                            <TextBlock Text="Model: " Style="{StaticResource MaterialDesignCaptionTextBlock}" Opacity="0.5"/>
-                            <TextBlock Text="{Binding MachineTypeName}" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Opacity="0.8"/>
-                            <TextBlock Text=" (" Style="{StaticResource MaterialDesignCaptionTextBlock}" Opacity="0.5"/>
-                            <TextBlock Text="{Binding MachinePartNo}" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Opacity="0.8"/>
-                            <TextBlock Text=")" Style="{StaticResource MaterialDesignCaptionTextBlock}" Opacity="0.5"/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="IpNetwork" Opacity="0.5" VerticalAlignment="Center" Width="14" Height="14"/>
-                            <TextBlock Text="{Binding LocalIpAddress}" Margin="4,0,0,0" Style="{StaticResource MaterialDesignCaptionTextBlock}" Opacity="0.6"/>
-                        </StackPanel>
-                    </StackPanel>
                     
-                    <Border Grid.Column="1" VerticalAlignment="Top" Padding="12,6" CornerRadius="12" Background="{Binding StatusColor}" Opacity="0.15">
-                        <TextBlock Text="ACTIVE" Foreground="{Binding StatusColor}" FontSize="11" FontWeight="Bold"/>
-                    </Border>
-                </Grid>
-                
-                <Separator Margin="0,20" Opacity="0.1"/>
-                
-                <Grid>
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="KẾT NỐI SERVER" Style="{StaticResource MaterialDesignCaptionTextBlock}" Opacity="0.5" Margin="0,0,0,4"/>
-                        <StackPanel Orientation="Horizontal">
-                            <Ellipse Width="8" Height="8" Fill="{Binding ConnectionStatusColor}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                            <TextBlock Text="{Binding StatusMessage}" Style="{StaticResource MaterialDesignBody1TextBlock}" FontWeight="SemiBold"/>
+                        <!-- Line Name -->
+                        <TextBlock Text="{Binding CurrentLineName}" FontSize="10" FontWeight="Black" Foreground="#2563EB" Margin="0,0,0,2"/>
+                        <!-- Machine Name -->
+                        <TextBlock Text="{Binding CurrentMachineName}" FontSize="18" FontWeight="Black" Foreground="#0F172A" TextTrimming="CharacterEllipsis"/>
+                        <!-- Machine Type & IP -->
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                            <TextBlock Text="{Binding MachineTypeName}" FontSize="10" FontWeight="Medium" Foreground="#64748B"/>
+                            <TextBlock Text=" • " FontSize="10" Foreground="#CBD5E1" Margin="4,0"/>
+                            <TextBlock Text="IP: " FontSize="10" FontWeight="Bold" Foreground="#94A3B8"/>
+                            <TextBlock Text="{Binding LocalIpAddress}" FontSize="10" FontWeight="Bold" Foreground="#64748B"/>
                         </StackPanel>
                     </StackPanel>
-                    
-                    <Button HorizontalAlignment="Right"
-                            Content="{Binding MonitoringButtonText}"
-                            Style="{StaticResource StatusButtonStyle}"
-                            Width="180"
-                            Command="{Binding ToggleMonitoringCommand}"/>
-                </Grid>
-            </StackPanel>
-        </materialDesign:Card>
 
-        <TextBlock Grid.Row="1" Text="HOẠT ĐỘNG GẦN ĐÂY" Style="{StaticResource MaterialDesignSubtitle2TextBlock}" FontWeight="Bold" Margin="4,0,0,12" Opacity="0.7"/>
-        <materialDesign:Card Grid.Row="2" Padding="12" UniformCornerRadius="16" Background="White" materialDesign:ElevationAssist.Elevation="Dp1">
-            <ListBox ItemsSource="{Binding Logs}" Background="Transparent" BorderThickness="0">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Border BorderBrush="#F0F2F5" BorderThickness="0,0,0,1" Padding="8,10">
-                            <TextBlock Text="{Binding}" Style="{StaticResource MaterialDesignBody2TextBlock}" Opacity="0.8"/>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </materialDesign:Card>
+                    <!-- Monitoring Control -->
+                    <Button Grid.Column="1" 
+                            Style="{StaticResource MaterialDesignRaisedButton}" 
+                            Command="{Binding ToggleMonitoringCommand}"
+                            Background="{Binding StatusColor}"
+                            Foreground="White"
+                            Height="50" Width="140"
+                            materialDesign:ButtonAssist.CornerRadius="12"
+                            materialDesign:ElevationAssist.Elevation="Dp2">
+                        <StackPanel Orientation="Horizontal">
+                            <materialDesign:PackIcon Kind="{Binding MonitoringButtonIcon}" Width="20" Height="20" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding MonitoringButtonText}" Margin="10,0,0,0" FontSize="11" FontWeight="Black" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </materialDesign:Card>
+        </StackPanel>
+
+
+        <!-- Log Terminal Section (Professional Light-Dark) -->
+        <Border Grid.Row="1" Background="#1E293B" CornerRadius="16" Padding="1" BorderBrush="#334155" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Background="#334155" CornerRadius="15,15,0,0" Padding="16,10">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal">
+                             <materialDesign:PackIcon Kind="Console" Foreground="#60A5FA" Width="14" Height="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="LOG" FontWeight="Black" FontSize="9" Foreground="White" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Text="ACTIVE" FontSize="8" FontWeight="Black" Foreground="#10B981" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <Border Background="#10B981" Width="6" Height="6" CornerRadius="3">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#10B981" BlurRadius="8" ShadowDepth="0"/>
+                                </Border.Effect>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <ListBox Grid.Row="1" 
+                         ItemsSource="{Binding Logs}" 
+                         Background="#0F172A" 
+                         BorderThickness="0"
+                         Padding="12,12"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="»" Foreground="#3B82F6" FontWeight="Bold" Margin="0,0,8,0" FontSize="12" VerticalAlignment="Top"/>
+                                <TextBlock Grid.Column="1" Text="{Binding}" Foreground="#CBD5E1" FontFamily="Consolas" FontSize="11" TextWrapping="Wrap" LineHeight="16"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Padding" Value="0"/>
+                            <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <ContentPresenter />
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

@@ -1,5 +1,6 @@
 import os
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,8 +13,56 @@ from .core.websocket import manager
 from .workers.image_worker import init_image_executor, image_worker
 from .workers.tasks import check_offline_machines, scan_unprocessed_images
 
+class HeartbeatFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        message = record.getMessage()
+        if "/api/machines/heartbeat" in message:
+            return False
+        if record.args:
+            for arg in record.args:
+                if isinstance(arg, str) and "/api/machines/heartbeat" in arg:
+                    return False
+        return True
+
+def configure_uvicorn_logging():
+    loggers = ["uvicorn", "uvicorn.error", "uvicorn.access"]
+    for name in loggers:
+        logger = logging.getLogger(name)
+        if name == "uvicorn.access":
+            logger.addFilter(HeartbeatFilter())
+            
+        for handler in logger.handlers:
+            formatter = handler.formatter
+            if formatter:
+                current_fmt = formatter._fmt
+                if "%(asctime)s" not in current_fmt:
+                    new_fmt = f"[%(asctime)s] {current_fmt}"
+                    formatter_class = formatter.__class__
+                    try:
+                        kwargs = {}
+                        if hasattr(formatter, "use_colors"):
+                            kwargs["use_colors"] = getattr(formatter, "use_colors")
+                        new_formatter = formatter_class(
+                            fmt=new_fmt,
+                            datefmt="%Y-%m-%d %H:%M:%S",
+                            **kwargs
+                        )
+                        handler.setFormatter(new_formatter)
+                    except Exception:
+                        new_formatter = logging.Formatter(
+                            fmt=f"[%(asctime)s] {current_fmt}",
+                            datefmt="%Y-%m-%d %H:%M:%S"
+                        )
+                        handler.setFormatter(new_formatter)
+
+# Cấu hình ngay khi module được nạp
+configure_uvicorn_logging()
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Khởi động lại cấu hình để đảm bảo Uvicorn áp dụng đầy đủ
+    configure_uvicorn_logging()
+    
     # Khởi tạo Database
     database.init_db()
     
@@ -51,8 +100,18 @@ app.include_router(api_router, prefix="/api")
 if not os.path.exists(config.UPLOAD_DIR): os.makedirs(config.UPLOAD_DIR)
 if not os.path.exists(config.STORAGE_DIR): os.makedirs(config.STORAGE_DIR)
 
-app.mount("/images", StaticFiles(directory=config.UPLOAD_DIR), name="images")
-app.mount("/storage", StaticFiles(directory=config.STORAGE_DIR), name="storage")
+class CachedStaticFiles(StaticFiles):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        # Cache cho ảnh trong 1 ngày (86400 giây)
+        response.headers["Cache-Control"] = "public, max-age=86400"
+        return response
+
+app.mount("/images", CachedStaticFiles(directory=config.UPLOAD_DIR), name="images")
+app.mount("/storage", CachedStaticFiles(directory=config.STORAGE_DIR), name="storage")
 
 # WebSocket cho các thông báo thời gian thực
 @app.websocket("/ws")

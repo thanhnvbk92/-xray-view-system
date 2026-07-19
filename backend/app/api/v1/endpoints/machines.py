@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 
 from ....database import get_db, Machine, Line, User
@@ -57,7 +57,7 @@ def create_machine(
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/{machine_id}")
-async def get_machine_detail(machine_id: int, db: Session = Depends(get_db)):
+def get_machine_detail(machine_id: int, db: Session = Depends(get_db)):
     """Lấy thông tin chi tiết máy bao gồm Line và MachineType"""
     machine = db.query(Machine).filter(Machine.id == machine_id).first()
     if not machine:
@@ -108,10 +108,14 @@ def delete_machine(
 # --- OPERATIONAL ENDPOINTS ---
 
 @router.post("/heartbeat")
-async def heartbeat(request: schemas.HeartbeatRequest, db: Session = Depends(get_db)):
+def heartbeat(
+    request: schemas.HeartbeatRequest, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
     machine = db.query(Machine).filter(Machine.id == request.machine_id).first()
     if not machine:
-        raise HTTPException(status_code=404, detail="Machine not found")
+        return {"status": "unregistered", "message": f"Connected to DB, but Machine ID {request.machine_id} is not registered."}
     
     # Kiểm tra trùng IP
     if request.ip_address:
@@ -137,7 +141,7 @@ async def heartbeat(request: schemas.HeartbeatRequest, db: Session = Depends(get
     db.commit()
     
     # Thông báo cho Dashboard
-    await manager.broadcast(json.dumps({
+    background_tasks.add_task(manager.broadcast, json.dumps({
         "type": "MACHINE_STATUS",
         "machine_id": machine.id,
         "status": "ONLINE"
@@ -146,11 +150,15 @@ async def heartbeat(request: schemas.HeartbeatRequest, db: Session = Depends(get
     return {"status": "ok"}
 
 @router.post("/offline")
-async def offline(request: schemas.HeartbeatRequest, db: Session = Depends(get_db)):
+def offline(
+    request: schemas.HeartbeatRequest, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
     machine = db.query(Machine).filter(Machine.id == request.machine_id).first()
     if not machine:
-        raise HTTPException(status_code=404, detail="Machine not found")
+        return {"status": "unregistered", "message": f"Connected to DB, but Machine ID {request.machine_id} is not registered."}
     machine.status = "OFFLINE"
     db.commit()
-    await manager.broadcast(json.dumps({"type": "MACHINE_STATUS", "machine_id": machine.id, "status": "OFFLINE"}))
+    background_tasks.add_task(manager.broadcast, json.dumps({"type": "MACHINE_STATUS", "machine_id": machine.id, "status": "OFFLINE"}))
     return {"status": "ok"}

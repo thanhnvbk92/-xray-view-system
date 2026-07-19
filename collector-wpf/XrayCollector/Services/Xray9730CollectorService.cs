@@ -195,7 +195,7 @@ namespace XrayCollector.Services
                         string originJpg = Path.Combine(shotFolder, $"r_origin_{shotIdx}_o.jpg");
 
                         // Chuyển ảnh gốc sang JPEG luôn để đồng bộ và nhẹ
-                        if (File.Exists(originTif))
+                        if (File.Exists(originTif) && File.Exists(shotXml))
                         {
                             var successMark = _markingService.MarkImage(originTif, maskTif, shotXml, markedJpg);
                             // Dùng OpenCV để thực sự convert TIF sang JPG (Thay cho File.Copy lỗi)
@@ -229,10 +229,72 @@ namespace XrayCollector.Services
                     // 4. Upload
                     if (imagePaths.Count > 0)
                     {
+                        var imageCauses = new List<string>();
+                        for (int i = 0; i < imageResults.Count; i++)
+                        {
+                            string res = imageResults[i];
+                            if (res == "NG")
+                            {
+                                // Tìm SHOT element tương ứng trong XML để lấy cause chi tiết
+                                int currentShotIdx = shotNums[i];
+                                var currentShotEl = shotElements.FirstOrDefault(s => (s.Attribute("NUM")?.Value ?? "0") == currentShotIdx.ToString());
+                                
+                                string detailedCause = "";
+                                if (currentShotEl != null)
+                                {
+                                    var allNgObjects = currentShotEl.Elements("OBJECT")
+                                        .Where(obj => obj.Attribute("MACHINE_RESULT")?.Value == "NG");
+
+                                    foreach (var obj in allNgObjects)
+                                    {
+                                        string objCause = obj.Attribute("CAUSE_TEXT")?.Value ?? "NG";
+                                        
+                                        // Nếu là area_NG, kiểm tra thêm xem có phải Short không
+                                        if (objCause == "Area_NG")
+                                        {
+                                            var areaValueEl = obj.Element("DETAIL")?.Elements("VALUE")
+                                                .FirstOrDefault(v => v.Attribute("ALGORITHM_TEXT")?.Value == "Area");
+
+                                            if (areaValueEl != null)
+                                            {
+                                                double.TryParse(areaValueEl.Attribute("VALUE")?.Value, out double val);
+                                                double.TryParse(areaValueEl.Attribute("MAX")?.Value, out double max);
+
+                                                if (val > max)
+                                                {
+                                                    detailedCause = "Short";
+                                                    break; // Ưu tiên cao nhất cho Short
+                                                }
+                                                else 
+                                                {
+                                                    detailedCause = "Area_NG"; // Giữ là area_NG nếu diện tích nhỏ (có thể là dính thiếc ít)
+                                                }
+                                            }
+                                            else if (string.IsNullOrEmpty(detailedCause))
+                                            {
+                                                detailedCause = "Area_NG";
+                                            }
+                                        }
+                                        else if (string.IsNullOrEmpty(detailedCause) || detailedCause == "Machine Detect")
+                                        {
+                                            detailedCause = objCause;
+                                        }
+                                    }
+                                }
+                                
+                                if (string.IsNullOrEmpty(detailedCause)) detailedCause = "Machine Detect";
+                                imageCauses.Add(detailedCause);
+                            }
+                            else
+                            {
+                                imageCauses.Add("");
+                            }
+                        }
+
                         var success = await _apiService.UploadScanAsync(
                             pid, _machineId, result, isoTime, modelName, 1,
                             imagePaths, imageResults, "InspectResult.xml",
-                            shotNums, imageTypes);
+                            shotNums, imageTypes, imageCauses);
 
                         if (success)
                         {
@@ -264,6 +326,7 @@ namespace XrayCollector.Services
                                 ImageResults = imageResults,
                                 ShotNums = shotNums,
                                 ImageTypes = imageTypes,
+                                ImageCauses = imageCauses,
                                 CreatedAt = DateTime.Now
                             };
                             _persistence.AddToQueue(pending);

@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import {
     TrendingUp, BarChart3, Database, Layers, X,
-    Filter, Download, Calendar, RefreshCw, CheckCircle2, 
+    Filter, Download, Calendar, RefreshCw, CheckCircle2,
     AlertTriangle, Zap, Layout, Monitor, FileText
 } from 'lucide-react';
 import { api } from '../context/AuthContext';
@@ -44,15 +44,15 @@ function Analysis() {
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(null);
     const [processTime, setProcessTime] = useState(0);
-    const [data, setData] = useState(() => getCache('ana_data', { 
+    const [data, setData] = useState(() => getCache('ana_data', {
         overall: { total: 0, ok: 0, ng: 0, ai_ok: 0, ok_rate: 0, ng_rate: 0 },
-        machines: [], jobs: [], shots: [], arrays: [] 
+        machines: [], jobs: [], shots: [], arrays: []
     }));
     const [trends, setTrends] = useState(() => getCache('ana_trends', []));
-    const [filters, setFilters] = useState({ 
-        machineId: null, 
-        machineName: null, 
-        jobFile: null, 
+    const [filters, setFilters] = useState({
+        machineId: null,
+        machineName: null,
+        jobFile: null,
         arrayIndex: null,
         shotIdx: null,
         date: null,
@@ -60,10 +60,11 @@ function Analysis() {
         endDate: ''
     });
 
-    const fetchData = async () => {
-        const startTime = performance.now();
+    const fetchData = async (signal) => {
         setLoading(true);
-        setProcessTime(null); // Reset thời gian xử lý khi bắt đầu lọc mới
+        setProcessTime(null);
+        const startTime = Date.now();
+
         try {
             const params = {
                 machine_id: filters.machineId,
@@ -74,11 +75,8 @@ function Analysis() {
                 start_date: filters.startDate,
                 end_date: filters.endDate
             };
-            
-            const [resSummary, resTrends] = await Promise.all([
-                api.get('/api/analysis/summary', { params }),
-                api.get('/api/dashboard/trends', { params })
-            ]);
+
+            const resSummary = await api.get('/api/analysis/summary', { params, signal });
 
             const processedData = {
                 ...resSummary.data,
@@ -88,40 +86,46 @@ function Analysis() {
                 arrays: (resSummary.data.arrays || []).map(a => ({ ...a, displayLabel: `${a.ng} (${a.ng_rate}%)` }))
             };
 
-            const trendsWithLabels = (resTrends.data || []).map(t => {
-                const total = t.ok + t.ng;
+            const trendsWithLabels = (resSummary.data.trends || []).map(t => {
+                const total = t.total || 0;
                 const okPerc = total > 0 ? ((t.ok / total) * 100).toFixed(1) : "0.0";
                 const ngPerc = total > 0 ? ((t.ng / total) * 100).toFixed(1) : "0.0";
+                const aiPerc = total > 0 ? ((t.ai_ok / total) * 100).toFixed(1) : "0.0";
+                const userPerc = total > 0 ? ((t.user_ok / total) * 100).toFixed(1) : "0.0";
                 return {
                     ...t,
                     okLabel: `${t.ok} (${okPerc}%)`,
                     ngLabel: `${t.ng} (${ngPerc}%)`,
+                    aiLabel: `${t.ai_ok} (${aiPerc}%)`,
+                    userLabel: `${t.user_ok} (${userPerc}%)`,
                     ng_rate: t.ng_rate || 0
                 };
             });
 
             setData(processedData);
             setTrends(trendsWithLabels);
-            
-            
-            // Xử lý cache nếu không có lọc
+
             if (!filters.machineId && !filters.jobFile && !filters.arrayIndex && !filters.shotIdx && !filters.date && !filters.startDate && !filters.endDate) {
                 sessionStorage.setItem('ana_data', JSON.stringify(processedData));
                 sessionStorage.setItem('ana_trends', JSON.stringify(trendsWithLabels));
             }
-            
-            const endTime = performance.now();
+
+            const endTime = Date.now();
             setProcessTime(parseFloat(((endTime - startTime) / 1000).toFixed(2)));
             setLastUpdated(new Date().toLocaleTimeString('vi-VN'));
         } catch (error) {
+            if (error.name === 'CanceledError' || error.message === 'canceled') return;
             console.error("Analysis: Fetch error:", error);
+            setLastUpdated("Lỗi");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchData();
+        const controller = new AbortController();
+        fetchData(controller.signal);
+        return () => controller.abort();
     }, [filters]);
 
     const resetFilters = () => setFilters({ machineId: null, machineName: null, jobFile: null, arrayIndex: null, shotIdx: null, date: null, startDate: '', endDate: '' });
@@ -130,7 +134,7 @@ function Analysis() {
     const removeArrayIndexFilter = () => setFilters(prev => ({ ...prev, arrayIndex: null }));
     const removeShotIdxFilter = () => setFilters(prev => ({ ...prev, shotIdx: null }));
     const removeDateFilter = () => setFilters(prev => ({ ...prev, date: null }));
-    
+
     // Hàm chuyển đổi YYYY-MM-DD thành DD/MM
     const formatDateDisplay = (dateStr) => {
         if (!dateStr) return '';
@@ -144,7 +148,7 @@ function Analysis() {
     const handleTrendClick = (data) => {
         // Log để debug
         console.log("Analysis: Trend Clicked:", data);
-        
+
         // Lấy ngày từ payload (điểm dữ liệu) hoặc label (trục X)
         let selectedDate = null;
         if (data && data.activePayload && data.activePayload.length > 0) {
@@ -164,7 +168,7 @@ function Analysis() {
     };
 
     const COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981', '#ef4444'];
-    
+
     return (
         <div className="fade-in analysis-page-root">
             <style>
@@ -191,21 +195,21 @@ function Analysis() {
                     <h1 style={{ fontSize: '2rem', marginBottom: '0.25rem' }}>Phân tích Tương quan</h1>
                     <p style={{ color: 'var(--text-secondary)' }}>Click vào các biểu đồ để lọc dữ liệu chuyên sâu</p>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.05)', padding: '5px 15px', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
                         <Calendar size={16} color="var(--primary-color)" />
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Từ:</span>
-                        <input 
-                            type="date" 
-                            value={filters.startDate} 
+                        <input
+                            type="date"
+                            value={filters.startDate}
                             onChange={(e) => setFilters(prev => ({ ...prev, startDate: e.target.value }))}
                             style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none' }}
                         />
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Đến:</span>
-                        <input 
-                            type="date" 
-                            value={filters.endDate} 
+                        <input
+                            type="date"
+                            value={filters.endDate}
                             onChange={(e) => setFilters(prev => ({ ...prev, endDate: e.target.value }))}
                             style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none' }}
                         />
@@ -280,18 +284,18 @@ function Analysis() {
                 </h3>
                 <div style={{ height: '280px' }}>
                     <ResponsiveContainer width="100%" height="100%">
-                        <BarChart 
-                            data={trends} 
-                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }} 
+                        <BarChart
+                            data={trends}
+                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                             onClick={handleTrendClick}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                            <XAxis 
-                                dataKey="date" 
-                                stroke="#94a3b8" 
-                                fontSize={11} 
-                                tickLine={false} 
-                                axisLine={false} 
+                            <XAxis
+                                dataKey="date"
+                                stroke="#94a3b8"
+                                fontSize={11}
+                                tickLine={false}
+                                axisLine={false}
                                 tickFormatter={(val) => formatDateDisplay(val)}
                             />
                             <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} unit="%" />
@@ -299,32 +303,32 @@ function Analysis() {
                                 cursor={false}
                                 content={<CustomTooltip />}
                             />
-                                <Bar 
-                                    dataKey="ng_rate" 
-                                    name="Tỉ lệ NG (%)"
-                                    radius={[5, 5, 0, 0]}
-                                    barSize={45}
-                                    activeBar={false}
-                                >
-                                    {trends.map((entry, index) => (
-                                        <Cell 
-                                            key={`cell-${index}`}
-                                            fill="#ef4444"
-                                            style={{ 
-                                                cursor: 'pointer',
-                                                transition: 'all 0.3s ease',
-                                                filter: (!filters.date || filters.date === entry.date) ? 'brightness(1.3) contrast(1.1)' : 'none'
-                                            }}
-                                            opacity={(!filters.date || filters.date === entry.date) ? 1 : 0.25}
-                                        />
-                                    ))}
-                                    <LabelList 
-                                        dataKey="ng_rate" 
-                                        position="top" 
-                                        style={{ fill: '#ef4444', fontSize: '11px', fontWeight: 'bold' }} 
-                                        formatter={(v) => v > 0 ? `${v}%` : ''} 
+                            <Bar
+                                dataKey="ng_rate"
+                                name="Tỉ lệ NG (%)"
+                                radius={[5, 5, 0, 0]}
+                                barSize={45}
+                                activeBar={false}
+                            >
+                                {trends.map((entry, index) => (
+                                    <Cell
+                                        key={`cell-${index}`}
+                                        fill="#ef4444"
+                                        style={{
+                                            cursor: 'pointer',
+                                            transition: 'all 0.3s ease',
+                                            filter: (!filters.date || filters.date === entry.date) ? 'brightness(1.3) contrast(1.1)' : 'none'
+                                        }}
+                                        opacity={(!filters.date || filters.date === entry.date) ? 1 : 0.25}
                                     />
-                                </Bar>
+                                ))}
+                                <LabelList
+                                    dataKey="ng_rate"
+                                    position="top"
+                                    style={{ fill: '#ef4444', fontSize: '11px', fontWeight: 'bold' }}
+                                    formatter={(v) => v > 0 ? `${v}%` : ''}
+                                />
+                            </Bar>
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -344,23 +348,23 @@ function Analysis() {
                                 margin={{ top: 25, right: 10, left: 10, bottom: 40 }}
                             >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                                <XAxis 
-                                    dataKey="display_name" 
-                                    stroke="var(--text-secondary)" 
-                                    fontSize={9} 
+                                <XAxis
+                                    dataKey="display_name"
+                                    stroke="var(--text-secondary)"
+                                    fontSize={9}
                                     interval={0}
                                     angle={-45}
                                     textAnchor="end"
                                     height={40}
                                 />
                                 <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
-                                <Tooltip 
-                                    cursor={false} 
-                                    contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
+                                <Tooltip
+                                    cursor={false}
+                                    contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }}
                                 />
-                                <Bar 
-                                    dataKey="ng_rate" 
-                                    radius={[5, 5, 0, 0]} 
+                                <Bar
+                                    dataKey="ng_rate"
+                                    radius={[5, 5, 0, 0]}
                                     activeBar={false}
                                     onClick={(entry) => {
                                         if (!entry) return;
@@ -380,7 +384,7 @@ function Analysis() {
                                                 key={`cell-${index}`}
                                                 fill="#3b82f6"
                                                 fillOpacity={!isAnySelected || isSelected ? 1 : 0.25}
-                                                style={{ 
+                                                style={{
                                                     filter: isSelected ? 'brightness(1.3) contrast(1.1)' : 'none',
                                                     cursor: 'pointer',
                                                     transition: 'fill 0.2s ease'
@@ -408,12 +412,12 @@ function Analysis() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
                                 <XAxis type="number" hide />
                                 <YAxis dataKey="job" type="category" stroke="var(--text-secondary)" fontSize={9} width={160} />
-                                <Tooltip 
-                                    cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} 
+                                <Tooltip
+                                    cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }}
                                 />
-                                <Bar 
-                                    dataKey="ng_rate" 
-                                    radius={[0, 5, 5, 0]} 
+                                <Bar
+                                    dataKey="ng_rate"
+                                    radius={[0, 5, 5, 0]}
                                     activeBar={false}
                                     onClick={(entry) => {
                                         if (!entry) return;
@@ -445,10 +449,10 @@ function Analysis() {
                                 <XAxis dataKey="array_index" stroke="var(--text-secondary)" fontSize={11} />
                                 <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
                                 <Tooltip cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} />
-                                <Bar 
-                                    dataKey="ng_rate" 
-                                    fill="#f59e0b" 
-                                    radius={[5, 5, 0, 0]} 
+                                <Bar
+                                    dataKey="ng_rate"
+                                    fill="#f59e0b"
+                                    radius={[5, 5, 0, 0]}
                                     activeBar={false}
                                     onClick={(entry) => {
                                         if (!entry) return;
@@ -480,10 +484,10 @@ function Analysis() {
                                 <XAxis dataKey="shot" stroke="var(--text-secondary)" fontSize={11} />
                                 <YAxis stroke="var(--text-secondary)" fontSize={11} axisLine={false} tickLine={false} />
                                 <Tooltip cursor={false} contentStyle={{ background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--glass-border)', borderRadius: '12px', color: '#fff' }} />
-                                <Bar 
-                                    dataKey="ng_rate" 
-                                    fill="#ef4444" 
-                                    radius={[5, 5, 0, 0]} 
+                                <Bar
+                                    dataKey="ng_rate"
+                                    fill="#ef4444"
+                                    radius={[5, 5, 0, 0]}
                                     activeBar={false}
                                     onClick={(entry) => {
                                         if (!entry) return;

@@ -75,10 +75,17 @@ class MachineResponse(MachineBase):
 # --- PCB SCHEMAS ---
 class PCBImageResponse(BaseModel):
     id: int
+    pcb_id: int
     image_path: str
     machine_result: str
     ai_result: str
     user_result: str
+    shot_num: int
+    image_type: str
+    cause: Optional[str] = None
+    confirmed_by_id: Optional[int] = None
+    confirmed_at: Optional[datetime] = None
+    confirmed_by_name: Optional[str] = None
     
     class Config:
         from_attributes = True

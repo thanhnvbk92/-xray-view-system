@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ namespace XrayCollector.Services
         public UpdateService(HttpClient httpClient, ISettingsService settings)
         {
             _httpClient = httpClient;
+            _httpClient.Timeout = TimeSpan.FromMinutes(10); // Tăng timeout cho việc tải file lớn
             _settings = settings;
         }
 
@@ -49,7 +51,6 @@ namespace XrayCollector.Services
                     using var doc = System.Text.Json.JsonDocument.Parse(json);
                     var serverVerStr = doc.RootElement.GetProperty("version").GetString();
                     ServerVersion = serverVerStr ?? "N/A";
-
                     if (Version.TryParse(serverVerStr, out var sv) && Version.TryParse(CurrentVersion, out var cv))
                     {
                         if (sv > cv)
@@ -60,24 +61,62 @@ namespace XrayCollector.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex) 
+            {
+                LogUpdateError($"CheckForUpdatesAsync error: {ex.Message}");
+            }
             return false;
+        }
+
+        private void LogUpdateError(string message)
+        {
+            try
+            {
+                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+                if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+                string logFile = Path.Combine(logDir, "update_error.log");
+                File.AppendAllText(logFile, $"[{DateTime.Now}] {message}\n");
+            }
+            catch { }
         }
 
         public async Task<bool> DownloadAndInstallUpdateAsync(IProgress<double> progress)
         {
-            if (string.IsNullOrEmpty(_newVersionUrl)) return false;
+            if (string.IsNullOrEmpty(_newVersionUrl))
+            {
+                LogUpdateError("DownloadAndInstallUpdateAsync failed: _newVersionUrl is null or empty.");
+                return false;
+            }
 
             try
             {
-                using var response = await _httpClient.GetAsync(_newVersionUrl, HttpCompletionOption.ResponseHeadersRead);
-                if (!response.IsSuccessStatusCode) return false;
+                LogUpdateError($"Starting download from: {_newVersionUrl}");
+                
+                // Sử dụng HttpClient mới với Proxy bị tắt để tránh lỗi "request was aborted" hoặc lỗi Proxy hệ thống
+                var handler = new HttpClientHandler { UseProxy = false };
+                using var client = new HttpClient(handler) { Timeout = TimeSpan.FromMinutes(10) };
+                
+                using var response = await client.GetAsync(_newVersionUrl, HttpCompletionOption.ResponseHeadersRead);
+                if (!response.IsSuccessStatusCode)
+                {
+                    LogUpdateError($"DownloadAndInstallUpdateAsync failed: HTTP {response.StatusCode} from {_newVersionUrl}");
+                    return false;
+                }
 
                 var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-                var tempFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "XrayCollector_New.exe");
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                
+                // Sử dụng thư mục Temp của hệ thống để tránh lỗi quyền ghi (Access Denied)
+                var tempZip = Path.Combine(Path.GetTempPath(), "XrayCollector_Update.zip");
+                var tempExtractPath = Path.Combine(Path.GetTempPath(), "XrayCollector_Update_Temp");
 
+                LogUpdateError($"BaseDir: {baseDir}");
+                LogUpdateError($"TempZip path: {tempZip}");
+                LogUpdateError($"Expected bytes: {totalBytes}");
+
+                // 1. Tải file ZIP
                 using var contentStream = await response.Content.ReadAsStreamAsync();
-                using var fileStream = new FileStream(tempFile, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
 
                 var buffer = new byte[8192];
                 var totalRead = 0L;
@@ -98,31 +137,55 @@ namespace XrayCollector.Services
                 await fileStream.FlushAsync();
                 fileStream.Close();
 
+                // 2. Giải nén file ZIP vào thư mục tạm
+                if (Directory.Exists(tempExtractPath)) Directory.Delete(tempExtractPath, true);
+                ZipFile.ExtractToDirectory(tempZip, tempExtractPath);
+                
+                // 3. Tìm XrayUpdater.exe trong thư mục vừa giải nén (Self-bootstrapping)
+                string updaterExe = Path.Combine(tempExtractPath, "XrayUpdater.exe");
+                
+                if (!File.Exists(updaterExe))
+                {
+                    // Fallback: Nếu vì lý do gì đó nó nằm ở root (tùy cấu trúc zip)
+                    updaterExe = Path.Combine(baseDir, "XrayUpdater.exe");
+                }
+
+                if (!File.Exists(updaterExe))
+                {
+                    throw new FileNotFoundException("Không tìm thấy XrayUpdater.exe trong bản cập nhật.");
+                }
+
                 var currentExe = Process.GetCurrentProcess().MainModule?.FileName;
                 if (currentExe == null) return false;
+                int currentPid = Process.GetCurrentProcess().Id;
+                
+                var psi = new ProcessStartInfo
+                {
+                    FileName = updaterExe,
+                    UseShellExecute = true,
+                    CreateNoWindow = false
+                };
+                
+                psi.ArgumentList.Add(tempZip);
+                psi.ArgumentList.Add(baseDir.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                psi.ArgumentList.Add(currentPid.ToString());
+                psi.ArgumentList.Add(currentExe);
 
-                var batchScript = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "updater.bat");
-                var scriptContent = $@"
-@echo off
-set ""EXE_PATH={currentExe}""
-set ""NEW_EXE={tempFile}""
+                Process.Start(psi);
 
-:wait_loop
-timeout /t 1 /nobreak > nul
-del ""%EXE_PATH%"" 2>nul
-if exist ""%EXE_PATH%"" goto wait_loop
-
-move ""%NEW_EXE%"" ""%EXE_PATH%""
-start """" ""%EXE_PATH%""
-del ""%~f0""
-";
-                await File.WriteAllTextAsync(batchScript, scriptContent);
-                Process.Start(new ProcessStartInfo { FileName = batchScript, CreateNoWindow = true, UseShellExecute = true });
                 System.Windows.Application.Current.Shutdown();
                 return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                // Thêm log chi tiết để debug
+                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+                if (!Directory.Exists(logDir)) Directory.CreateDirectory(logDir);
+                string logFile = Path.Combine(logDir, "update_error.log");
+                string errMsg = ex.Message;
+                if (ex.InnerException != null) errMsg += $" (Inner: {ex.InnerException.Message})";
+                LogUpdateError($"Error during update: {errMsg}\n{ex.StackTrace}\n");
+                
                 return false;
             }
         }

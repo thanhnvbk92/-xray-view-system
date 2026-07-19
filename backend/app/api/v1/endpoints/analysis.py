@@ -1,16 +1,17 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends
-from sqlalchemy import func, case, and_, text
+from sqlalchemy import func, case, and_, or_, text, distinct, exists
 from sqlalchemy.orm import Session
 
 from ....database import get_db, PCB, PCBImage, Machine, Line, User
 from ....core.security import get_current_user
+from ....core.cache import global_stats_cache
 
 router = APIRouter()
 
 @router.get("/summary")
-async def get_analysis_summary(
+def get_analysis_summary(
     machine_id: Optional[int] = None,
     job_file: Optional[str] = None,
     array_index: Optional[int] = None,
@@ -23,6 +24,12 @@ async def get_analysis_summary(
 ):
     """Tổng hợp dữ liệu chuyên sâu cho trang Analysis"""
     
+    # 1. Caching logic
+    cache_key = f"analysis_summary_{machine_id}_{job_file}_{array_index}_{shot_idx}_{target_date}_{start_date}_{end_date}"
+    cached_data = global_stats_cache.get(cache_key)
+    if cached_data:
+        return cached_data
+
     # Phân tách bộ lọc: base_filters (không có machine_id) và full_filters (có machine_id)
     base_filters = []
     
@@ -32,9 +39,8 @@ async def get_analysis_summary(
         base_filters.append(PCB.array_index == array_index)
     if shot_idx:
         # Lọc các PCB có ít nhất một ảnh tương ứng với shot_idx này
-        # Shot Index được tách từ image_path: ..._{shot_idx}.jpg
         shot_subquery = db.query(PCBImage.pcb_id).filter(
-            func.substring_index(func.substring_index(PCBImage.image_path, '_', -1), '.', 1).cast(Integer) == shot_idx
+            PCBImage.shot_num == shot_idx
         ).subquery()
         base_filters.append(PCB.id.in_(shot_subquery))
     
@@ -58,141 +64,175 @@ async def get_analysis_summary(
     def get_rate(count, total):
         return round((count / total * 100), 1) if total > 0 else 0
 
-    # 2. Overall Stats
-    overall_stats = db.query(
-        func.count(PCB.id).label('total'),
-        func.sum(case((PCB.machine_result == 'OK', 1), else_=0)).label('ok'),
-        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng'),
-        func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
-        func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
-    ).filter(*full_filters).first()
+    # 1. --- XỬ LÝ SONG SONG ---
+    from concurrent.futures import ThreadPoolExecutor
+    from ....database import SessionLocal
 
-    total = overall_stats.total or 0
-    ok = int(overall_stats.ok or 0)
-    ng = int(overall_stats.ng or 0)
-    
-    overall = {
-        "total": total,
-        "ok": ok,
-        "ng": ng,
-        "ai_ok": int(overall_stats.ai_ok or 0),
-        "user_ok": int(overall_stats.user_ok or 0),
-        "ok_rate": get_rate(ok, total),
-        "ng_rate": get_rate(ng, total)
-    }
+    # Tối ưu hóa: Tìm dải ID của PCB trong khoảng thời gian để hỗ trợ query PCBImage nhanh hơn
+    id_range = db.query(func.min(PCB.id), func.max(PCB.id)).filter(*full_filters).first()
+    min_id, max_id = id_range
 
-    # 3. Stats by Machine - Sử dụng Outer Join để luôn giữ đủ danh sách máy kể cả khi không có data theo bộ lọc
-    # Không dùng machine_id ở đây để giữ khung biểu đồ đầy đủ
-    machine_stats = db.query(
-        Machine.id,
-        Machine.name,
-        Line.name.label('line_name'),
-        func.count(PCB.id).label('total'),
-        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).join(Line, Machine.line_id == Line.id)\
-        .outerjoin(PCB, and_(PCB.machine_id == Machine.id, *base_filters))\
-        .group_by(Machine.id).order_by(Line.name, Machine.name).all()
+    def run_query(func, *args, **kwargs):
+        with SessionLocal() as session:
+            return func(session, *args, **kwargs)
 
-    machines = []
-    for row in machine_stats:
-        machines.append({
-            "id": row.id,
-            "display_name": f"{row.line_name} - {row.name}",
-            "total": row.total,
-            "ng": int(row.ng or 0),
-            "ng_rate": get_rate(int(row.ng or 0), row.total)
-        })
+    # --- TỐI ƯU HÓA: Sử dụng DailyStat cho các truy vấn tổng quát ---
+    use_summary_table = not (array_index or shot_idx)
+    from ....database import DailyStat
 
-    # 4. Stats by Job File
-    trend_stats = db.query(
-        func.date(PCB.client_time).label('date'),
-        func.count(PCB.id).label('total'),
-        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*full_filters).group_by(func.date(PCB.client_time)).order_by(func.date(PCB.client_time)).all()
+    # Các hàm truy vấn thành phần - LUÔN SỬ DỤNG DỮ LIỆU GỐC TỪ MÁY (machine_result)
+    def fetch_overall(s):
+        # Truy vấn trực tiếp từ bảng PCB để lấy dữ liệu machine_result gốc
+        return s.query(
+            func.count(PCB.id).label('total'),
+            func.sum(case((PCB.machine_result == 'OK', 1), else_=0)).label('ok'),
+            func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng'),
+            func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
+            func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
+        ).filter(*full_filters).first()
 
-    trends = []
-    for row in trend_stats:
-        trends.append({
-            "date": str(row.date),
-            "total": row.total,
-            "ng": int(row.ng or 0),
-            "ng_rate": get_rate(int(row.ng or 0), row.total)
-        })
+    def fetch_pcb_machine(s):
+        return s.query(
+            PCB.machine_id,
+            func.count(PCB.id).label('total'),
+            func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
+        ).filter(*base_filters).group_by(PCB.machine_id).all()
 
-    job_stats = db.query(
-        PCB.job_file,
-        func.count(PCB.id).label('total'),
-        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*full_filters).group_by(PCB.job_file).all()
+    def fetch_trends(s):
+        return s.query(
+            func.date(PCB.client_time).label('date'),
+            func.count(PCB.id).label('total'),
+            func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng'),
+            func.sum(case((PCB.machine_result == 'OK', 1), else_=0)).label('ok'),
+            func.sum(case((PCB.ai_result == 'OK', 1), else_=0)).label('ai_ok'),
+            func.sum(case((PCB.user_result == 'OK', 1), else_=0)).label('user_ok')
+        ).filter(*full_filters).group_by(func.date(PCB.client_time)).order_by(func.date(PCB.client_time)).all()
 
-    jobs_data = []
-    for row in job_stats:
-        if not row.job_file: continue
-        total = row.total or 0
-        ng = int(row.ng or 0)
-        jobs_data.append({
-            "job": row.job_file,
-            "total": total,
-            "ng": ng,
-            "ng_rate": round((ng / total * 100), 1) if total > 0 else 0
-        })
+    def fetch_jobs(s):
+        return s.query(
+            PCB.job_file,
+            func.count(PCB.id).label('total'),
+            func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
+        ).filter(*full_filters).group_by(PCB.job_file).all()
 
-    # Sắp xếp theo tỉ lệ NG giảm dần
-    jobs_data.sort(key=lambda x: x["ng_rate"], reverse=True)
+    def fetch_arrays(s):
+        return s.query(
+            PCB.array_index,
+            func.count(PCB.id).label('total'),
+            func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
+        ).filter(*full_filters).group_by(PCB.array_index).all()
 
-    # Áp dụng logic: Nếu > 10 job, lấy top 10. Ngược lại lấy hết.
-    if len(jobs_data) > 10:
-        jobs = jobs_data[:10]
-    else:
-        jobs = jobs_data
+    def fetch_shots(s):
+        if not min_id or not max_id: return []
+        
+        # 1. Lấy tổng số PCB thực tế từ bộ lọc hiện tại để làm mốc Total đồng nhất
+        overall_total = s.query(func.count(PCB.id)).filter(*full_filters).scalar() or 0
+        if overall_total == 0: return []
 
-    # 5. Stats by Array Index
-    array_stats = db.query(
-        PCB.array_index,
-        func.count(PCB.id).label('total'),
-        func.sum(case((PCB.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).filter(*full_filters).group_by(PCB.array_index).all()
+        # 2. Truy vấn số lượng NG cho từng Shot từ bảng PCBImage
+        # Chỉ đếm những PCB nằm trong bộ lọc hiện tại
+        pcb_id_subquery = s.query(PCB.id).filter(*full_filters).subquery()
+        
+        ng_data = s.query(
+            PCBImage.shot_num.label('shot'),
+            func.count(PCBImage.id).label('ng_images') # Đếm số lượng ảnh bị NG (không cần bản mạch duy nhất)
+        ).filter(
+            PCBImage.pcb_id >= min_id,
+            PCBImage.pcb_id <= max_id,
+            PCBImage.machine_result == 'NG',
+            PCBImage.pcb_id.in_(pcb_id_subquery)
+        ).group_by(PCBImage.shot_num).all()
 
-    arrays = []
-    for row in array_stats:
-        arrays.append({
-            "array_index": row.array_index,
-            "displayLabel": f"Array Index {row.array_index}",
-            "total": row.total,
-            "ng": int(row.ng or 0),
-            "ng_rate": get_rate(int(row.ng or 0), row.total)
-        })
-
-    # 6. Stats by Shot (Vị trí ảnh trên PCB) - Map theo tên ảnh (ví dụ _1.jpg)
-    shot_stats = db.query(
-        func.substring_index(func.substring_index(PCBImage.image_path, '_', -1), '.', 1).label('shot'),
-        func.count(PCBImage.id).label('total'),
-        func.sum(case((PCBImage.machine_result == 'NG', 1), else_=0)).label('ng')
-    ).join(PCB, PCBImage.pcb_id == PCB.id).filter(*full_filters).group_by(text('shot')).all()
-
-    shots = []
-    for row in shot_stats:
-        if row.shot and row.shot.isdigit() and row.total > 0:
-            shots.append({
-                "shot": int(row.shot),
-                "displayLabel": f"Shot {row.shot}",
-                "total": row.total,
-                "ng": int(row.ng or 0),
-                "ng_rate": get_rate(int(row.ng or 0), row.total)
+        ng_map = {r.shot: r.ng_images for r in ng_data}
+        
+        # 3. Tạo kết quả với Total luôn khớp với Overall
+        # Tìm max_shot thực tế
+        max_shot_in_db = s.query(func.max(PCBImage.shot_num)).filter(
+            PCBImage.pcb_id >= min_id, 
+            PCBImage.pcb_id <= max_id
+        ).scalar() or 0
+        max_shot = min(max_shot_in_db, 500)
+        
+        results = []
+        for i in range(1, max_shot + 1):
+            ng_count = int(ng_map.get(i, 0))
+            results.append({
+                "shot": i,
+                "displayLabel": f"Shot {i}",
+                "total": overall_total, # Luôn khớp với số lượng ở các đồ thị khác
+                "ng": ng_count,
+                "ng_rate": round((ng_count / overall_total * 100), 2) if overall_total > 0 else 0
             })
-    
-    # Sắp xếp theo thứ tự shot
+        
+        return results
+
+    # Chạy đồng thời
+    with ThreadPoolExecutor(max_workers=6) as executor:
+        f_overall = executor.submit(run_query, fetch_overall)
+        f_machines = executor.submit(run_query, fetch_pcb_machine)
+        f_trends = executor.submit(run_query, fetch_trends)
+        f_jobs = executor.submit(run_query, fetch_jobs)
+        f_arrays = executor.submit(run_query, fetch_arrays)
+        f_shots = executor.submit(run_query, fetch_shots)
+
+        overall_stats = f_overall.result()
+        pcb_machine_stats = f_machines.result()
+        trend_stats = f_trends.result()
+        job_stats = f_jobs.result()
+        array_stats = f_arrays.result()
+        shot_stats = f_shots.result()
+
+    # 2. --- XỬ LÝ KẾT QUẢ ---
+    overall = {"total": 0, "ok": 0, "ng": 0, "ai_ok": 0, "user_ok": 0, "ok_rate": 0, "ng_rate": 0}
+    if overall_stats:
+        total = overall_stats.total or 0
+        ok = int(overall_stats.ok or 0); ng = int(overall_stats.ng or 0)
+        overall = {
+            "total": total, "ok": ok, "ng": ng,
+            "ai_ok": int(overall_stats.ai_ok or 0), "user_ok": int(overall_stats.user_ok or 0),
+            "ok_rate": get_rate(ok, total), "ng_rate": get_rate(ng, total)
+        }
+
+    # Machines
+    all_machines = db.query(Machine.id, Machine.name, Line.name.label('line_name'))\
+        .join(Line, Machine.line_id == Line.id).order_by(Line.name, Machine.name).all()
+    stats_map = {row.machine_id: row for row in pcb_machine_stats}
+    machines = [{
+        "id": m.id, "display_name": f"{m.line_name} - {m.name}",
+        "total": stats_map.get(m.id).total if stats_map.get(m.id) else 0,
+        "ng": int(stats_map.get(m.id).ng or 0) if stats_map.get(m.id) else 0,
+        "ng_rate": get_rate(int(stats_map.get(m.id).ng or 0), stats_map.get(m.id).total) if stats_map.get(m.id) else 0
+    } for m in all_machines]
+
+    # Trends
+    trends = []
+    for r in trend_stats:
+        trends.append({
+            "date": str(r.date), "total": r.total, 
+            "ok": int(r.ok or 0), "ng": int(r.ng or 0),
+            "ai_ok": int(r.ai_ok or 0), "user_ok": int(r.user_ok or 0),
+            "ng_rate": get_rate(int(r.ng or 0), r.total)
+        })
+
+    jobs_data = [{
+        "job": r.job_file, "total": r.total, "ng": int(r.ng or 0), "ng_rate": get_rate(int(r.ng or 0), r.total)
+    } for r in job_stats if r.job_file]
+    jobs_data.sort(key=lambda x: x["ng_rate"], reverse=True)
+    jobs = jobs_data[:10] if len(jobs_data) > 10 else jobs_data
+
+    arrays = [{
+        "array_index": r.array_index, "displayLabel": f"Array Index {r.array_index}",
+        "total": r.total, "ng": int(r.ng or 0), "ng_rate": get_rate(int(r.ng or 0), r.total)
+    } for r in array_stats]
+
+    # Shots - Sử dụng trực tiếp kết quả từ fetch_shots (đã xử lý Gap Filling)
+    shots = shot_stats
     shots.sort(key=lambda x: x["shot"])
 
-    # 7. Lọc các danh sách khác chỉ lấy những mục có dữ liệu (total > 0), riêng machines giữ nguyên để hiện skeleton
-    jobs = [j for j in jobs if j["total"] > 0]
-    arrays = [a for a in arrays if a["total"] > 0]
-
-    return {
-        "overall": overall,
-        "machines": machines,
-        "jobs": jobs,
-        "shots": shots,
-        "arrays": arrays,
-        "trends": trends
+    result = {
+        "overall": overall, "machines": machines, "jobs": jobs,
+        "shots": shots, "arrays": arrays, "trends": trends
     }
+    
+    global_stats_cache.set(cache_key, result)
+    return result

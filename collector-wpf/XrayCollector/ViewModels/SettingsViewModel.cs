@@ -19,7 +19,10 @@ namespace XrayCollector.ViewModels
         [ObservableProperty] private string _tempServerUrl;
         [ObservableProperty] private string _tempImagePath;
         [ObservableProperty] private string _tempLogPath;
+        [ObservableProperty] private string _tempBackupPath;
+        [ObservableProperty] private string _tempSubLogPath;
         [ObservableProperty] private string _tempLogExtension;
+        [ObservableProperty] private string _tempSubLogExtension;
         [ObservableProperty] private bool _tempIsPidMappingIncrease;
         [ObservableProperty] private bool _isLoading;
         
@@ -28,7 +31,27 @@ namespace XrayCollector.ViewModels
         [ObservableProperty] private ObservableCollection<MachineDto> _filteredMachines = new();
         
         [ObservableProperty] private LineDto? _selectedLine;
-        [ObservableProperty] private MachineDto? _selectedMachine;
+        
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsMachine9020))]
+        private MachineDto? _selectedMachine;
+
+        public bool IsMachine9020 => SelectedMachine != null && 
+            (SelectedMachine.MachineType?.Name?.Contains("9020") == true || 
+             SelectedMachine.MachineType?.PartNo?.Contains("9020") == true ||
+             (!SelectedMachine.MachineType?.Name?.Contains("9730") == true && !SelectedMachine.MachineType?.PartNo?.Contains("9730") == true));
+
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(HasSelectedModelMapping))]
+        private ModelMappingConfig? _selectedModelMapping;
+
+        public bool HasSelectedModelMapping => SelectedModelMapping != null;
+
+        [ObservableProperty] private ObservableCollection<ModelMappingConfig> _tempModelMappings = new();
+        [ObservableProperty] private ObservableCollection<UnitMappingItem> _currentUnitMappings = new();
+        [ObservableProperty] private ObservableCollection<int> _availablePidIndices = new();
+        [ObservableProperty] private string _tempUnitCount = "6";
+        [ObservableProperty] private string _newModelName = string.Empty;
 
         public SettingsViewModel(IApiService apiService, ISettingsService settings)
         {
@@ -40,8 +63,16 @@ namespace XrayCollector.ViewModels
             _tempServerUrl = _settings.ServerUrl;
             _tempImagePath = _settings.ImagePath;
             _tempLogPath = _settings.LogPath;
+            _tempBackupPath = _settings.BackupPath;
+            _tempSubLogPath = _settings.SubLogPath;
             _tempLogExtension = _settings.LogExtension;
+            _tempSubLogExtension = _settings.SubLogExtension;
             _tempIsPidMappingIncrease = _settings.IsPidMappingIncrease;
+
+            if (_settings.ModelMappings != null)
+            {
+                _tempModelMappings = new ObservableCollection<ModelMappingConfig>(_settings.ModelMappings);
+            }
 
             LoadDataCommand.Execute(null);
         }
@@ -80,8 +111,7 @@ namespace XrayCollector.ViewModels
             }
             catch (System.Exception ex)
             {
-                MessageBox.Show($"Không thể kết nối tới máy chủ API:\n{ex.Message}\n\nLưu ý: Đảm bảo máy chủ đang chạy và URL chính xác.", 
-                    "Lỗi Kết Nối", MessageBoxButton.OK, MessageBoxImage.Error);
+                WeakReferenceMessenger.Default.Send(new AddLogMessage($"[LỖI] Không thể kết nối tới máy chủ API: {ex.Message}"));
             }
             finally
             {
@@ -114,6 +144,144 @@ namespace XrayCollector.ViewModels
             }
         }
 
+        partial void OnSelectedModelMappingChanged(ModelMappingConfig? value)
+        {
+            if (value == null)
+            {
+                CurrentUnitMappings.Clear();
+                _tempUnitCount = "6";
+                OnPropertyChanged(nameof(TempUnitCount));
+                AvailablePidIndices.Clear();
+            }
+            else
+            {
+                _tempUnitCount = value.UnitCount.ToString();
+                OnPropertyChanged(nameof(TempUnitCount));
+                
+                UpdateAvailablePidIndices(value.UnitCount);
+                
+                CurrentUnitMappings.Clear();
+                for (int i = 1; i <= value.UnitCount; i++)
+                {
+                    int pidIdx = value.Mappings.TryGetValue(i, out int mapped) ? mapped : i;
+                    var item = new UnitMappingItem { UnitIndex = i, PidIndex = pidIdx };
+                    item.PropertyChanged += (s, e) =>
+                    {
+                        if (e.PropertyName == nameof(UnitMappingItem.PidIndex) && SelectedModelMapping != null)
+                        {
+                            SelectedModelMapping.Mappings[item.UnitIndex] = item.PidIndex;
+                        }
+                    };
+                    CurrentUnitMappings.Add(item);
+                }
+            }
+        }
+
+        partial void OnTempUnitCountChanged(string value)
+        {
+            if (SelectedModelMapping == null) return;
+
+            if (int.TryParse(value, out int count) && count >= 1 && count <= 100)
+            {
+                SelectedModelMapping.UnitCount = count;
+                UpdateAvailablePidIndices(count);
+                
+                // Điều chỉnh danh sách CurrentUnitMappings
+                if (CurrentUnitMappings.Count < count)
+                {
+                    int start = CurrentUnitMappings.Count + 1;
+                    for (int i = start; i <= count; i++)
+                    {
+                        int pidIdx = SelectedModelMapping.Mappings.TryGetValue(i, out int mapped) ? mapped : i;
+                        var item = new UnitMappingItem { UnitIndex = i, PidIndex = pidIdx };
+                        item.PropertyChanged += (s, e) =>
+                        {
+                            if (e.PropertyName == nameof(UnitMappingItem.PidIndex) && SelectedModelMapping != null)
+                            {
+                                SelectedModelMapping.Mappings[item.UnitIndex] = item.PidIndex;
+                            }
+                        };
+                        CurrentUnitMappings.Add(item);
+                    }
+                }
+                else if (CurrentUnitMappings.Count > count)
+                {
+                    while (CurrentUnitMappings.Count > count)
+                    {
+                        CurrentUnitMappings.RemoveAt(CurrentUnitMappings.Count - 1);
+                    }
+                }
+                
+                // Đảm bảo các PidIndex hiện tại không vượt quá giới hạn count mới
+                foreach (var item in CurrentUnitMappings)
+                {
+                    if (item.PidIndex > count)
+                    {
+                        item.PidIndex = count;
+                    }
+                }
+            }
+        }
+
+        private void UpdateAvailablePidIndices(int count)
+        {
+            AvailablePidIndices.Clear();
+            for (int i = 1; i <= count; i++)
+            {
+                AvailablePidIndices.Add(i);
+            }
+        }
+
+        [RelayCommand]
+        private void AddModel()
+        {
+            if (string.IsNullOrWhiteSpace(NewModelName))
+            {
+                System.Windows.MessageBox.Show("Vui lòng nhập tên Model mới!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            string modelName = NewModelName.Trim();
+            if (TempModelMappings.Any(m => m.ModelName.Equals(modelName, StringComparison.OrdinalIgnoreCase)))
+            {
+                System.Windows.MessageBox.Show("Model này đã tồn tại cấu hình!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var newMapping = new ModelMappingConfig
+            {
+                ModelName = modelName,
+                UnitCount = 6,
+                Mappings = new Dictionary<int, int>()
+            };
+            
+            for (int i = 1; i <= 6; i++)
+            {
+                newMapping.Mappings[i] = i;
+            }
+
+            TempModelMappings.Add(newMapping);
+            SelectedModelMapping = newMapping;
+            NewModelName = string.Empty;
+        }
+
+        [RelayCommand]
+        private void DeleteModel()
+        {
+            if (SelectedModelMapping == null)
+            {
+                System.Windows.MessageBox.Show("Vui lòng chọn Model cần xóa!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = System.Windows.MessageBox.Show($"Bạn có chắc chắn muốn xóa cấu hình của Model {SelectedModelMapping.ModelName} không?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                TempModelMappings.Remove(SelectedModelMapping);
+                SelectedModelMapping = null;
+            }
+        }
+
         [RelayCommand]
         private void SaveSettings()
         {
@@ -128,17 +296,29 @@ namespace XrayCollector.ViewModels
                 _settings.MachineId = SelectedMachine.Id.ToString();
             }
 
+            if (SelectedModelMapping != null)
+            {
+                SelectedModelMapping.Mappings.Clear();
+                foreach (var item in CurrentUnitMappings)
+                {
+                    SelectedModelMapping.Mappings[item.UnitIndex] = item.PidIndex;
+                }
+            }
 
             _settings.ServerUrl = TempServerUrl;
             _settings.ImagePath = TempImagePath;
             _settings.LogPath = TempLogPath;
+            _settings.BackupPath = TempBackupPath;
+            _settings.SubLogPath = TempSubLogPath;
             _settings.LogExtension = TempLogExtension;
+            _settings.SubLogExtension = TempSubLogExtension;
             _settings.IsPidMappingIncrease = TempIsPidMappingIncrease;
+            _settings.ModelMappings = TempModelMappings.ToList();
             _settings.Save();
 
             TempMachineId = _settings.MachineId;
 
-            MessageBox.Show("Đã lưu cài đặt thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("Đã lưu cài đặt thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
             
             // Gửi thông điệp cập nhật cho HomeViewModel
             WeakReferenceMessenger.Default.Send(new SettingsChangedMessage());
@@ -151,7 +331,9 @@ namespace XrayCollector.ViewModels
             if (dialog.ShowDialog() == true)
             {
                 if (type == "img") TempImagePath = dialog.FolderName;
-                else TempLogPath = dialog.FolderName;
+                else if (type == "log") TempLogPath = dialog.FolderName;
+                else if (type == "backup") TempBackupPath = dialog.FolderName;
+                else if (type == "sublog") TempSubLogPath = dialog.FolderName;
             }
         }
     }

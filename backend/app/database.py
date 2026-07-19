@@ -9,9 +9,28 @@ import enum
 # Sử dụng pymysql để đảm bảo tính ổn định trên Windows/Python 3.13
 DATABASE_URL = os.getenv("DATABASE_URL", "mysql+pymysql://admin:111111@localhost:3306/XrayDB")
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=20,          # Tăng số lượng kết nối duy trì sẵn
+    max_overflow=50,       # Cho phép mở rộng tối đa lên tới 50 kết nối khi quá tải
+    pool_timeout=30,       # Thời gian chờ đợi kết nối tối đa
+    pool_recycle=1800,     # Tự động làm mới kết nối sau mỗi 30 phút để tránh bị MySQL ngắt
+    pool_pre_ping=True     # Kiểm tra kết nối còn sống trước khi sử dụng
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+def refresh_stats_task(target_date):
+    """Gọi Procedure để cập nhật bảng daily_stats (Tự quản lý Session)"""
+    from sqlalchemy import text
+    db = SessionLocal()
+    try:
+        db.execute(text("CALL refresh_daily_stats(:d)"), {"d": target_date})
+        db.commit()
+    except Exception as e:
+        print(f"Error refreshing daily stats for {target_date}: {e}")
+    finally:
+        db.close()
 
 class MachineStatus(enum.Enum):
     ONLINE = "ONLINE"
@@ -89,8 +108,8 @@ class PCB(Base):
     user_result = Column(String(20), default="PENDING", index=True)    # OK/NG/PENDING từ User xác nhận
     final_result = Column(String(20), default="PENDING", index=True)   # Kết quả cuối cùng sau khi tổng hợp
     
-    job_file = Column(String(200), nullable=True)          # Tên jobfile sử dụng
-    ai_score = Column(Float, default=0.0)
+    job_file = Column(String(200), nullable=True, index=True)          # Tên jobfile sử dụng
+    ai_score = Column(Float, default=0.0, index=True)
     
     # Double-Timestamp
     client_time = Column(DateTime, index=True)          # Thời gian ghi nhận tại máy quét (từ log)
@@ -127,20 +146,40 @@ class PCB(Base):
 class PCBImage(Base):
     __tablename__ = "pcb_images"
     id = Column(Integer, primary_key=True, index=True)
-    pcb_id = Column(Integer, ForeignKey("pcbs.id"))
+    pcb_id = Column(Integer, ForeignKey("pcbs.id"), index=True)
     image_path = Column(String(255))
     
     # Kết quả hậu kiểm từng ảnh
-    machine_result = Column(String(20), default="PENDING")
-    ai_result = Column(String(20), default="PENDING")
-    user_result = Column(String(20), default="PENDING")
-    is_processed = Column(Boolean, default=False) # Cờ đánh dấu đã nén và chuyển vào storage
-    shot_num = Column(Integer, default=1) # Số thứ tự shot (dành cho máy 9730)
-    image_type = Column(String(20), default="origin") # origin, marked, mask
-    confirmed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    machine_result = Column(String(20), default="PENDING", index=True)
+    ai_result = Column(String(20), default="PENDING", index=True)
+    user_result = Column(String(20), default="PENDING", index=True)
+    is_processed = Column(Boolean, default=False, index=True) # Cờ đánh dấu đã nén và chuyển vào storage
+    shot_num = Column(Integer, default=1, index=True) # Số thứ tự shot (dành cho máy 9730)
+    image_type = Column(String(20), default="origin", index=True) # origin, marked, mask
+    cause = Column(String(255), nullable=True)
+    confirmed_by_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    confirmed_at = Column(DateTime, nullable=True)
     
     pcb = relationship("PCB", back_populates="images")
     confirmed_by = relationship("User", back_populates="confirmed_images")
+
+    @property
+    def confirmed_by_name(self):
+        return self.confirmed_by.full_name if self.confirmed_by else None
+
+class DailyStat(Base):
+    __tablename__ = "daily_stats"
+    id = Column(Integer, primary_key=True, index=True)
+    stat_date = Column(DateTime, nullable=False, index=True)
+    machine_id = Column(Integer, nullable=False, index=True)
+    job_file = Column(String(200), index=True)
+    total_count = Column(Integer, default=0)
+    ok_count = Column(Integer, default=0)
+    ng_count = Column(Integer, default=0)
+    ai_ok_count = Column(Integer, default=0)
+    user_ok_count = Column(Integer, default=0)
+    avg_ai_score = Column(Float, default=0.0)
+    updated_at = Column(DateTime, default=datetime.now)
 
 def init_db():
     from sqlalchemy import text
@@ -181,6 +220,42 @@ def init_db():
             try: conn.execute(text("CREATE INDEX idx_pcb_client_time ON pcbs(client_time)"))
             except: pass
             try: conn.execute(text("CREATE INDEX idx_pcb_user_confirmed ON pcbs(user_confirmed)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_pcb_job_file ON pcbs(job_file)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_pcb_ai_score ON pcbs(ai_score)"))
+            except: pass
+            
+            # TỐI ƯU CHUYÊN SÂU: Composite Indexes để lọc nhanh theo máy/job và thời gian
+            try: conn.execute(text("CREATE INDEX idx_pcb_machine_time ON pcbs(machine_id, client_time)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_pcb_job_time ON pcbs(job_file, client_time)"))
+            except: pass
+            
+            # TỐI ƯU CHO TRACE: Full-Text Search cho PID (Hỗ trợ đầu/đuôi/giữa)
+            try: conn.execute(text("CREATE FULLTEXT INDEX idx_pcb_pid_fulltext ON pcbs(pid) WITH PARSER ngram"))
+            except: pass
+            
+            # TỐI ƯU CHO UNCONFIRMED: Lọc theo máy, kết quả và thời gian
+            try: conn.execute(text("CREATE INDEX idx_pcb_machine_result_time ON pcbs(machine_id, final_result, client_time)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_pcb_unconfirmed_lookup ON pcbs(machine_id, final_result, user_confirmed, client_time)"))
+            except: pass
+
+            # PCB_IMAGES table INDEXES
+            try: conn.execute(text("CREATE INDEX idx_img_pcb_id ON pcb_images(pcb_id)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_img_shot_num ON pcb_images(shot_num)"))
+            except: pass
+            
+            # TỐI ƯU CỰC HẠN: Covering Index cho Heatmap Stats
+            try: conn.execute(text("CREATE INDEX idx_img_stats_covering ON pcb_images(pcb_id, shot_num, machine_result)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_img_image_type ON pcb_images(image_type)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_img_machine_result ON pcb_images(machine_result)"))
+            except: pass
+            try: conn.execute(text("CREATE INDEX idx_img_user_result ON pcb_images(user_result)"))
             except: pass
 
             # MACHINE_TYPES table
@@ -250,6 +325,23 @@ def init_db():
                 """), {"hp": hashed_pw, "now": datetime.now()})
                 
             conn.commit()
+            
+            # 5. Tối ưu hóa Index cho Analysis (Heatmap)
+            print("Database: Checking performance indexes...")
+            try:
+                # Covering Index: (pcb_id, image_type, shot_num, machine_result)
+                # Giúp MySQL lấy dữ liệu NG/Total trực tiếp từ Index, không cần đọc bảng dữ liệu
+                conn.execute(text("DROP INDEX idx_pcb_images_analysis ON pcb_images"))
+                conn.execute(text("CREATE INDEX idx_pcb_images_analysis_v2 ON pcb_images (pcb_id, image_type, shot_num, machine_result)"))
+                conn.commit()
+                print("Database: Covering Index created.")
+            except Exception:
+                try:
+                    conn.execute(text("CREATE INDEX idx_pcb_images_analysis_v2 ON pcb_images (pcb_id, image_type, shot_num, machine_result)"))
+                    conn.commit()
+                except Exception:
+                    pass
+
             print("Database migration and admin initialization completed.")
         except Exception as e:
             print(f"Migration error: {e}")

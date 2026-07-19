@@ -18,6 +18,7 @@ namespace XrayCollector.Models
         public List<string> ImageResults { get; set; } = new();
         public List<int> ShotNums { get; set; } = new();
         public List<string> ImageTypes { get; set; } = new();
+        public List<string> ImageCauses { get; set; } = new();
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
 

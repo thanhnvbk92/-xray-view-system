@@ -34,54 +34,70 @@ namespace XrayCollector.Services
         {
             try
             {
-                if (!File.Exists(originPath) || !File.Exists(maskPath) || !File.Exists(xmlPath))
+                bool hasMask = File.Exists(maskPath);
+                if (!File.Exists(originPath) || !File.Exists(xmlPath))
                 {
-                    _logger.LogWarning("Thiếu file để xử lý ảnh: {Origin}, {Mask}, {Xml}", originPath, maskPath, xmlPath);
+                    _logger.LogWarning("Thiếu file để xử lý ảnh: {Origin}, {Xml}", originPath, xmlPath);
                     return false;
                 }
 
                 // 1. Đọc dữ liệu XML
                 var pins = ParseXmlPins(xmlPath);
                 
-                // 2. Load ảnh (OpenCV)
+                // 2. Load ảnh gốc
                 using var img = Cv2.ImRead(originPath);
-                using var mask = Cv2.ImRead(maskPath, ImreadModes.Grayscale);
-
-                if (img.Empty() || mask.Empty())
+                if (img.Empty())
                 {
-                    _logger.LogError("Không thể load được ảnh bằng OpenCV: {Path}", originPath);
+                    _logger.LogError("Không thể load được ảnh gốc bằng OpenCV: {Path}", originPath);
                     return false;
                 }
 
-                // 3. Xử lý Mask và tìm Contours
-                using var thresh = new Mat();
-                Cv2.Threshold(mask, thresh, 0, 255, ThresholdTypes.Binary);
-                
-                // Sử dụng RetrievalModes.List để lấy cả các lỗ hổng (Voids) bên trong
-                Cv2.FindContours(thresh, out var contours, out _, RetrievalModes.List, ContourApproximationModes.ApproxSimple);
-
-                // 4. So khớp và vẽ
-                foreach (var cnt in contours)
+                if (hasMask)
                 {
-                    var bRect = Cv2.BoundingRect(cnt);
-                    var centerX = bRect.X + bRect.Width / 2;
-                    var centerY = bRect.Y + bRect.Height / 2;
-
-                    string matchedResult = "0";
-                    foreach (var pin in pins)
+                    // 3. Xử lý Mask và tìm Contours (Logic cũ)
+                    using var mask = Cv2.ImRead(maskPath, ImreadModes.Grayscale);
+                    if (mask.Empty())
                     {
-                        if (pin.Rect.Contains(centerX, centerY))
-                        {
-                            matchedResult = pin.Result;
-                            break;
-                        }
+                        _logger.LogError("Không thể load được ảnh mask mặc dù file tồn tại: {Path}", maskPath);
+                        return false;
                     }
 
-                    // BGR: Green (0, 255, 0) if OK, Red (0, 0, 255) if NG
-                    var color = (matchedResult != "0") ? new Scalar(0, 0, 255) : new Scalar(0, 255, 0);
-                    
-                    // Độ dày 2px như yêu cầu
-                    Cv2.DrawContours(img, new[] { cnt }, -1, color, 2);
+                    using var thresh = new Mat();
+                    Cv2.Threshold(mask, thresh, 0, 255, ThresholdTypes.Binary);
+                    Cv2.FindContours(thresh, out var contours, out _, RetrievalModes.List, ContourApproximationModes.ApproxSimple);
+
+                    foreach (var cnt in contours)
+                    {
+                        var bRect = Cv2.BoundingRect(cnt);
+                        var centerX = bRect.X + bRect.Width / 2;
+                        var centerY = bRect.Y + bRect.Height / 2;
+
+                        string matchedResult = "0";
+                        foreach (var pin in pins)
+                        {
+                            if (pin.Rect.Contains(centerX, centerY))
+                            {
+                                matchedResult = pin.Result;
+                                break;
+                            }
+                        }
+
+                        var color = (matchedResult != "0") ? new Scalar(0, 0, 255) : new Scalar(0, 255, 0);
+                        Cv2.DrawContours(img, new[] { cnt }, -1, color, 2);
+                    }
+                }
+                else
+                {
+                    // 4. Vẽ trực tiếp từ XML (Logic mới khi thiếu Mask)
+                    _logger.LogInformation("Không tìm thấy Mask, tiến hành vẽ trực tiếp từ tọa độ XML cho file: {Origin}", originPath);
+                    foreach (var pin in pins)
+                    {
+                        var color = (pin.Result != "0") ? new Scalar(0, 0, 255) : new Scalar(0, 255, 0);
+                        
+                        // Vẽ hình chữ nhật theo tọa độ và kích thước trong XML
+                        // OpenCvSharp Rect(x, y, width, height)
+                        Cv2.Rectangle(img, new Rect((int)pin.Rect.X, (int)pin.Rect.Y, (int)pin.Rect.Width, (int)pin.Rect.Height), color, 2);
+                    }
                 }
 
                 // 5. Lưu kết quả JPEG (Chất lượng cao để giảm dung lượng nhưng vẫn nét)

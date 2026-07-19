@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
-const API_URL = `http://${window.location.hostname}:8000`;
+const API_URL = import.meta.env.DEV 
+    ? `http://${window.location.hostname}:8000` 
+    : `http://${window.location.hostname}:${window.location.port}`;
 const AuthContext = createContext(null);
 
 // Tạo instance axios để dùng chung cho toàn dự án

@@ -7,113 +7,146 @@
         xmlns:vm="clr-namespace:XrayCollector.ViewModels"
         xmlns:views="clr-namespace:XrayCollector.Views"
         mc:Ignorable="d"
-        Title="X-Ray Collector System" Height="720" Width="500"
+        Title="X-Ray View System | Collector Tool" Height="750" Width="500"
         WindowStartupLocation="CenterScreen"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        Background="#F0F2F5"
-        FontFamily="Segoe UI, Roboto, Helvetica, Arial, sans-serif">
+        ResizeMode="CanMinimize"
+        TextElement.Foreground="#1E293B"
+        Background="#F1F5F9"
+        FontFamily="Segoe UI Semibold, Roboto, Arial">
     
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolVisConverter"/>
     </Window.Resources>
 
-    <Grid>
+    <Grid Background="#F1F5F9">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Navigation -->
+            <RowDefinition Height="*"/>    <!-- Content -->
+            <RowDefinition Height="Auto"/> <!-- Footer Status -->
         </Grid.RowDefinitions>
 
-        <!-- Modern Header -->
-        <materialDesign:ColorZone Grid.Row="0" Mode="PrimaryMid" Padding="25,20" materialDesign:ElevationAssist.Elevation="Dp3">
+        <!-- Professional Light Header -->
+        <Border Grid.Row="0" Background="White" Padding="20,12" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel>
-                    <TextBlock Text="X-RAY COLLECTOR" 
-                               Style="{StaticResource MaterialDesignHeadline5TextBlock}" 
-                               Foreground="White" 
-                               FontWeight="Black"/>
-                    <TextBlock Text="{Binding Home.Version}" 
-                               Style="{StaticResource MaterialDesignCaptionTextBlock}" 
-                               Foreground="White" 
-                               Opacity="0.8"
-                               Margin="2,0,0,0"/>
-                </StackPanel>
-                
-                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="CẬP NHẬT"
-                            Style="{StaticResource MaterialDesignFlatButton}"
-                            Background="White"
-                            Foreground="{DynamicResource PrimaryHueMidBrush}"
-                            FontWeight="Bold"
-                            Padding="16,4"
-                            Height="34"
-                            materialDesign:ButtonAssist.CornerRadius="17"
-                            Visibility="{Binding Home.IsUpdateAvailable, Converter={StaticResource BoolVisConverter}}"
-                            Command="{Binding Home.PerformUpdateCommand}"
-                            Margin="0,0,8,0"/>
 
-                    <materialDesign:PopupBox Foreground="White"
-                                            PlacementMode="BottomAndAlignRightEdges">
-                        <StackPanel Width="200">
-                            <Button Command="{Binding Home.CheckForUpdatesCommand}" 
-                                    Content="Kiểm tra phiên bản mới"
-                                    Margin="8"/>
-                            <Separator/>
-                            <Button Content="Giới thiệu" IsEnabled="False" Margin="8"/>
+                <StackPanel Orientation="Horizontal">
+                   
+                    <StackPanel Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="X-RAY COLLECTOR" FontSize="13" FontWeight="Black" Foreground="#1E293B"/>
+                        <TextBlock Text="{Binding Home.Version}" FontSize="8" FontWeight="Bold" Foreground="#64748B" Margin="0,-2,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Top Right Status -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="8" Height="8" CornerRadius="4" Background="{Binding Home.ConnectionStatusColor}" Margin="0,0,8,0">
+                        <Border.Effect>
+                            <DropShadowEffect Color="{Binding Home.ConnectionStatusColor}" BlurRadius="6" ShadowDepth="0"/>
+                        </Border.Effect>
+                    </Border>
+                    <TextBlock Text="{Binding Home.ConnectionStatusText}" FontSize="10" FontWeight="Black" Foreground="{Binding Home.ConnectionStatusColor}" VerticalAlignment="Center"/>
+                    
+                    <materialDesign:PopupBox Margin="12,0,0,0" Foreground="#64748B" PlacementMode="BottomAndAlignRightEdges">
+                        <StackPanel Width="180" Margin="4">
+                            <Button Command="{Binding Home.CheckForUpdatesCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalContentAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Update" Width="18" Height="18"/>
+                                    <TextBlock Text="Kiểm tra cập nhật" Margin="12,0,0,0"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource MaterialDesignFlatButton}" HorizontalContentAlignment="Left">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Information" Width="18" Height="18"/>
+                                    <TextBlock Text="Thông tin phần mềm" Margin="12,0,0,0"/>
+                                </StackPanel>
+                            </Button>
                         </StackPanel>
                     </materialDesign:PopupBox>
                 </StackPanel>
             </Grid>
-        </materialDesign:ColorZone>
+        </Border>
 
-        <!-- Tab Navigation - Now hosting UserControls -->
-        <TabControl Grid.Row="1" 
-                    SelectedIndex="0"
-                    Style="{StaticResource MaterialDesignTabControl}" 
-                    materialDesign:ColorZoneAssist.Mode="PrimaryMid">
+        <!-- Navigation Row (Properly positioned) -->
+        <Border Grid.Row="1" Background="#F8FAFC" Padding="12,0" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                             IsChecked="True"
+                             Command="{Binding NavigateCommand}"
+                             CommandParameter="Home"
+                             Width="120" Height="44"
+                             Padding="0"
+                             ToolTip="Dashboard">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="ViewDashboard" Width="18" Height="18"/>
+                        <TextBlock Text="TRANG CHỦ" Margin="8,0,0,0" FontSize="10" FontWeight="Black" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </RadioButton>
+                
+                <RadioButton Style="{StaticResource MaterialDesignTabRadioButton}"
+                             Command="{Binding NavigateCommand}"
+                             CommandParameter="Settings"
+                             Width="120" Height="44"
+                             Padding="0"
+                             Margin="8,0,0,0"
+                             ToolTip="Cấu hình">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Settings" Width="18" Height="18"/>
+                        <TextBlock Text="CÀI ĐẶT" Margin="8,0,0,0" FontSize="10" FontWeight="Black" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </RadioButton>
+            </StackPanel>
+        </Border>
 
-            <!-- OPERATION TAB -->
-            <TabItem Header="HOME">
-                <views:HomeView DataContext="{Binding Home}"/>
-            </TabItem>
+        <!-- Content Area -->
+        <ContentControl Grid.Row="2" Content="{Binding CurrentView}">
+            <ContentControl.Resources>
+                <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+                    <views:HomeView/>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                    <views:SettingsView/>
+                </DataTemplate>
+            </ContentControl.Resources>
+        </ContentControl>
 
-            <!-- SETTINGS TAB -->
-            <TabItem Header="CÀI ĐẶT">
-                <views:SettingsView DataContext="{Binding Settings}"/>
-            </TabItem>
-        </TabControl>
+        <!-- Minimal Footer Status -->
+        <Border Grid.Row="3" Background="White" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="20,8">
+            <Grid>
+                <TextBlock Text="{Binding Home.StatusMessage}" FontSize="10" FontWeight="Bold" Foreground="#64748B" VerticalAlignment="Center"/>
+                
+                <Button HorizontalAlignment="Right"
+                        Style="{StaticResource MaterialDesignRaisedButton}"
+                        Background="#2563EB" Foreground="White"
+                        materialDesign:ButtonAssist.CornerRadius="8"
+                        Height="30" Padding="12,0"
+                        Visibility="{Binding Home.IsUpdateAvailable, Converter={StaticResource BoolVisConverter}}"
+                        Command="{Binding Home.PerformUpdateCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Update" Width="16" Height="16" VerticalAlignment="Center"/>
+                        <TextBlock Text="CẬP NHẬT NGAY" Margin="8,0,0,0" FontSize="10" FontWeight="Black" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
 
-        <!-- Update Progress Overlay -->
-        <Grid Grid.RowSpan="2" Background="#80000000" 
+
+        <!-- Compact Overlay -->
+        <Grid Grid.RowSpan="3" Background="#CC0F172A" 
               Visibility="{Binding Home.IsUpdating, Converter={StaticResource BoolVisConverter}}"
               Panel.ZIndex="999">
-            <materialDesign:Card Width="350" Padding="30" UniformCornerRadius="20" VerticalAlignment="Center" HorizontalAlignment="Center">
+            <materialDesign:Card Width="300" Padding="32" UniformCornerRadius="20" VerticalAlignment="Center" HorizontalAlignment="Center" Background="White">
                 <StackPanel>
-                    <TextBlock Text="ĐANG TẢI BẢN CẬP NHẬT" 
-                             Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
-                             HorizontalAlignment="Center" 
-                             FontWeight="Bold" 
-                             Margin="0,0,0,10"/>
-                    
-                    <TextBlock Text="Vui lòng chờ trong giây lát..." 
-                             Style="{StaticResource MaterialDesignBody2TextBlock}" 
-                             Opacity="0.7" 
-                             HorizontalAlignment="Center" 
-                             Margin="0,0,0,25"/>
-
-                    <ProgressBar Value="{Binding Home.UpdateProgress}" 
-                                Minimum="0" Maximum="100" 
-                                Height="10"
-                                Margin="0,5"/>
-
-                    <TextBlock Text="{Binding Home.UpdateProgress, StringFormat={}{0:0}%}" 
-                             HorizontalAlignment="Right" 
-                             Margin="0,4,0,0" 
-                             FontWeight="Bold" 
-                             Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                    <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="0" IsIndeterminate="True" Width="40" Height="40" Margin="0,0,0,24" Foreground="#3B82F6"/>
+                    <TextBlock Text="ĐANG CẬP NHẬT" HorizontalAlignment="Center" FontSize="16" FontWeight="Black" Foreground="#0F172A"/>
+                    <Grid Margin="0,24,0,8">
+                        <ProgressBar Value="{Binding Home.UpdateProgress}" Height="6" Foreground="#3B82F6" Background="#F1F5F9" materialDesign:ButtonAssist.CornerRadius="3"/>
+                    </Grid>
+                    <TextBlock Text="{Binding Home.UpdateProgress, StringFormat={}{0:0}%}" HorizontalAlignment="Center" FontWeight="Black" Foreground="#3B82F6" FontSize="14"/>
                 </StackPanel>
             </materialDesign:Card>
         </Grid>

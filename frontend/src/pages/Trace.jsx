@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Search, Calendar, Monitor, Hash, CheckCircle2, XCircle, Eye, Filter, ArrowRight, Move, ZoomIn, ZoomOut, Maximize, Check, X } from 'lucide-react';
 import { useAuth, api } from '../context/AuthContext';
 
-const API_URL = `http://${window.location.hostname}:8000`;
+const API_URL = import.meta.env.DEV 
+    ? `http://${window.location.hostname}:8000` 
+    : `http://${window.location.hostname}:${window.location.port}`;
 
 function Trace() {
     const { user } = useAuth();
@@ -25,6 +27,39 @@ function Trace() {
     const [modalPosition, setModalPosition] = useState({ x: 0, y: 0 });
     const [isModalDragging, setIsModalDragging] = useState(false);
     const [modalDragStart, setModalDragStart] = useState({ x: 0, y: 0 });
+
+    // Hàm tính toán độ ưu tiên của PCB dựa trên nguyên nhân lỗi
+    const getPcbPriority = (pcb) => {
+        // Chỉ ưu tiên các PCB chưa được duyệt (user_confirmed === false)
+        if (pcb.user_confirmed) return 4; 
+        
+        if (!pcb.images || pcb.images.length === 0) return 3;
+        
+        const causes = pcb.images.map(img => img.cause || "");
+        if (causes.some(c => c === "Short")) return 1;
+        if (causes.some(c => c === "Area_NG")) return 2;
+        return 3;
+    };
+
+    // Sắp xếp dữ liệu hiển thị
+    const sortedResults = [...results].sort((a, b) => {
+        const priorityA = getPcbPriority(a);
+        const priorityB = getPcbPriority(b);
+        
+        if (priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        
+        // Nếu cùng độ ưu tiên, sắp xếp theo thời gian mới nhất (item.time)
+        return new Date(b.time) - new Date(a.time);
+    });
+
+    const getRowStyle = (pcb) => {
+        const priority = getPcbPriority(pcb);
+        if (priority === 1) return { background: 'rgba(239, 68, 68, 0.12)', borderLeft: '4px solid #ef4444' }; // Short - Đỏ nhạt
+        if (priority === 2) return { background: 'rgba(245, 158, 11, 0.08)', borderLeft: '4px solid #f59e0b' }; // Area_NG - Vàng nhạt
+        return {};
+    };
 
     useEffect(() => {
         // Load danh sách máy để lọc
@@ -365,22 +400,31 @@ function Trace() {
                             <th>MÁY / LINE</th>
                             <th style={{ textAlign: 'center' }}>KẾT QUẢ</th>
                             <th style={{ textAlign: 'center' }}>XÁC NHẬN</th>
+                            <th style={{ textAlign: 'center' }}>THỜI GIAN DUYỆT</th>
                             <th>NGƯỜI THỰC HIỆN</th>
                             <th style={{ textAlign: 'right' }}>THAO TÁC</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {results.length > 0 ? results.map((item) => (
-                            <tr key={item.id}>
+                        {sortedResults.length > 0 ? sortedResults.map((item) => (
+                            <tr key={item.id} style={getRowStyle(item)}>
                                 <td style={{ fontSize: '0.8rem' }}>{new Date(item.time).toLocaleString()}</td>
                                 <td style={{ fontWeight: 'bold' }}>{item.pid}</td>
                                 <td>
                                     <div style={{ fontSize: '0.85rem' }}>{item.display_name}</div>
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
-                                    <span className={`badge ${item.result === 'OK' ? 'badge-ok' : 'badge-ng'}`}>
-                                        {item.result}
-                                    </span>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                                        <span className={`badge ${item.result === 'OK' ? 'badge-ok' : 'badge-ng'}`}>
+                                            {item.result}
+                                        </span>
+                                        {getPcbPriority(item) === 1 && (
+                                            <span style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 'bold', textShadow: '0 0 10px rgba(239, 68, 68, 0.3)' }}>CRITICAL SHORT</span>
+                                        )}
+                                        {getPcbPriority(item) === 2 && (
+                                            <span style={{ fontSize: '0.6rem', color: '#f59e0b', fontWeight: 'bold' }}>AREA NG</span>
+                                        )}
+                                    </div>
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                     {item.user_confirmed ? (
@@ -390,6 +434,9 @@ function Trace() {
                                     ) : (
                                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>Máy tự động</div>
                                     )}
+                                </td>
+                                <td style={{ textAlign: 'center', fontSize: '0.8rem' }}>
+                                    {item.confirmed_at ? new Date(item.confirmed_at).toLocaleString() : <span style={{ color: 'var(--text-secondary)' }}>-</span>}
                                 </td>
                                 <td style={{ fontSize: '0.85rem' }}>
                                     {item.confirmed_by_name || <span style={{ color: 'var(--text-secondary)' }}>-</span>}
@@ -437,9 +484,16 @@ function Trace() {
                                             style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', cursor: 'zoom-in' }}
                                             onClick={() => openImageInspector(img)}
                                         />
-                                        <div style={{ padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Shot {img.shot_num || img.image_path.split('_').pop().split('.')[0]}</span>
-                                            <span className={`badge ${img.machine_result === 'OK' ? 'badge-ok' : 'badge-ng'}`} style={{ fontSize: '0.6rem' }}>{img.machine_result}</span>
+                                        <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Shot {img.shot_num || img.image_path.split('_').pop().split('.')[0]}</span>
+                                                <span className={`badge ${img.machine_result === 'OK' ? 'badge-ok' : 'badge-ng'}`} style={{ fontSize: '0.6rem' }}>{img.machine_result}</span>
+                                            </div>
+                                            {img.cause && (
+                                                <div style={{ fontSize: '0.65rem', color: '#f87171', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {img.cause}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -465,6 +519,21 @@ function Trace() {
                                 Máy: {selectedImage.machine_result}
                             </div>
                             <span style={{ color: 'white', fontWeight: 'bold' }}>{selectedPcb?.pid} - {selectedImage.image_path.split('/').pop()}</span>
+                            {selectedImage.cause && (
+                                <span style={{ color: '#f87171', fontSize: '0.8rem', fontWeight: 'bold', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 10px', borderRadius: '4px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                                    Lý do: {selectedImage.cause}
+                                </span>
+                            )}
+                            {selectedImage.user_result !== 'PENDING' && (
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginLeft: '10px', borderLeft: '1px solid rgba(255,255,255,0.2)', paddingLeft: '15px' }}>
+                                    <span className={`badge ${selectedImage.user_result === 'OK' ? 'badge-ok' : 'badge-ng'}`} style={{ fontSize: '0.6rem' }}>
+                                        User: {selectedImage.user_result}
+                                    </span>
+                                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem' }}>
+                                        Bởi: {selectedImage.confirmed_by_name || 'Hệ thống'} lúc {selectedImage.confirmed_at ? new Date(selectedImage.confirmed_at).toLocaleString() : '-'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <button 

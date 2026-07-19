@@ -1,22 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <!-- Version: Tăng mỗi khi release bản mới -->
-    <Version>1.2.3</Version>
-    <AssemblyVersion>1.2.3</AssemblyVersion>
+    <Version>1.2.11</Version>
+    <AssemblyVersion>1.2.11</AssemblyVersion>
     <!-- Publish settings -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <PublishSingleFile>true</PublishSingleFile>
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
- 
+
+  
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="MaterialDesignThemes" Version="5.3.1" />
@@ -28,5 +31,47 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Assets\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Gắn XrayUpdater vào để tự build ra chung thư mục an toàn khi Build/Publish -->
+    <!-- ExcludeFromSingleFile để Updater nằm cạnh file EXE chính, không bị đóng gói vào trong gây lỗi bundle -->
+    <ProjectReference Include="..\XrayUpdater\XrayUpdater.csproj" ExcludeFromSingleFile="true">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Content</OutputItemType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- Tự động hóa việc nén và cập nhật phiên bản cho Backend sau khi Publish -->
+  <Target Name="AutoPackageForUpdate" AfterTargets="Publish">
+    <PropertyGroup>
+      <RawBackendDir>..\..\backend\app\static\downloads\</RawBackendDir>
+      <FullBackendDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\$(RawBackendDir)'))</FullBackendDir>
+      <TempZip>$(FullBackendDir)XrayCollector_temp.zip</TempZip>
+    </PropertyGroup>
+
+    <Message Text="[AUTO-DEPLOY] Dang chuan bi dong goi vao thư mục: $(FullBackendDir)" Importance="high" />
+    <MakeDir Directories="$(FullBackendDir)" />
+
+    <!-- 1. Nén ra file tạm (không bao giờ bị lock) -->
+    <Delete Files="$(TempZip)" Condition="Exists('$(TempZip)')" ContinueOnError="true" />
+    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(TempZip)" Overwrite="true" ContinueOnError="true" />
+
+    <!-- 2. Thử sao chép vào file chính, nếu lỗi (do đang bị mở) thì chỉ cảnh báo -->
+    <Copy SourceFiles="$(TempZip)" DestinationFiles="$(FullBackendDir)XrayCollector.zip" Condition="Exists('$(TempZip)')" ContinueOnError="true" />
+    <Delete Files="$(TempZip)" Condition="Exists('$(TempZip)')" ContinueOnError="true" />
+
+    <!-- 3. Ghi đè file version -->
+    <WriteLinesToFile File="$(FullBackendDir)version.json" Lines='{ "version": "$(Version)" }' Overwrite="true" Encoding="UTF-8" ContinueOnError="true" />
+
+    <Message Text="[AUTO-DEPLOY] Hoan tat cac buoc phu tro (Co the co canh bao lock file neu Backend dang chay)." Importance="high" />
+  </Target>
 
 </Project>

@@ -4,21 +4,26 @@ import shutil
 import re
 from datetime import datetime
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile
-from sqlalchemy import func
-from sqlalchemy.orm import Session, joinedload
+from fastapi import APIRouter, Depends, HTTPException, Form, File, UploadFile, BackgroundTasks
+from sqlalchemy import func, text, and_, or_, exists
+from sqlalchemy.orm import Session, joinedload, selectinload
 
-from ....database import get_db, PCB, PCBImage, Machine, User
+from ....database import get_db, PCB, PCBImage, Machine, User, refresh_stats_task
 from .... import schemas, config, database
 from ....core.security import get_current_user, check_permission
 from ....core.websocket import manager
 from ....core.cache import global_stats_cache
-from ....workers.image_worker import image_queue
+from ....workers.image_worker import enqueue_image
+from ....services.mes_service import block_pcb_in_mes
 
 router = APIRouter()
 
+async def add_to_image_queue(image_id: int):
+    """Async helper to push image id into image processing queue thread-safely via FastAPI BackgroundTasks"""
+    await enqueue_image(image_id)
+
 @router.post("/upload-scan")
-async def upload_scan(
+def upload_scan(
     pid: str = Form(...),
     board_pid: Optional[str] = Form(None),
     array_index: int = Form(1),
@@ -27,16 +32,23 @@ async def upload_scan(
     client_time: str = Form(...),
     job_file: Optional[str] = Form(None),
     image_results: Optional[str] = Form(None),
-    shot_nums: Optional[str] = Form(None), # Thêm: danh sách shot_num của các ảnh
+    image_causes: Optional[str] = Form(None), # Thêm: nguyên nhân lỗi cho từng ảnh
+    shot_nums: Optional[str] = Form(None), 
     image_types: Optional[str] = Form(None), # Thêm: danh sách image_type (origin/marked)
     log_file: Optional[str] = Form(None), # Thêm tham số log_file
     files: Optional[List[UploadFile]] = File(None),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(get_db)
 ):
     # 0. Kiểm tra trùng lặp để thực hiện UPSERT
+    # Chuẩn hóa client_time về độ chính xác giây để tránh lệch mili/vi giây của MySQL DATETIME
+    try:
+        c_time_dt = datetime.fromisoformat(client_time).replace(microsecond=0)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid client_time format. Must be ISO format.")
+
     existing_pcb = None
     try:
-        c_time_dt = datetime.fromisoformat(client_time)
         existing_pcb = db.query(PCB).filter(
             PCB.pid == pid, 
             PCB.client_time == c_time_dt,
@@ -48,6 +60,7 @@ async def upload_scan(
         
     # 1. Parse kết quả từng ảnh
     img_result_list = image_results.split(",") if image_results else []
+    img_cause_list = image_causes.split(",") if image_causes else []
     shot_num_list = shot_nums.split(",") if shot_nums else []
     image_type_list = image_types.split(",") if image_types else []
     
@@ -111,12 +124,13 @@ async def upload_scan(
                     user_result="PENDING",
                     is_processed=False,
                     shot_num=s_num,
-                    image_type=i_type
+                    image_type=i_type,
+                    cause=img_cause_list[i] if i < len(img_cause_list) else None
                 )
                 db.add(new_img)
                 if m_res == "OK":
                     db.flush() # Để lấy ID cho queue
-                    await image_queue.put(new_img.id)
+                    background_tasks.add_task(add_to_image_queue, new_img.id)
             
             db.commit()
             global_stats_cache.clear()
@@ -140,7 +154,7 @@ async def upload_scan(
         user_result="PENDING",
         final_result=machine_result,
         job_file=job_file,
-        client_time=datetime.fromisoformat(client_time),
+        client_time=c_time_dt,
         image_path=log_file or main_image_path, # Lưu tên file log hoặc path ảnh đầu tiên
         ai_score=overall_ai_score,
         user_confirmed=False
@@ -173,14 +187,15 @@ async def upload_scan(
             user_result="PENDING",
             is_processed=False,
             shot_num=s_num,
-            image_type=i_type
+            image_type=i_type,
+            cause=img_cause_list[i] if i < len(img_cause_list) else None
         )
         db.add(new_img)
         db.commit()
         db.refresh(new_img)
         
         if m_res == "OK":
-            await image_queue.put(new_img.id)
+            background_tasks.add_task(add_to_image_queue, new_img.id)
     
     # WebSocket broadcast... (giữ nguyên logic bên dưới)
     
@@ -191,7 +206,7 @@ async def upload_scan(
 
     global_stats_cache.clear()
 
-    await manager.broadcast(json.dumps({
+    background_tasks.add_task(manager.broadcast, json.dumps({
         "type": "NEW_SCAN",
         "data": {
             "id": new_pcb.id,
@@ -203,36 +218,90 @@ async def upload_scan(
         }
     }))
     
+    # 8. Refresh stats in background
+    background_tasks.add_task(refresh_stats_task, new_pcb.client_time.date())
+    
     return {"status": "success", "pcb_id": new_pcb.id}
 
 @router.get("/unconfirmed/{machine_id}", response_model=schemas.PCBListResponse)
-async def get_unconfirmed_pcbs(machine_id: int, db: Session = Depends(get_db)):
+def get_unconfirmed_pcbs(machine_id: int, db: Session = Depends(get_db)):
     """Lấy danh sách các PCB NG chưa duyệt của 1 máy kèm tổng số lượng"""
+    import time
+    t_start = time.time()
+    
     # 1. Đếm tổng số lượng thực tế trong DB
     total = db.query(func.count(PCB.id)).filter(
         PCB.machine_id == machine_id,
         PCB.final_result == "NG",
         PCB.user_confirmed == False
     ).scalar() or 0
+    t_count = time.time()
+    print(f"API unconfirmed: Step 1 (count) took {t_count - t_start:.4f}s")
 
-    # 2. Lấy danh sách 50 bản ghi mới nhất để hiển thị
-    pcbs = db.query(PCB).options(joinedload(PCB.images)).filter(
+    # 2. LẤY DANH SÁCH BẰNG CHIẾN LƯỢC HAI GIAI ĐOẠN (TWO-STAGE ID LOOKUP)
+    # Giai đoạn 2.1: Truy vấn tìm danh sách các PCB ID có lỗi ưu tiên (Short, Area) trước
+    priority_ids_query = db.query(PCB.id).filter(
         PCB.machine_id == machine_id,
         PCB.final_result == "NG",
-        PCB.user_confirmed == False
-    ).order_by(PCB.client_time.desc()).limit(50).all()
+        PCB.user_confirmed == False,
+        exists().where(
+            and_(
+                PCBImage.pcb_id == PCB.id,
+                or_(PCBImage.cause.like('%Short%'), PCBImage.cause.like('%Area%'))
+            )
+        )
+    ).order_by(PCB.client_time.asc()).limit(50)
+    
+    priority_ids = [r[0] for r in priority_ids_query.all()]
+    t_priority = time.time()
+    print(f"API unconfirmed: Step 2.1 (priority IDs) took {t_priority - t_count:.4f}s")
+    
+    final_ids = list(priority_ids)
+    
+    # Giai đoạn 2.2: Nếu chưa đủ 50 bản ghi, bù bằng các PCB không ưu tiên
+    if len(final_ids) < 50:
+        needed = 50 - len(final_ids)
+        normal_query = db.query(PCB.id).filter(
+            PCB.machine_id == machine_id,
+            PCB.final_result == "NG",
+            PCB.user_confirmed == False
+        )
+        if final_ids:
+            normal_query = normal_query.filter(PCB.id.not_in(final_ids))
+            
+        normal_ids = [r[0] for r in normal_query.order_by(PCB.client_time.asc()).limit(needed).all()]
+        final_ids.extend(normal_ids)
+    t_normal = time.time()
+    print(f"API unconfirmed: Step 2.2 (normal IDs) took {t_normal - t_priority:.4f}s")
+
+    # Giai đoạn 2.3: Truy vấn thông tin chi tiết bằng selectinload dựa trên danh sách ID đã thu thập
+    if not final_ids:
+        pcbs = []
+    else:
+        # Load đầy đủ đối tượng kèm ảnh, machine và line để tránh N+1 queries khi serialize display_name
+        unordered_pcbs = db.query(PCB).options(
+            selectinload(PCB.images),
+            joinedload(PCB.machine).joinedload(Machine.line)
+        ).filter(PCB.id.in_(final_ids)).all()
+        # Sắp xếp lại trong Python theo thứ tự của final_ids để giữ đúng độ ưu tiên
+        pcb_map = {p.id: p for p in unordered_pcbs}
+        pcbs = [pcb_map[pid] for pid in final_ids if pid in pcb_map]
+    t_detail = time.time()
+    print(f"API unconfirmed: Step 2.3 (details query) took {t_detail - t_normal:.4f}s")
+    print(f"API unconfirmed: Total DB query time: {t_detail - t_start:.4f}s")
     
     return {"total": total, "pcbs": pcbs}
 
 @router.get("/{pcb_id}/images", response_model=List[schemas.PCBImageResponse])
-async def get_pcb_images(pcb_id: int, db: Session = Depends(get_db)):
+def get_pcb_images(pcb_id: int, db: Session = Depends(get_db)):
     """Lấy danh sách tất cả ảnh thuộc về 1 PCB"""
     return db.query(PCBImage).filter(PCBImage.pcb_id == pcb_id).all()
 
 @router.post("/confirm/{pcb_id}")
-async def confirm_pcb(
+def confirm_pcb(
     pcb_id: int, 
     user_result: str = Form(...), 
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(get_db),
     current_user: User = Depends(check_permission("CAN_CONFIRM_RESULTS"))
 ):
@@ -248,22 +317,25 @@ async def confirm_pcb(
     pcb.confirmed_at = datetime.now()
     
     db.query(PCBImage).filter(PCBImage.pcb_id == pcb_id).update({
-        "machine_result": user_result, # Cập nhật để giao diện đổi màu
         "user_result": user_result,
-        "confirmed_by_id": current_user.id
+        "confirmed_by_id": current_user.id,
+        "confirmed_at": datetime.now()
     })
     db.commit()
+    
+    # Refresh stats in background
+    background_tasks.add_task(refresh_stats_task, pcb.client_time.date())
     
     # Nén ảnh sau khi confirm
     all_images = db.query(PCBImage).filter(PCBImage.pcb_id == pcb_id).all()
     for img in all_images:
-        await image_queue.put(img.id)
+        background_tasks.add_task(add_to_image_queue, img.id)
 
     # Xóa cache stats
     global_stats_cache.clear()
 
     # Thông báo qua WebSocket
-    await manager.broadcast(json.dumps({
+    background_tasks.add_task(manager.broadcast, json.dumps({
         "type": "PCB_CONFIRMED",
         "data": {
             "pcb_id": pcb_id,
@@ -272,12 +344,23 @@ async def confirm_pcb(
         }
     }))
         
+    # Block in MES if result is NG
+    if user_result == "NG":
+        background_tasks.add_task(
+            block_pcb_in_mes, 
+            pid=pcb.pid, 
+            reason="PCB_CONFIRMED_NG",
+            status=1
+        )
+        
     return {"status": "success", "pcb_id": pcb_id, "final_result": user_result}
 
 @router.post("/confirm-image/{image_id}")
-async def confirm_image(
+def confirm_image(
     image_id: int,
     user_result: str = Form(...),
+    cause: Optional[str] = Form(None),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -286,48 +369,76 @@ async def confirm_image(
     if not img:
         raise HTTPException(status_code=404, detail="Image not found")
     
-    img.machine_result = user_result
-    img.user_result = user_result
-    img.confirmed_by_id = current_user.id
-    
-    # Xử lý ảnh gốc tương ứng
-    base_path = img.image_path.rsplit('.', 1)[0]
-    ext = img.image_path.rsplit('.', 1)[1]
-    original_path = f"{base_path}_o.{ext}"
-    
-    orig_img = db.query(PCBImage).filter(
+    # Cập nhật kết quả cho toàn bộ các ảnh có cùng shot_num (bao gồm cả marked và origin)
+    db.query(PCBImage).filter(
         PCBImage.pcb_id == img.pcb_id,
-        PCBImage.image_path == original_path
-    ).first()
-    
-    if orig_img:
-        orig_img.machine_result = user_result
-        orig_img.user_result = user_result
-        orig_img.confirmed_by_id = current_user.id
+        PCBImage.shot_num == img.shot_num
+    ).update({
+        "user_result": user_result,
+        "cause": cause,
+        "confirmed_by_id": current_user.id,
+        "confirmed_at": datetime.now()
+    })
+    db.commit()
 
-    # Auto confirm PCB if all images OK
+    # Block in MES if result is NG
+    if user_result == "NG":
+        # Lấy thông tin PCB để lấy PID
+        pcb = db.query(PCB).filter(PCB.id == img.pcb_id).first()
+        if pcb:
+            background_tasks.add_task(
+                block_pcb_in_mes, 
+                pid=pcb.pid, 
+                reason=cause or "XRAY_NG_CONFIRMED",
+                status=1
+            )
+
+    # Auto confirm PCB if all relevant images (NG by machine or AI) have been reviewed
     all_images = db.query(PCBImage).filter(PCBImage.pcb_id == img.pcb_id).all()
-    if all(i.machine_result == "OK" for i in all_images):
+    # Chỉ yêu cầu xác nhận đối với các ảnh mà Machine hoặc AI báo NG
+    ng_flagged_images = [i for i in all_images if i.machine_result == "NG" or i.ai_result == "NG"]
+    
+    if not ng_flagged_images or all(i.user_result != "PENDING" for i in ng_flagged_images):
         pcb = db.query(PCB).filter(PCB.id == img.pcb_id).first()
         if pcb:
             pcb.user_confirmed = True
-            pcb.user_result = "OK"
-            pcb.final_result = "OK"
             pcb.confirmed_by_id = current_user.id
             pcb.confirmed_at = datetime.now()
             
+            # Kết quả cuối cùng của PCB: 
+            # Ưu tiên user_result của các ảnh. Nếu có bất kỳ ảnh nào user xác nhận NG hoặc (chưa xác nhận nhưng máy/AI báo NG)
+            # Thực tế: Nếu đã vào đây thì all(i.user_result != "PENDING") cho các ảnh NG.
+            # Vậy chỉ cần kiểm tra xem có ảnh nào có user_result == "NG" không.
+            # Đối với các ảnh OK (không nằm trong ng_flagged_images), user_result thường là PENDING, ta coi là OK.
+            
+            board_is_ng = False
+            for i in all_images:
+                res = i.user_result if i.user_result != "PENDING" else i.machine_result
+                if res == "NG":
+                    board_is_ng = True
+                    break
+            
+            final_res = "NG" if board_is_ng else "OK"
+            pcb.user_result = final_res
+            pcb.final_result = final_res
+            # Refresh stats in background
+            background_tasks.add_task(refresh_stats_task, pcb.client_time.date())
+            
     db.commit()
 
-    # Nén ảnh sau khi confirm
-    await image_queue.put(img.id)
-    if orig_img:
-        await image_queue.put(orig_img.id)
+    # Nén ảnh sau khi confirm (Toàn bộ các ảnh cùng shot)
+    all_shot_images = db.query(PCBImage).filter(
+        PCBImage.pcb_id == img.pcb_id,
+        PCBImage.shot_num == img.shot_num
+    ).all()
+    for shot_img in all_shot_images:
+        background_tasks.add_task(add_to_image_queue, shot_img.id)
 
     # Xóa cache stats
     global_stats_cache.clear()
 
     # Thông báo qua WebSocket
-    await manager.broadcast(json.dumps({
+    background_tasks.add_task(manager.broadcast, json.dumps({
         "type": "IMAGE_CONFIRMED",
         "data": {
             "image_id": image_id,
@@ -339,22 +450,36 @@ async def confirm_image(
     return {"status": "success", "image_id": image_id, "user_result": user_result}
 
 @router.get("/trace/search", response_model=List[schemas.PCBResponse])
-async def search_trace(
+def search_trace(
     pid: Optional[str] = None,
     machine_id: Optional[int] = None,
     result: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Truy vết PCB theo nhiều điều kiện"""
+    """Truy vết PCB theo nhiều điều kiện - Tối ưu hiệu năng cao"""
+    # Chỉ load machine và line, KHÔNG load images (Lazy load ở Frontend)
     query = db.query(PCB).options(
         joinedload(PCB.machine).joinedload(Machine.line),
         joinedload(PCB.confirmed_by)
     )
     
-    if pid: query = query.filter(PCB.pid.like(f"%{pid}%"))
+    if pid:
+        # Tối ưu hóa: Nếu không có dấu * ở đầu, MySQL có thể dùng Index (Prefix Search)
+        search_term = pid.strip()
+        if search_term.startswith('*'):
+            # Tìm kiếm chứa hoặc kết thúc bằng (Chậm hơn vì không dùng được Index)
+            search_term = search_term.replace('*', '%')
+            query = query.filter(PCB.pid.like(search_term))
+        elif '*' in search_term:
+            # Tìm kiếm có chứa dấu * ở giữa hoặc cuối (Nhanh vì dùng Index)
+            search_term = search_term.replace('*', '%')
+            query = query.filter(PCB.pid.like(search_term))
+        else:
+            # Mặc định tìm kiếm Bắt đầu bằng (Cực nhanh - Tận dụng Index ix_pcbs_pid)
+            query = query.filter(PCB.pid.like(f"{search_term}%"))
+        
     if machine_id: query = query.filter(PCB.machine_id == machine_id)
     if result: query = query.filter(PCB.final_result == result)
     
@@ -363,5 +488,6 @@ async def search_trace(
     if end_date: 
         query = query.filter(PCB.client_time <= f"{end_date} 23:59:59")
         
-    pcbs = query.order_by(PCB.client_time.desc()).limit(200).all()
+    # Tăng limit lên một chút vì gói tin đã nhẹ hơn rất nhiều
+    pcbs = query.order_by(PCB.client_time.desc()).limit(300).all()
     return pcbs

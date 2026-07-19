@@ -1,9 +1,30 @@
 import os
 import shutil
+import threading
 from datetime import datetime
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
+import multiprocessing as mp
+
+try:
+    import torch
+    import torchvision.io as io
+    HAS_GPU_LIBS = True
+except ImportError:
+    HAS_GPU_LIBS = False
+
 from . import database, config
 from .database import get_db
+
+_target_dirs = set()
+_target_dirs_lock = threading.Lock()
+
+def ensure_target_dir(target_dir: str):
+    """Create each target folder once per process to reduce metadata I/O."""
+    with _target_dirs_lock:
+        if target_dir in _target_dirs:
+            return
+        os.makedirs(target_dir, exist_ok=True)
+        _target_dirs.add(target_dir)
 
 class ImageEngine:
     """Base class cho các engine xử lý ảnh"""
@@ -13,12 +34,18 @@ class ImageEngine:
 class CPUEngine(ImageEngine):
     """Engine xử lý bằng CPU sử dụng thư viện Pillow"""
     def compress(self, input_path: str, target_path: str):
-        with Image.open(input_path) as img:
-            if img.mode != 'RGB':
-                img = img.convert('RGB')
-            # Sử dụng chất lượng từ config
-            quality = getattr(config, 'IMAGE_QUALITY', 75)
-            img.save(target_path, "JPEG", quality=quality, optimize=False, subsampling=2)
+        try:
+            with Image.open(input_path) as img:
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                # Sử dụng chất lượng từ config
+                quality = getattr(config, 'IMAGE_QUALITY', 50)
+                img.save(target_path, "JPEG", quality=quality, optimize=False, subsampling=2)
+            return True
+        except (UnidentifiedImageError, Exception) as e:
+            print(f"CPU Processing warning: {e}. Falling back to COPY for {os.path.basename(input_path)}")
+            shutil.copy2(input_path, target_path)
+            return True
 
 class GPUEngine(ImageEngine):
     """
@@ -27,38 +54,35 @@ class GPUEngine(ImageEngine):
     """
     def __init__(self, device_id=None):
         self.is_gpu_ready = False
+        if not HAS_GPU_LIBS:
+            return
+
         try:
-            import torch
-            import torchvision.io as io
-            import multiprocessing as mp
-            
             self.torch = torch
             self.io = io
             
             # Tự động gán GPU nếu không chỉ định:
             # (Process ID - 1) % GPU_COUNT giúp chia đều tải cho 2 card
-            # Tự động gán GPU: Sử dụng Identity của process trong pool
             if device_id is None:
                 try:
-                    # identity là một tuple, vd (1,) cho worker đầu tiên
                     ident = mp.current_process()._identity
                     if ident and len(ident) > 0:
                         device_id = (ident[0] - 1) % config.GPU_COUNT
                     else:
-                        # Fallback nếu không chạy trong pool (vd test manually)
                         device_id = 0
                 except:
                     device_id = 0
             
             self.device_id = device_id
             self.device = torch.device(f'cuda:{device_id}')
-            torch.cuda.set_device(self.device) # Đặt device mặc định cho thread này
+            torch.cuda.set_device(self.device)
             self.is_gpu_ready = torch.cuda.is_available()
             
             if self.is_gpu_ready:
                 device_name = torch.cuda.get_device_name(device_id)
                 print(f"Image Engine: Worker {mp.current_process().pid} pinned to TITAN X GPU {device_id} ({device_name})")
-        except ImportError:
+        except Exception as e:
+            print(f"GPU Init Error: {e}")
             self.is_gpu_ready = False
         
     def compress(self, input_path: str, target_path: str):
@@ -69,17 +93,21 @@ class GPUEngine(ImageEngine):
         start_t = time.time()
         try:
             # 1. Đọc ảnh vào Tensor (CPU)
-            # torchvision.io.read_image rất nhanh vì sử dụng libjpeg-turbo
             img_tensor = self.io.read_image(input_path)
             
-            # 2. Xử lý nén (Bỏ qua việc đưa lên GPU nếu chỉ nén để tránh nghẽn PCIe bus)
+            # 2. Xử lý nén
             quality = getattr(config, 'IMAGE_QUALITY', 75)
             self.io.write_jpeg(img_tensor, target_path, quality=quality)
             
             duration = (time.time() - start_t) * 1000
-            print(f"  [TURBO] Compressed: {os.path.basename(target_path)} in {duration:.1f}ms (Worker {mp.current_process().pid})")
+            if config.IMAGE_VERBOSE_LOG:
+                print(f"  [TURBO] Compressed: {os.path.basename(target_path)} in {duration:.1f}ms (Worker {mp.current_process().pid})")
             return True
         except Exception as e:
+            # logger warning if it's not a common image format
+            if "Unsupported image file" in str(e) or "cannot identify" in str(e).lower():
+                 return CPUEngine().compress(input_path, target_path)
+            
             print(f"GPU Processing error: {e}. Falling back to CPU.")
             return CPUEngine().compress(input_path, target_path)
 
@@ -126,9 +154,7 @@ def process_compressed_image(image_id: int):
                 db.commit()
                 return True
                 
-            print(f"DEBUG: Original image NOT FOUND: {original_path}. Marking as processed to skip.")
-            img_record.is_processed = True
-            db.commit()
+            print(f"DEBUG: Original image NOT FOUND: {original_path}. Leaving unprocessed.")
             return
             
         # 1.1 Kiểm tra điều kiện có được phép lưu trữ chưa (OK ngay hoặc NG đã đánh giá)
@@ -166,14 +192,15 @@ def process_compressed_image(image_id: int):
         )
         
         target_dir = os.path.join(config.STORAGE_DIR, rel_path)
-        os.makedirs(target_dir, exist_ok=True)
+        ensure_target_dir(target_dir)
         
         file_name = os.path.basename(original_path)
         target_path = os.path.join(target_dir, file_name)
         # print(f"DEBUG: Compressing to: {target_path}")
         
         # 3. Thực hiện nén ảnh và lưu vào storage
-        print(f"Image: {file_name} - compressing...")
+        if config.IMAGE_VERBOSE_LOG:
+            print(f"Image: {file_name} - compressing...")
         engine = get_processor_engine()
         engine.compress(original_path, target_path)
         
@@ -181,7 +208,8 @@ def process_compressed_image(image_id: int):
         if os.path.exists(target_path) and original_path != target_path:
             os.remove(original_path)
             
-        print(f"Image: {file_name} - compression done")
+        if config.IMAGE_VERBOSE_LOG:
+            print(f"Image: {file_name} - compression done")
         db_path = f"/storage/{rel_path.replace(os.sep, '/')}/{file_name}"
         img_record.image_path = db_path
         img_record.is_processed = True # Đánh dấu đã xử lý

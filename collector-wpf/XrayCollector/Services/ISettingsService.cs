@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using XrayCollector.Models;
 
 namespace XrayCollector.Services
 {
@@ -10,8 +12,12 @@ namespace XrayCollector.Services
         string ServerUrl { get; set; }
         string ImagePath { get; set; }
         string LogPath { get; set; }
+        string BackupPath { get; set; }
+        string SubLogPath { get; set; }
         string LogExtension { get; set; }
+        string SubLogExtension { get; set; }
         bool IsPidMappingIncrease { get; set; }
+        List<ModelMappingConfig> ModelMappings { get; set; }
         void Save();
         void Load();
     }
@@ -24,8 +30,12 @@ namespace XrayCollector.Services
         public string ServerUrl { get; set; } = "http://10.224.189.245:8000";
         public string ImagePath { get; set; } = "";
         public string LogPath { get; set; } = "";
-        public string LogExtension { get; set; } = ".log";
+        public string BackupPath { get; set; } = "";
+        public string SubLogPath { get; set; } = @"C:\exer";
+        public string LogExtension { get; set; } = ".csv";
+        public string SubLogExtension { get; set; } = @"^r\d+\.txt$";
         public bool IsPidMappingIncrease { get; set; } = true;
+        public List<ModelMappingConfig> ModelMappings { get; set; } = new();
 
         public void Save()
         {
@@ -43,12 +53,16 @@ namespace XrayCollector.Services
                     var settings = JsonSerializer.Deserialize<SettingsService>(json);
                     if (settings != null)
                     {
-                        MachineId = settings.MachineId;
-                        ServerUrl = settings.ServerUrl;
-                        ImagePath = settings.ImagePath;
-                        LogPath = settings.LogPath;
-                        LogExtension = settings.LogExtension;
+                        MachineId = settings.MachineId ?? MachineId;
+                        ServerUrl = settings.ServerUrl ?? ServerUrl;
+                        ImagePath = settings.ImagePath ?? ImagePath;
+                        LogPath = settings.LogPath ?? LogPath;
+                        BackupPath = settings.BackupPath ?? BackupPath;
+                        SubLogPath = settings.SubLogPath ?? SubLogPath;
+                        LogExtension = settings.LogExtension ?? LogExtension;
+                        SubLogExtension = settings.SubLogExtension ?? SubLogExtension;
                         IsPidMappingIncrease = settings.IsPidMappingIncrease;
+                        ModelMappings = settings.ModelMappings ?? ModelMappings;
                     }
                 }
                 catch { /* Ignore and use defaults */ }

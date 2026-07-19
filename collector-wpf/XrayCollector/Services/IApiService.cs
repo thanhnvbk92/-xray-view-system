@@ -17,7 +17,7 @@ namespace XrayCollector.Services
         Task<List<MachineDto>> GetMachinesAsync();
         Task<List<MachineTypeDto>> GetMachineTypesAsync();
         Task<bool> PingAsync();
-        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string? logFile = null, List<int>? shotNums = null, List<string>? imageTypes = null);
+        Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string? logFile = null, List<int>? shotNums = null, List<string>? imageTypes = null, List<string>? imageCauses = null);
         Task<MachineDetailDto?> GetMachineDetailAsync(int machineId);
     }
 
@@ -74,8 +74,9 @@ namespace XrayCollector.Services
             try
             {
                 var baseUrl = _settings.ServerUrl.TrimEnd('/');
-                var response = await _httpClient.GetAsync($"{baseUrl}/api/system/version");
-                return response.IsSuccessStatusCode;
+                // Sửa URL đúng theo Backend mapping
+                var response = await _httpClient.GetAsync($"{baseUrl}/api/version");
+                return response. IsSuccessStatusCode;
             }
             catch
             {
@@ -116,7 +117,7 @@ namespace XrayCollector.Services
             catch { return false; }
         }
 
-        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string? logFile = null, List<int>? shotNums = null, List<string>? imageTypes = null)
+        public async Task<bool> UploadScanAsync(string pid, int machineId, string result, string clientTime, string jobFile, int arrayIndex, List<string> imagePaths, List<string> imageResults, string? logFile = null, List<int>? shotNums = null, List<string>? imageTypes = null, List<string>? imageCauses = null)
         {
             try
             {
@@ -151,6 +152,11 @@ namespace XrayCollector.Services
                 if (imageTypes != null && imageTypes.Count > 0)
                 {
                     content.Add(new StringContent(string.Join(",", imageTypes)), "image_types");
+                }
+
+                if (imageCauses != null && imageCauses.Count > 0)
+                {
+                    content.Add(new StringContent(string.Join(",", imageCauses)), "image_causes");
                 }
 
                 if (imagePaths != null && imagePaths.Count > 0)

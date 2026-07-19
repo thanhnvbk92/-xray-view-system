@@ -1,0 +1,101 @@
+﻿Build started 4/28/2026 7:01:44 PM.
+     1>Project "D:\1. Project\Xray View System\collector-wpf\XrayCollector\XrayCollector.csproj" on node 1 (Restore target(s)).
+     1>_GetAllRestoreProjectPathItems:
+         Determining projects to restore...
+       Restore:
+         X.509 certificate chain validation will use the default trust store selected by .NET for code signing.
+         X.509 certificate chain validation will use the default trust store selected by .NET for timestamping.
+         Assets file has not changed. Skipping assets file writing. Path: D:\1. Project\Xray View System\collector-wpf\XrayCollector\obj\project.assets.json
+         Assets file has not changed. Skipping assets file writing. Path: D:\1. Project\Xray View System\collector-wpf\XrayUpdater\obj\project.assets.json
+         Restored D:\1. Project\Xray View System\collector-wpf\XrayCollector\XrayCollector.csproj (in 135 ms).
+         Restored D:\1. Project\Xray View System\collector-wpf\XrayUpdater\XrayUpdater.csproj (in 134 ms).
+         
+         NuGet Config files used:
+             C:\Users\Administrator\AppData\Roaming\NuGet\NuGet.Config
+             C:\Program Files (x86)\NuGet\Config\Microsoft.VisualStudio.FallbackLocation.config
+             C:\Program Files (x86)\NuGet\Config\Microsoft.VisualStudio.Offline.config
+         
+         Feeds used:
+             https://api.nuget.org/v3/index.json
+             C:\Program Files (x86)\Microsoft SDKs\NuGetPackages\
+         All projects are up-to-date for restore.
+     1>Done Building Project "D:\1. Project\Xray View System\collector-wpf\XrayCollector\XrayCollector.csproj" (Restore target(s)).
+   1:7>Project "D:\1. Project\Xray View System\collector-wpf\XrayCollector\XrayCollector.csproj" on node 1 (Publish target(s)).
+   1:7>Project "D:\1. Project\Xray View System\collector-wpf\XrayCollector\XrayCollector.csproj" (1:7) is building "D:\1. Project\Xray View System\collector-wpf\XrayUpdater\XrayUpdater.csproj" (2:6) on node 1 (default targets).
+     2>GenerateTargetFrameworkMonikerAttribute:
+       Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+       CoreGenerateAssemblyInfo:
+       Skipping target "CoreGenerateAssemblyInfo" because all output files are up-to-date with respect to the input files.
+       _GenerateSourceLinkFile:
+         Source Link file 'obj\Release\net9.0\win-x64\XrayUpdater.sourcelink.json' is up-to-date.
+       CoreCompile:
+       Skipping target "CoreCompile" because all output files are up-to-date with respect to the input files.
+       _CreateAppHost:
+       Skipping target "_CreateAppHost" because all output files are up-to-date with respect to the input files.
+       _CopyOutOfDateSourceItemsToOutputDirectory:
+       Skipping target "_CopyOutOfDateSourceItemsToOutputDirectory" because all output files are up-to-date with respect to the input files.
+       GenerateBuildDependencyFile:
+       Skipping target "GenerateBuildDependencyFile" because all output files are up-to-date with respect to the input files.
+       GenerateBuildRuntimeConfigurationFiles:
+       Skipping target "GenerateBuildRuntimeConfigurationFiles" because all output files are up-to-date with respect to the input files.
+       CopyFilesToOutputDirectory:
+         XrayUpdater -> D:\1. Project\Xray View System\collector-wpf\XrayUpdater\bin\Release\net9.0\win-x64\XrayUpdater.dll
+     2>Done Building Project "D:\1. Project\Xray View System\collector-wpf\XrayUpdater\XrayUpdater.csproj" (default targets).
+     1>MainResourcesGeneration:
+       Skipping target "MainResourcesGeneration" because all output files are up-to-date with respect to the input files.
+       GenerateTargetFrameworkMonikerAttribute:
+       Skipping target "GenerateTargetFrameworkMonikerAttribute" because all output files are up-to-date with respect to the input files.
+       CoreGenerateAssemblyInfo:
+       Skipping target "CoreGenerateAssemblyInfo" because all output files are up-to-date with respect to the input files.
+       _GenerateSourceLinkFile:
+         Source Link file 'obj\Release\net9.0-windows\win-x64\XrayCollector.sourcelink.json' is up-to-date.
+       CoreCompile:
+       Skipping target "CoreCompile" because all output files are up-to-date with respect to the input files.
+       _CreateAppHost:
+       Skipping target "_CreateAppHost" because all output files are up-to-date with respect to the input files.
+       _CopyOutOfDateSourceItemsToOutputDirectory:
+       Skipping target "_CopyOutOfDateSourceItemsToOutputDirectory" because all output files are up-to-date with respect to the input files.
+       _CopyOutOfDateSourceItemsToOutputDirectoryAlways:
+         Copying file from "D:\1. Project\Xray View System\collector-wpf\XrayCollector\Assets\app.png" to "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\Assets\app.png".
+         Copying file from "D:\1. Project\Xray View System\collector-wpf\XrayCollector\Assets\VSCodeUserSetup-x64-1.117.0.exe" to "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\Assets\VSCodeUserSetup-x64-1.117.0.exe".
+         Copying file from "D:\1. Project\Xray View System\collector-wpf\XrayCollector\Assets\LM-Studio-0.4.12-1-x64.exe" to "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\Assets\LM-Studio-0.4.12-1-x64.exe".
+         Copying file from "D:\1. Project\Xray View System\collector-wpf\XrayCollector\Assets\app.ico" to "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\Assets\app.ico".
+         Copying file from "D:\1. Project\Xray View System\collector-wpf\XrayCollector\Assets\Docker Desktop Installer.exe" to "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\Assets\Docker Desktop Installer.exe".
+         Copying file from "D:\1. Project\Xray View System\collector-wpf\XrayCollector\Assets\OllamaSetup.exe" to "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\Assets\OllamaSetup.exe".
+         Copying file from "D:\1. Project\Xray View System\collector-wpf\XrayCollector\Assets\windowsdesktop-runtime-8.0.26-win-x64.exe" to "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\Assets\windowsdesktop-runtime-8.0.26-win-x64.exe".
+       GenerateBuildDependencyFile:
+       Skipping target "GenerateBuildDependencyFile" because all output files are up-to-date with respect to the input files.
+       GenerateBuildRuntimeConfigurationFiles:
+       Skipping target "GenerateBuildRuntimeConfigurationFiles" because all output files are up-to-date with respect to the input files.
+       CopyFilesToOutputDirectory:
+         XrayCollector -> D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\XrayCollector.dll
+       _CreateSingleFileHost:
+       Skipping target "_CreateSingleFileHost" because all output files are up-to-date with respect to the input files.
+   1:7>Project "D:\1. Project\Xray View System\collector-wpf\XrayCollector\XrayCollector.csproj" (1:7) is building "D:\1. Project\Xray View System\collector-wpf\XrayUpdater\XrayUpdater.csproj" (2:9) on node 1 (GetCopyToPublishDirectoryItems target(s)).
+     2>_CreateSingleFileHost:
+       Skipping target "_CreateSingleFileHost" because all output files are up-to-date with respect to the input files.
+     2>Done Building Project "D:\1. Project\Xray View System\collector-wpf\XrayUpdater\XrayUpdater.csproj" (GetCopyToPublishDirectoryItems target(s)).
+     1>GeneratePublishDependencyFile:
+       Skipping target "GeneratePublishDependencyFile" because all output files are up-to-date with respect to the input files.
+       GenerateSingleFileBundle:
+       Skipping target "GenerateSingleFileBundle" because all output files are up-to-date with respect to the input files.
+       _IncrementalCleanPublishDirectory:
+         Deleting file "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\publish\Assets\app.png".
+         Deleting file "D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\publish\XrayUpdater.runtimeconfig.json".
+       _CopyResolvedFilesToPublishPreserveNewest:
+       Skipping target "_CopyResolvedFilesToPublishPreserveNewest" because all output files are up-to-date with respect to the input files.
+       Publish:
+         XrayCollector -> D:\1. Project\Xray View System\collector-wpf\XrayCollector\bin\Release\net9.0-windows\win-x64\publish\
+       AutoPackageForUpdate:
+         [DEBUG] MSBuildProjectDirectory: D:\1. Project\Xray View System\collector-wpf\XrayCollector
+         [DEBUG] PublishDir: bin\Release\net9.0-windows\win-x64\publish\
+         [DEBUG] FullBackendDir: D:\1. Project\Xray View System\backend\app\static\downloads\
+         powershell -Command "Compress-Archive -Path 'bin\Release\net9.0-windows\win-x64\publish\*' -DestinationPath 'D:\1. Project\Xray View System\backend\app\static\downloads\XrayCollector.zip' -Force; Set-Content -Path 'D:\1. Project\Xray View System\backend\app\static\downloads\version.json' -Value '{ \"version\": \"1.2.8\" }' -Encoding UTF8"
+         [AUTO-DEPLOY] Da hoan tat dong goi version 1.2.8.
+     1>Done Building Project "D:\1. Project\Xray View System\collector-wpf\XrayCollector\XrayCollector.csproj" (Publish target(s)).
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:07.83

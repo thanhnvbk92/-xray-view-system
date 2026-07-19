@@ -18,7 +18,7 @@ from ....core.security import (
 router = APIRouter()
 
 @router.post("/register", response_model=schemas.UserResponse)
-async def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
+def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     # Check if username exists
     if db.query(User).filter(User.username == user_in.username).first():
         raise HTTPException(status_code=400, detail="Tài khoản đã tồn tại")
@@ -42,7 +42,7 @@ async def register_user(user_in: schemas.UserCreate, db: Session = Depends(get_d
     return new_user
 
 @router.post("/login", response_model=schemas.Token)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Tài khoản hoặc mật khẩu không chính xác")
@@ -70,19 +70,19 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = 
     }
 
 @router.get("/me", response_model=schemas.UserResponse)
-async def get_me(current_user: User = Depends(get_current_user)):
+def get_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 # --- ADMIN ENDPOINTS ---
 
 @router.get("/users", response_model=List[schemas.UserResponse])
-async def list_users(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def list_users(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.role != "ADMIN":
         raise HTTPException(status_code=403, detail="Yêu cầu quyền Admin")
     return db.query(User).all()
 
 @router.post("/users/{user_id}/approve")
-async def approve_user(
+def approve_user(
     user_id: int, 
     role: str = "OPERATOR", 
     permissions: Optional[str] = None, 
@@ -106,7 +106,7 @@ async def approve_user(
     return {"status": "success", "user": user.username, "role": user.role}
 
 @router.post("/users/{user_id}/reject")
-async def reject_user(user_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def reject_user(user_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.role != "ADMIN":
         raise HTTPException(status_code=403, detail="Yêu cầu quyền Admin")
     user = db.query(User).filter(User.id == user_id).first()

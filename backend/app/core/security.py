@@ -34,7 +34,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
@@ -67,7 +67,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
     return user
 
 def check_permission(permission: str):
-    async def permission_checker(current_user: User = Depends(get_current_user)):
+    def permission_checker(current_user: User = Depends(get_current_user)):
         # Admin có toàn quyền hoặc user có quyền cụ thể trong danh sách
         if current_user.role == "ADMIN":
             return current_user

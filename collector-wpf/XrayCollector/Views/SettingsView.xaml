@@ -6,118 +6,291 @@
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:vm="clr-namespace:XrayCollector.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="500">
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="25">
-            
-            <TextBlock Text="CẤU HÌNH THIẾT BỊ" Style="{StaticResource MaterialDesignHeadline6TextBlock}" FontWeight="Bold" Margin="0,0,0,20" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+             d:DesignHeight="1000" d:DesignWidth="1000">
+    
+    <Grid Margin="16,12,8,0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <materialDesign:Card Padding="20" Margin="0,0,0,20" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
-                <StackPanel>
-                    <TextBlock Text="MÁY CHỦ API" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding TempServerUrl, UpdateSourceTrigger=PropertyChanged}"
-                                 materialDesign:HintAssist.Hint="http://ip:port"
-                                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                                 IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"/>
-                        <Button Grid.Column="1" Margin="10,0,0,0" 
-                                Style="{StaticResource MaterialDesignIconButton}"
-                                Padding="0" Width="40" Height="40"
-                                Command="{Binding LoadDataCommand}"
-                                IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
-                            <Grid>
-                                <materialDesign:PackIcon Kind="Update" Width="22" Height="22">
-                                    <materialDesign:PackIcon.Style>
-                                        <Style TargetType="materialDesign:PackIcon" BasedOn="{StaticResource {x:Type materialDesign:PackIcon}}">
-                                            <Setter Property="Visibility" Value="Visible"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsLoading}" Value="True">
-                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </materialDesign:PackIcon.Style>
-                                </materialDesign:PackIcon>
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
-                                           Value="0" IsIndeterminate="True"
-                                           Width="20" Height="20"
-                                           Visibility="{Binding IsLoading, Converter={StaticResource BoolVisConverter}}"/>
-                            </Grid>
-                        </Button>
-                    </Grid>
-                </StackPanel>
-            </materialDesign:Card>
-
-            <materialDesign:Card Padding="20" Margin="0,0,0,20" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
-                <StackPanel>
-                    <TextBlock Text="THÔNG TIN THIẾT BỊ" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
-                    <ComboBox ItemsSource="{Binding Lines}"
-                              SelectedItem="{Binding SelectedLine}"
-                              DisplayMemberPath="Name"
-                              materialDesign:HintAssist.Hint="Chọn Dây chuyền"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                              Margin="0,0,0,16"/>
-
-                    <ComboBox ItemsSource="{Binding FilteredMachines}"
-                              SelectedItem="{Binding SelectedMachine}"
-                              DisplayMemberPath="Name"
-                              materialDesign:HintAssist.Hint="Chọn Máy Quét"
-                              Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-                </StackPanel>
-            </materialDesign:Card>
-
-            <materialDesign:Card Padding="20" Margin="0,0,0,25" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
-                <StackPanel>
-                    <TextBlock Text="ĐƯỜNG DẪN THƯ MỤC" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
-                    <Grid Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding TempImagePath}" IsReadOnly="True" materialDesign:HintAssist.Hint="Thư mục Ảnh" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <Button Grid.Column="1" Command="{Binding SelectFolderCommand}" CommandParameter="img" Margin="10,0,0,0" Style="{StaticResource MaterialDesignIconButton}" Background="#F0F2F5"><materialDesign:PackIcon Kind="FolderImage"/></Button>
-                    </Grid>
-
-                    <Grid Margin="0,0,0,16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBox Text="{Binding TempLogPath}" IsReadOnly="True" materialDesign:HintAssist.Hint="Thư mục Log" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                        <Button Grid.Column="1" Command="{Binding SelectFolderCommand}" CommandParameter="log" Margin="10,0,0,0" Style="{StaticResource MaterialDesignIconButton}" Background="#F0F2F5"><materialDesign:PackIcon Kind="FolderFile"/></Button>
-                    </Grid>
-
-                    <TextBox Text="{Binding TempLogExtension}" 
-                             materialDesign:HintAssist.Hint="Đuôi file Log (ví dụ: .txt, .csv, *)" 
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                </StackPanel>
-            </materialDesign:Card>
-
-            <materialDesign:Card Padding="20" Margin="0,0,0,25" UniformCornerRadius="16" materialDesign:ElevationAssist.Elevation="Dp1">
-                <StackPanel>
-                    <TextBlock Text="QUY TẮC ÁNH XẠ PID" Style="{StaticResource MaterialDesignCaptionTextBlock}" FontWeight="Bold" Margin="0,0,0,10" Opacity="0.6"/>
-                    <StackPanel Orientation="Horizontal">
-                        <RadioButton Content="Tăng dần (+1)" IsChecked="{Binding TempIsPidMappingIncrease}" Margin="0,0,20,0"/>
-                        <RadioButton Content="Giảm dần (-1)" IsChecked="{Binding TempIsPidMappingIncrease, Converter={StaticResource InverseBooleanConverter}}"/>
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+            <StackPanel>
+                <!-- API Configuration -->
+                <TextBlock Text="KẾT NỐI MÁY CHỦ" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"/>
+                <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="12" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="ĐỊA CHỈ API (URL)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding TempServerUrl, UpdateSourceTrigger=PropertyChanged}"
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                     MinHeight="48" FontSize="13" FontWeight="SemiBold"
+                                     VerticalContentAlignment="Center" Padding="12,10"
+                                     IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"/>
+                            <Button Grid.Column="1" Margin="8,0,0,0" 
+                                     Style="{StaticResource MaterialDesignRaisedButton}"
+                                     Background="#EFF6FF" Foreground="#2563EB" BorderThickness="0"
+                                     Width="48" Height="48" Padding="0"
+                                     materialDesign:ButtonAssist.CornerRadius="8"
+                                     Command="{Binding LoadDataCommand}"
+                                     IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}">
+                                <Grid>
+                                    <materialDesign:PackIcon Kind="Refresh" Width="20" Height="20" Visibility="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"/>
+                                    <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" Value="0" IsIndeterminate="True" Width="18" Height="18" Visibility="{Binding IsLoading, Converter={StaticResource BoolVisConverter}}"/>
+                                </Grid>
+                            </Button>
+                        </Grid>
                     </StackPanel>
-                    <TextBlock Text="* Áp dụng cho 6 ký tự cuối (Alphanumeric)" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,10,0,0" Opacity="0.5" FontStyle="Italic"/>
-                </StackPanel>
-            </materialDesign:Card>
+                </materialDesign:Card>
 
-            <Button Content="LƯU CÀI ĐẶT" 
+                <!-- Device Identity -->
+                <TextBlock Text="ĐỊNH DANH THIẾT BỊ" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"/>
+                <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="12" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="DÂY CHUYỀN SẢN XUẤT" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <ComboBox ItemsSource="{Binding Lines}"
+                                  SelectedItem="{Binding SelectedLine}"
+                                  DisplayMemberPath="Name"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                  MinHeight="48" FontSize="13" FontWeight="SemiBold" Margin="0,0,0,16"
+                                  VerticalContentAlignment="Center"/>
+                        <TextBlock Text="MÁY QUÉT X-RAY" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <ComboBox ItemsSource="{Binding FilteredMachines}"
+                                  SelectedItem="{Binding SelectedMachine}"
+                                  DisplayMemberPath="Name"
+                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                  MinHeight="48" FontSize="13" FontWeight="SemiBold"
+                                  VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <!-- Barcode Configuration -->
+                <TextBlock Text="CẤU HÌNH BARCODE" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"/>
+                <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="12" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="CHẾ ĐỘ MAPPING BARCODE (PID)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton Content="Tăng dần (+)" 
+                                         IsChecked="{Binding TempIsPidMappingIncrease}" 
+                                         Margin="0,0,24,0" 
+                                         FontSize="13" FontWeight="SemiBold"/>
+                            <RadioButton Content="Giảm dần (-)" 
+                                         IsChecked="{Binding TempIsPidMappingIncrease, Converter={StaticResource InverseBooleanConverter}}" 
+                                         FontSize="13" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </StackPanel>
+                </materialDesign:Card>
+
+
+                <!-- Manual PID Mapping Configuration (Only for 9020) -->
+                <TextBlock Text="MAPPING PID THỦ CÔNG (CHỈ CHO MÁY 9020)" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"
+                           Visibility="{Binding IsMachine9020, Converter={StaticResource BoolVisConverter}}"/>
+                <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="12" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1"
+                                     Visibility="{Binding IsMachine9020, Converter={StaticResource BoolVisConverter}}">
+                    <StackPanel>
+                        <!-- Model Selection & Quick Add -->
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Select Model -->
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="CHỌN MODEL CẤU HÌNH" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                                <ComboBox ItemsSource="{Binding TempModelMappings}"
+                                          SelectedItem="{Binding SelectedModelMapping}"
+                                          DisplayMemberPath="ModelName"
+                                          Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                          MinHeight="48" FontSize="13" FontWeight="SemiBold"
+                                          VerticalContentAlignment="Center"/>
+                            </StackPanel>
+                            
+                            <!-- Add Model TextBox & Button -->
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" Width="220">
+                                <TextBlock Text="TÊN MODEL MỚI" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Text="{Binding NewModelName, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             Height="48" FontSize="13" FontWeight="SemiBold"
+                                             VerticalContentAlignment="Center" Padding="12,10"/>
+                                    <Button Grid.Column="1" Command="{Binding AddModelCommand}"
+                                            Margin="8,0,0,0" Style="{StaticResource MaterialDesignRaisedButton}"
+                                            Background="#EFF6FF" Foreground="#2563EB" BorderThickness="0" Height="48" Width="48" Padding="0"
+                                            materialDesign:ButtonAssist.CornerRadius="8">
+                                        <materialDesign:PackIcon Kind="Plus" Width="20" Height="20"/>
+                                    </Button>
+                                </Grid>
+                            </StackPanel>
+
+                            <!-- Delete Button -->
+                            <Button Grid.Column="2" Command="{Binding DeleteModelCommand}"
+                                    Margin="12,17,0,0" Style="{StaticResource MaterialDesignRaisedButton}"
+                                    Background="#FEF2F2" Foreground="#DC2626" BorderThickness="0" Height="48"
+                                    materialDesign:ButtonAssist.CornerRadius="8" VerticalAlignment="Bottom">
+                                <StackPanel Orientation="Horizontal">
+                                    <materialDesign:PackIcon Kind="Delete" Width="16" Height="16" Margin="0,0,4,0"/>
+                                    <TextBlock Text="Xóa Model" FontSize="11" FontWeight="Bold"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <!-- Config details for selected model -->
+                        <StackPanel Visibility="{Binding HasSelectedModelMapping, Converter={StaticResource BoolVisConverter}}">
+                            <Separator Background="#F1F5F9" Margin="0,0,0,16"/>
+                            
+                            <Grid Margin="0,0,0,16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="SỐ LƯỢNG UNIT CỦA BOARD" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                                    <TextBox Text="{Binding TempUnitCount, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                                             MinHeight="48" FontSize="13" FontWeight="SemiBold"
+                                             VerticalContentAlignment="Center" Padding="12,10"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Text="CẤU HÌNH CHI TIẾT MAPPING (UNIT -> BARCODE INDEX)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                            
+                            <!-- Custom grid list for mappings -->
+                            <ItemsControl ItemsSource="{Binding CurrentUnitMappings}" Margin="0,0,0,8">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="100"/>
+                                                <ColumnDefinition Width="50"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <TextBlock Text="{Binding UnitIndex, StringFormat='Unit {0}'}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            <materialDesign:PackIcon Grid.Column="1" Kind="ArrowRight" Width="16" Height="16" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            
+                                            <ComboBox Grid.Column="2" SelectedItem="{Binding PidIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                      ItemsSource="{Binding DataContext.AvailablePidIndices, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                                      Height="40" FontSize="13" FontWeight="SemiBold"
+                                                      VerticalContentAlignment="Center">
+                                                <ComboBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding StringFormat='PID dòng {0} trong Log'}"/>
+                                                    </DataTemplate>
+                                                </ComboBox.ItemTemplate>
+                                            </ComboBox>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </StackPanel>
+                </materialDesign:Card>
+
+                <!-- Data Storage -->
+                <TextBlock Text="CẤU HÌNH ĐƯỜNG DẪN" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"/>
+                <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="12" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1">
+                    <StackPanel>
+                        <!-- Main Log Section -->
+                        <TextBlock Text="ĐƯỜNG DẪN LOG CHÍNH &amp; ĐỊNH DẠNG" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="85"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding TempLogPath}" IsReadOnly="True" 
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                                     MinHeight="44" FontSize="11" VerticalContentAlignment="Center" Padding="12,8"/>
+                            <TextBox Grid.Column="1" Text="{Binding TempLogExtension}" 
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                                     MinHeight="44" FontSize="11" Margin="8,0"
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0,8"/>
+                            <Button Grid.Column="2" Command="{Binding SelectFolderCommand}" CommandParameter="log" 
+                                    Style="{StaticResource MaterialDesignIconButton}" Width="44" Height="44" Background="#F8FAFC">
+                                <materialDesign:PackIcon Kind="File" Foreground="#64748B" Width="18" Height="18"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- Sub Log Section -->
+                        <TextBlock Text="ĐƯỜNG DẪN SUB LOG &amp; ĐỊNH DẠNG" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="85"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding TempSubLogPath}" IsReadOnly="True" 
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                                     MinHeight="44" FontSize="11" VerticalContentAlignment="Center" Padding="12,8"/>
+                            <TextBox Grid.Column="1" Text="{Binding TempSubLogExtension}" 
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                                     MinHeight="44" FontSize="11" Margin="8,0"
+                                     HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Padding="0,8"/>
+                            <Button Grid.Column="2" Command="{Binding SelectFolderCommand}" CommandParameter="sublog" 
+                                    Style="{StaticResource MaterialDesignIconButton}" Width="44" Height="44" Background="#F8FAFC">
+                                <materialDesign:PackIcon Kind="File" Foreground="#64748B" Width="18" Height="18"/>
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Text="THƯ MỤC HÌNH ẢNH (IMAGE)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <Grid Margin="0,0,0,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Text="{Binding TempImagePath}" IsReadOnly="True" 
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                                     MinHeight="44" FontSize="11" VerticalContentAlignment="Center" Padding="12,8"/>
+                            <Button Grid.Column="1" Command="{Binding SelectFolderCommand}" CommandParameter="img" 
+                                    Margin="8,0,0,0" Style="{StaticResource MaterialDesignIconButton}" 
+                                    Width="44" Height="44" Background="#F8FAFC">
+                                <materialDesign:PackIcon Kind="Folder" Foreground="#64748B" Width="18" Height="18"/>
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Text="THƯ MỤC SAO LƯU (BACKUP)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding TempBackupPath}" IsReadOnly="True" 
+                                     Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                                     MinHeight="44" FontSize="11" VerticalContentAlignment="Center" Padding="12,8"/>
+                            <Button Grid.Column="1" Command="{Binding SelectFolderCommand}" CommandParameter="backup" 
+                                    Margin="8,0,0,0" Style="{StaticResource MaterialDesignIconButton}" 
+                                    Width="44" Height="44" Background="#F8FAFC">
+                                <materialDesign:PackIcon Kind="Folder" Foreground="#64748B" Width="18" Height="18"/>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+                </materialDesign:Card>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Save Action -->
+        <Border Grid.Row="1" Background="White" Padding="20,16" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+            <Button Command="{Binding SaveSettingsCommand}"
                     Style="{StaticResource MaterialDesignRaisedButton}"
-                    Background="{DynamicResource SecondaryHueMidBrush}"
-                    Foreground="{DynamicResource SecondaryHueMidForegroundBrush}"
-                    FontWeight="Bold"
-                    Height="56"
-                    materialDesign:ButtonAssist.CornerRadius="28"
-                    Command="{Binding SaveSettingsCommand}"
-                    Margin="0,0,0,40"/>
-            
-        </StackPanel>
-    </ScrollViewer>
+                    Background="#2563EB" Foreground="White"
+                    Height="52" FontWeight="Black" FontSize="12"
+                    materialDesign:ButtonAssist.CornerRadius="12"
+                    materialDesign:ElevationAssist.Elevation="Dp2">
+                <StackPanel Orientation="Horizontal">
+                    <materialDesign:PackIcon Kind="ContentSave" Margin="0,0,12,0" Width="20" Height="20" VerticalAlignment="Center"/>
+                    <TextBlock Text="LƯU CẤU HÌNH" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Button>
+        </Border>
+    </Grid>
 </UserControl>

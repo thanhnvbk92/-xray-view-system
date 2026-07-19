@@ -17,11 +17,11 @@ namespace XrayCollector.ViewModels
     public partial class HomeViewModel : ObservableObject
     {
         private readonly IApiService _apiService;
-        private readonly IFileWatcherService _logWatcher;
         private readonly ISettingsService _settings;
         private readonly IUpdateService _updateService;
         private readonly ISyncPersistenceService _persistence;
         private readonly IXray9730CollectorService _xray9730Service;
+        private readonly IXray9020CollectorService _xray9020Service;
         private readonly SemaphoreSlim _processLock = new(1, 1);
         private DispatcherTimer? _heartbeatTimer;
         private DispatcherTimer? _retryTimer;
@@ -35,9 +35,11 @@ namespace XrayCollector.ViewModels
         [ObservableProperty] private string _statusColor = "Red";
         [ObservableProperty] 
         [NotifyPropertyChangedFor(nameof(MonitoringButtonText))]
+        [NotifyPropertyChangedFor(nameof(MonitoringButtonIcon))]
         private bool _isRunning;
         
         public string MonitoringButtonText => IsRunning ? "STOP" : "START";
+        public string MonitoringButtonIcon => IsRunning ? "Stop" : "Play";
 
         [ObservableProperty] private string _version;
         [ObservableProperty] private bool _isUpdateAvailable;
@@ -47,17 +49,21 @@ namespace XrayCollector.ViewModels
         [ObservableProperty] private string _localIpAddress = "0.0.0.0";
         [ObservableProperty] private bool _isServerConnected;
         [ObservableProperty] private string _connectionStatusColor = "Gray";
+        [ObservableProperty] private string _connectionStatusText = "KẾT NỐI: ĐANG KIỂM TRA";
 
         public ObservableCollection<string> Logs { get; } = new();
 
-        public HomeViewModel(IApiService apiService, IFileWatcherService logWatcher, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence, IXray9730CollectorService xray9730Service)
+        public HomeViewModel(IApiService apiService, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence, IXray9730CollectorService xray9730Service, IXray9020CollectorService xray9020Service)
         {
             _apiService = apiService;
-            _logWatcher = logWatcher;
             _settings = settings;
             _updateService = updateService;
             _persistence = persistence;
             _xray9730Service = xray9730Service;
+            _xray9020Service = xray9020Service;
+
+            // Đăng ký nhận log từ các ViewModel khác
+            WeakReferenceMessenger.Default.Register<AddLogMessage>(this, (r, m) => AddLog(m.Value));
 
             _version = $"v{_updateService.CurrentVersion}";
             
@@ -87,24 +93,60 @@ namespace XrayCollector.ViewModels
 
         private async void RefreshDisplayInfo()
         {
+            // Thiết lập trạng thái đang kiểm tra ngay lập tức
+            ConnectionStatusText = "KẾT NỐI: ĐANG KIỂM TRA...";
+            ConnectionStatusColor = "#64748B"; // Slate
+            
             _settings.Load();
-            LocalIpAddress = await Task.Run(() => GetLocalIpAddress());
+            
+            // Lấy IP local với timeout để tránh treo
+            LocalIpAddress = await Task.Run(() => {
+                try {
+                    var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                    return GetLocalIpAddress();
+                } catch { return "0.0.0.0"; }
+            });
             
             if (int.TryParse(_settings.MachineId, out int mid))
             {
-                var detail = await _apiService.GetMachineDetailAsync(mid);
-                if (detail != null)
+                try 
                 {
-                    CurrentMachineName = detail.name;
-                    CurrentLineName = detail.line_name;
-                    MachineTypeName = detail.machine_type_name ?? "";
-                    MachinePartNo = detail.machine_type_part_no ?? "";
+                    // Thêm timeout cho API call
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                    var detailTask = _apiService.GetMachineDetailAsync(mid);
+                    
+                    if (await Task.WhenAny(detailTask, Task.Delay(5000, cts.Token)) == detailTask)
+                    {
+                        var detail = await detailTask;
+                        if (detail != null)
+                        {
+                            CurrentMachineName = detail.name;
+                            CurrentLineName = detail.line_name;
+                            MachineTypeName = detail.machine_type_name ?? "";
+                            MachinePartNo = detail.machine_type_part_no ?? "";
+                            
+                            UpdateConnectionStatus(true, "Kết nối thành công");
+                        }
+                        else
+                        {
+                            CurrentMachineName = $"Máy ID: {mid}";
+                            CurrentLineName = "Không xác định";
+                            UpdateConnectionStatus(false, "Không tìm thấy thông tin máy trên Server");
+                        }
+                    }
+                    else
+                    {
+                        UpdateConnectionStatus(false, "Hết thời gian kết nối tới Server (Timeout)");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    CurrentMachineName = $"Máy ID: {mid}";
-                    CurrentLineName = "Không xác định";
+                    UpdateConnectionStatus(false, $"Lỗi kết nối: {ex.Message}");
                 }
+            }
+            else
+            {
+                UpdateConnectionStatus(false, "Chưa cấu hình Machine ID");
             }
         }
 
@@ -160,7 +202,7 @@ namespace XrayCollector.ViewModels
         [RelayCommand]
         private async Task PerformUpdate()
         {
-            var result = MessageBox.Show(
+            var result = System.Windows.MessageBox.Show(
                 $"Phát hiện phiên bản mới: v{_updateService.ServerVersion}\nBạn có muốn cập nhật ngay bây giờ không?", 
                 "Cập nhật hệ thống", 
                 MessageBoxButton.YesNo, 
@@ -181,8 +223,8 @@ namespace XrayCollector.ViewModels
             if (!success)
             {
                 IsUpdating = false;
-                AddLog("Lỗi: Không thể tải hoặc cài đặt bản cập nhật.");
-                MessageBox.Show("Cập nhật thất bại. Vui lòng thử lại sau.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                AddLog("Lỗi: Không thể tải hoặc cài đặt bản cập nhật. Kiểm tra Logs/update_error.log");
+                System.Windows.MessageBox.Show("Cập nhật thất bại. Vui lòng kiểm tra Logs/update_error.log để biết thêm chi tiết.", "Lỗi Cập Nhật", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -224,31 +266,7 @@ namespace XrayCollector.ViewModels
             }
             else
             {
-                // ... (giữ nguyên logic cũ) ...
-                var logExt = _settings.LogExtension ?? ".log";
-                if (!logExt.StartsWith(".")) logExt = "." + logExt;
-                var logFilter = "*" + logExt;
-
-                AddLog($"Đang giám sát Log: {_settings.LogPath} | Filter: {logFilter}");
-                AddLog($"Đang giám sát Ảnh: {_settings.ImagePath}");
-
-                // Quét dữ liệu lịch sử (9020)
-                _ = SynchronizeHistoricalDataAsync(_settings.LogPath, logFilter);
-
-                _logWatcher.Start(_settings.LogPath, logFilter, (path, type) => 
-                {
-                    if (type == "ERROR") 
-                    {
-                        AddLog($"[LỖI LOG] {path}");
-                        return;
-                    }
-
-                    AddLog($"[{type}] Log: {System.IO.Path.GetFileName(path)}");
-                    if (type == "EDITED")
-                    {
-                        _ = ProcessLogFile(path);
-                    }
-                });
+                _xray9020Service.Start(_settings.LogPath, _settings.ImagePath, _settings.MachineId, _settings.LogExtension, (msg) => AddLog(msg));
             }
 
             // 3. Kích hoạt Heartbeat báo Online chỉ sau khi đã START thành công
@@ -271,83 +289,6 @@ namespace XrayCollector.ViewModels
             AddLog("Bắt đầu giám sát hệ thống.");
         }
 
-        private async Task SynchronizeHistoricalDataAsync(string logPath, string filter)
-        {
-            if (_isSynchronizing) return;
-            _isSynchronizing = true;
-            await Task.Yield(); // Tuyệt đối không treo UI thread khi liệt kê hàng nghìn file
-            
-            try
-            {
-                AddLog($"Đang quét dữ liệu chưa đồng bộ... {logPath} {filter}");
-                var state = _persistence.LoadState();
-
-                // TỐI ƯU HÓA: Thay vì quét toàn bộ subdirectories (SearchOption.AllDirectories) làm treo UI,
-                // Chúng ta chỉ quét thư mục gốc và các thư mục yyyyMMdd >= ngày xử lý cuối.
-                var directoriesToScan = new List<string> { logPath };
-                string startDirName = state.LastProcessedTime.ToString("yyyyMMdd");
-
-                try
-                {
-                    if (Directory.Exists(logPath))
-                    {
-                        var subDirs = Directory.GetDirectories(logPath);
-                        foreach (var dir in subDirs)
-                        {
-                            string dirName = Path.GetFileName(dir);
-                            // Kiểm tra nếu thư mục có tên là 8 chữ số (yyyyMMdd)
-                            if (dirName.Length == 8 && dirName.All(char.IsDigit))
-                            {
-                                // Chỉ quét nếu thư mục này mới hơn hoặc bằng ngày cuối cùng đã xử lý
-                                if (string.Compare(dirName, startDirName) >= 0)
-                                {
-                                    directoriesToScan.Add(dir);
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    AddLog($"Lỗi khi liệt kê thư mục con: {ex.Message}");
-                }
-
-                // Thu thập file từ các thư mục đã chọn (chỉ quét TopDirectoryOnly cho từng thư mục cụ thể)
-                var logFiles = directoriesToScan
-                    .SelectMany(d => Directory.GetFiles(d, filter, SearchOption.TopDirectoryOnly))
-                    .Select(f => new FileInfo(f))
-                    .Where(f => f.LastWriteTime > state.LastProcessedTime.AddSeconds(-1)) // Trừ 1s để an toàn
-                    .OrderBy(f => f.LastWriteTime)
-                    .ToList();
-
-                AddLog($"Tìm thấy {logFiles.Count} tệp log cần quét bù sau thời điểm {state.LastProcessedTime}");
-
-                int count = 0;
-                foreach (var file in logFiles)
-                {
-                    try
-                    {
-                        await ProcessLogFile(file.FullName);
-                        count++;
-                    }
-                    catch (Exception ex)
-                    {
-                        AddLog($"Lỗi khi xử lý file {Path.GetFileName(file.FullName)}: {ex.Message}");
-                    }
-                }
-                
-                if (count > 0) AddLog($"Đã hoàn thành quét bù {count} tệp log.");
-                else AddLog("Dữ liệu đã được đồng bộ hóa hoàn toàn.");
-            }
-            catch (Exception ex)
-            {
-                AddLog($"Lỗi khi quét bù dữ liệu: {ex.Message}");
-            }
-            finally
-            {
-                _isSynchronizing = false;
-            }
-        }
 
         private async Task Synchronize9730HistoricalDataAsync(string logPath)
         {
@@ -421,7 +362,8 @@ namespace XrayCollector.ViewModels
                     scan.ImageResults,
                     null,
                     scan.ShotNums,
-                    scan.ImageTypes);
+                    scan.ImageTypes,
+                    scan.ImageCauses);
 
                 if (success)
                 {
@@ -436,216 +378,7 @@ namespace XrayCollector.ViewModels
             }
         }
 
-        private async Task ProcessLogFile(string filePath)
-        {
-            await _processLock.WaitAsync();
-            try
-            {
-                // Cơ chế Retry để tránh lỗi Access Denied khi file đang bị tester software khóa
-                int retryCount = 0;
-                string[]? lines = null;
-                Exception? lastEx = null;
 
-                while (retryCount < 5 && lines == null)
-                {
-                    try
-                    {
-                        await Task.Delay(500); // Đợi mỗi lần retry
-                        lines = File.ReadAllLines(filePath);
-                    }
-                    catch (IOException ex)
-                    {
-                        lastEx = ex;
-                        retryCount++;
-                        AddLog($"Thử lại lần {retryCount} do file bị khóa...");
-                    }
-                    catch (Exception ex)
-                    {
-                        AddLog($"Lỗi không xác định khi đọc file: {ex.Message}");
-                        return;
-                    }
-                }
-
-                if (lines == null)
-                {
-                    AddLog($"Không thể đọc file sau 5 lần thử: {lastEx?.Message}");
-                    return;
-                }
-
-                if (lines.Length <= 1) return; // Chỉ có header
-                
-                var state = _persistence.LoadState();
-                var lastTime = state.LastProcessedTime;
-                bool stateChanged = false;
-
-                string? basePid = null;
-                string? inspDate = null;
-
-                foreach (var line in lines.Skip(1)) // Bỏ qua header
-                {
-                    var parts = line.Split(',');
-                    if (parts.Length < 4) continue;
-
-                    string pidInLog = parts[0].Trim();
-                    string unitIndexStr = parts[1].Trim();
-                    string result = parts[2].Trim();
-                    string timestamp = parts[3].Trim(); // yyyyMMddHHmmss
-
-                    if (!int.TryParse(unitIndexStr, out int unitIndex)) continue;
-                    
-                    // Chuyển đổi timestamp sang DateTime để so sánh
-                    DateTime currentLogTime = DateTime.MinValue;
-                    if (timestamp.Length == 14)
-                    {
-                        try {
-                            currentLogTime = DateTime.ParseExact(timestamp, "yyyyMMddHHmmss", null);
-                        } catch { }
-                    }
-
-                    // ĐÃ LOẠI BỎ KIỂM TRA CHECKPOINT: Backend đã dùng cơ chế Upsert nên gửi trùng 1 vài record cũng không sao.
-                    // Việc bỏ check này giúp xử lý trọn vẹn file dù mốc thời gian global bị nhảy cóc.
-
-                    // Lưu PID của Unit 1 làm mốc
-                    if (unitIndex == 1)
-                    {
-                        basePid = pidInLog;
-                        inspDate = timestamp;
-                    }
-
-                    if (basePid == null) continue;
-
-                    // Ánh xạ PID cho Unit hiện tại
-                    string mappedPid = PidMapper.MapPid(basePid, unitIndex - 1, _settings.IsPidMappingIncrease);
-                    AddLog($"[Mapping] Unit {unitIndex}: {basePid} => {mappedPid}");
-                    
-                    // Chuyển đổi timestamp sang định dạng ISO cho API (yyyy-MM-ddTHH:mm:ss)
-                    string isoTime = currentLogTime != DateTime.MinValue 
-                        ? currentLogTime.ToString("yyyy-MM-ddTHH:mm:ss") 
-                        : DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss");
-
-                    // Tìm ảnh và JobFile (Sử dụng unitIndex để lọc đúng ảnh của Array đó)
-                    var (jobFile, imageInfos) = FindImagesAndJobFile(timestamp, unitIndex);
-                    string logFileName = Path.GetFileName(filePath); // Lấy tên file log
-                    AddLog($"[ImageSearch] Log: {logFileName}, Unit {unitIndex} => Tìm thấy {imageInfos.Count} ảnh");
-                    
-                    var imagePaths = imageInfos.Select(i => i.Path).ToList();
-                    var imageResults = imageInfos.Select(i => i.Result).ToList();
-                    
-                    // Trích xuất ShotNum và ImageType cho máy 9020
-                    var shotNums = new List<int>();
-                    var imageTypes = new List<string>();
-                    foreach (var path in imagePaths)
-                    {
-                        var match = System.Text.RegularExpressions.Regex.Match(path, @"(\d+)(?:_o)?\.[^.]+$");
-                        shotNums.Add(match.Success ? int.Parse(match.Groups[1].Value) : 1);
-                        imageTypes.Add(path.ToLower().Contains("_o") ? "origin" : "marked");
-                    }
-
-                    // Đẩy dữ liệu lên Server
-                    if (int.TryParse(_settings.MachineId, out int mid))
-                    {
-                        var success = await _apiService.UploadScanAsync(mappedPid, mid, result, isoTime, jobFile, unitIndex, imagePaths, imageResults, logFileName, shotNums, imageTypes);
-                        
-                        if (success) 
-                        {
-                            AddLog($"Đồng bộ thành công: {mappedPid} ({result}) - Job: {jobFile}");
-                            
-                            // Cập nhật checkpoint mới
-                            if (currentLogTime > lastTime)
-                            {
-                                lastTime = currentLogTime;
-                                stateChanged = true;
-                            }
-                        }
-                        else 
-                        {
-                            AddLog($"Mất kết nối Server. Đã lưu vào hàng đợi: {mappedPid}");
-                            
-                            // LƯU VÀO HÀNG ĐỢI NGOẠI TUYẾN
-                            _persistence.AddToQueue(new PendingScan
-                            {
-                                Pid = mappedPid,
-                                MachineId = mid,
-                                Result = result,
-                                ClientTime = isoTime,
-                                JobFile = jobFile,
-                                ImagePaths = imagePaths,
-                                ImageResults = imageResults,
-                                ShotNums = shotNums,
-                                ImageTypes = imageTypes
-                            });
-                        }
-                    }
-                }
-
-                // Lưu trạng thái mới xuống ổ đĩa
-                if (stateChanged)
-                {
-                    state.LastProcessedTime = lastTime;
-                    _persistence.SaveState(state);
-                }
-            }
-            catch (Exception ex)
-            {
-                AddLog($"Lỗi xử lý file log: {ex.Message}");
-            }
-            finally
-            {
-                _processLock.Release();
-            }
-        }
-
-        private (string jobFile, List<(string Path, string Result)> images) FindImagesAndJobFile(string timestamp, int unitIndex)
-        {
-            if (string.IsNullOrEmpty(_settings.ImagePath) || timestamp.Length < 8) return ("", new List<(string, string)>());
-
-            string jobFile = "";
-            var imageInfos = new List<(string Path, string Result)>();
-            string datePart = timestamp.Substring(0, 8); // yyyyMMdd
-            string dateDir = Path.Combine(_settings.ImagePath, datePart);
-
-            try
-            {
-                if (!Directory.Exists(dateDir)) return ("", new List<(string, string)>());
-
-                // Duyệt qua các thư mục JobFile bên trong thư mục Ngày
-                var jobFolders = Directory.GetDirectories(dateDir);
-                foreach (var jobPath in jobFolders)
-                {
-                    bool foundInThisJob = false;
-                    
-                    // Kiểm tra cả thư mục GD (OK) và NG (Lỗi)
-                    var resConfigs = new[] { (Dir: "GD", Res: "OK"), (Dir: "NG", Res: "NG") };
-                    foreach (var cfg in resConfigs)
-                    {
-                        string targetPath = Path.Combine(jobPath, cfg.Dir);
-                        if (Directory.Exists(targetPath))
-                        {
-                            // Tìm các file có chứa timestamp và unitIndex theo pattern: *{timestamp}_{unitIndex}_*
-                            string searchPattern = $"*{timestamp}_{unitIndex}_*";
-                            var matches = Directory.GetFiles(targetPath, searchPattern);
-                            foreach (var match in matches)
-                            {
-                                imageInfos.Add((match, cfg.Res));
-                                foundInThisJob = true;
-                            }
-                        }
-                    }
-
-                    if (foundInThisJob)
-                    {
-                        jobFile = Path.GetFileName(jobPath);
-                        break; // Đã tìm thấy JobFile phù hợp
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                AddLog($"Lỗi khi tìm ảnh: {ex.Message}");
-            }
-
-            return (jobFile, imageInfos);
-        }
 
         private async void StopMonitoring()
         {
@@ -653,8 +386,8 @@ namespace XrayCollector.ViewModels
             StatusMessage = "Sẵn sàng hoạt động";
             StatusColor = "Red";
 
-            _logWatcher.Stop();
             _xray9730Service.Stop();
+            _xray9020Service.Stop();
             _heartbeatTimer?.Stop();
 
             if (int.TryParse(_settings.MachineId, out int mid))
@@ -670,18 +403,21 @@ namespace XrayCollector.ViewModels
             IsServerConnected = isSuccess;
             if (isSuccess)
             {
-                ConnectionStatusColor = "LimeGreen";
+                ConnectionStatusColor = "#10B981"; // LimeGreen
+                ConnectionStatusText = "KẾT NỐI: ONLINE";
                 StatusMessage = "Hệ thống đang hoạt động";
             }
             else
             {
-                ConnectionStatusColor = "Gray";
+                ConnectionStatusColor = "#64748B"; // Gray-Slate
+                ConnectionStatusText = "KẾT NỐI: OFFLINE";
                 StatusMessage = message ?? "Mất kết nối Server";
                 
                 // Nếu là lỗi trùng IP thì ghi log nổi bật
                 if (!string.IsNullOrEmpty(message) && message.Contains("Trùng IP"))
                 {
-                    ConnectionStatusColor = "Orange";
+                    ConnectionStatusColor = "#F59E0B"; // Orange
+                    ConnectionStatusText = "KẾT NỐI: LỖI IP";
                     AddLog($"[CẢNH BÁO] {message}");
                 }
             }
@@ -690,7 +426,7 @@ namespace XrayCollector.ViewModels
         public void AddLog(string message)
         {
             // Sử dụng BeginInvoke để không nén (block) luồng xử lý nếu UI đang bận
-            Application.Current?.Dispatcher?.BeginInvoke(new Action(() =>
+            System.Windows.Application.Current?.Dispatcher?.BeginInvoke(new Action(() =>
             {
                 var now = DateTime.Now;
                 var timeStr = now.ToString("HH:mm:ss");
@@ -718,4 +454,10 @@ namespace XrayCollector.ViewModels
 
     // Thông điệp dùng để đồng bộ giữa các ViewModel
     public class SettingsChangedMessage { }
+
+    // Thông điệp dùng để ghi log từ các ViewModel khác
+    public class AddLogMessage : CommunityToolkit.Mvvm.Messaging.Messages.ValueChangedMessage<string>
+    {
+        public AddLogMessage(string value) : base(value) { }
+    }
 }
