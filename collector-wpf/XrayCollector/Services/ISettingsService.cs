@@ -17,6 +17,8 @@ namespace XrayCollector.Services
         string LogExtension { get; set; }
         string SubLogExtension { get; set; }
         bool IsPidMappingIncrease { get; set; }
+        bool IsManualPidMappingEnabled { get; set; }
+        string LastDetected9020Model { get; set; }
         List<ModelMappingConfig> ModelMappings { get; set; }
         void Save();
         void Load();
@@ -35,6 +37,8 @@ namespace XrayCollector.Services
         public string LogExtension { get; set; } = ".csv";
         public string SubLogExtension { get; set; } = @"^r\d+\.txt$";
         public bool IsPidMappingIncrease { get; set; } = true;
+        public bool IsManualPidMappingEnabled { get; set; } = false;
+        public string LastDetected9020Model { get; set; } = "";
         public List<ModelMappingConfig> ModelMappings { get; set; } = new();
 
         public void Save()
@@ -62,6 +66,8 @@ namespace XrayCollector.Services
                         LogExtension = settings.LogExtension ?? LogExtension;
                         SubLogExtension = settings.SubLogExtension ?? SubLogExtension;
                         IsPidMappingIncrease = settings.IsPidMappingIncrease;
+                        IsManualPidMappingEnabled = settings.IsManualPidMappingEnabled;
+                        LastDetected9020Model = settings.LastDetected9020Model ?? LastDetected9020Model;
                         ModelMappings = settings.ModelMappings ?? ModelMappings;
                     }
                 }

@@ -24,6 +24,10 @@ namespace XrayCollector.ViewModels
         [ObservableProperty] private string _tempLogExtension;
         [ObservableProperty] private string _tempSubLogExtension;
         [ObservableProperty] private bool _tempIsPidMappingIncrease;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsManualMappingConfigurationVisible))]
+        private bool _tempIsManualPidMappingEnabled;
+        [ObservableProperty] private string _detected9020Model = string.Empty;
         [ObservableProperty] private bool _isLoading;
         
         [ObservableProperty] private ObservableCollection<LineDto> _lines = new();
@@ -34,12 +38,14 @@ namespace XrayCollector.ViewModels
         
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsMachine9020))]
+        [NotifyPropertyChangedFor(nameof(IsManualMappingConfigurationVisible))]
         private MachineDto? _selectedMachine;
 
         public bool IsMachine9020 => SelectedMachine != null && 
             (SelectedMachine.MachineType?.Name?.Contains("9020") == true || 
-             SelectedMachine.MachineType?.PartNo?.Contains("9020") == true ||
-             (!SelectedMachine.MachineType?.Name?.Contains("9730") == true && !SelectedMachine.MachineType?.PartNo?.Contains("9730") == true));
+             SelectedMachine.MachineType?.PartNo?.Contains("9020") == true);
+
+        public bool IsManualMappingConfigurationVisible => IsMachine9020 && TempIsManualPidMappingEnabled;
 
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(HasSelectedModelMapping))]
@@ -68,10 +74,18 @@ namespace XrayCollector.ViewModels
             _tempLogExtension = _settings.LogExtension;
             _tempSubLogExtension = _settings.SubLogExtension;
             _tempIsPidMappingIncrease = _settings.IsPidMappingIncrease;
+            _tempIsManualPidMappingEnabled = _settings.IsManualPidMappingEnabled;
+            _detected9020Model = _settings.LastDetected9020Model;
 
             if (_settings.ModelMappings != null)
             {
                 _tempModelMappings = new ObservableCollection<ModelMappingConfig>(_settings.ModelMappings);
+            }
+
+            if (_tempIsManualPidMappingEnabled && !string.IsNullOrWhiteSpace(_detected9020Model))
+            {
+                SelectedModelMapping = _tempModelMappings.FirstOrDefault(mapping =>
+                    string.Equals(mapping.ModelName.Trim(), _detected9020Model.Trim(), StringComparison.OrdinalIgnoreCase));
             }
 
             LoadDataCommand.Execute(null);
@@ -142,6 +156,33 @@ namespace XrayCollector.ViewModels
                     TempLogExtension = value.MachineType.LogExtension;
                 }
             }
+        }
+
+        partial void OnTempIsManualPidMappingEnabledChanged(bool value)
+        {
+            if (!value) return;
+
+            Detected9020Model = _settings.LastDetected9020Model?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(Detected9020Model))
+            {
+                System.Windows.MessageBox.Show(
+                    "Chưa đọc được JobFile/Model từ Xray 9020. Hãy chạy một board trước, sau đó mở lại phần cài đặt.",
+                    "Chưa có Model", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var existing = TempModelMappings.FirstOrDefault(mapping =>
+                string.Equals(mapping.ModelName.Trim(), Detected9020Model, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                SelectedModelMapping = existing;
+                return;
+            }
+
+            NewModelName = Detected9020Model;
+            System.Windows.MessageBox.Show(
+                $"Model '{Detected9020Model}' chưa có cấu hình manual. Tên Model đã được điền sẵn; hãy bấm + để đăng ký rồi thiết lập mapping.",
+                "Đăng ký Model mới", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         partial void OnSelectedModelMappingChanged(ModelMappingConfig? value)
@@ -313,6 +354,7 @@ namespace XrayCollector.ViewModels
             _settings.LogExtension = TempLogExtension;
             _settings.SubLogExtension = TempSubLogExtension;
             _settings.IsPidMappingIncrease = TempIsPidMappingIncrease;
+            _settings.IsManualPidMappingEnabled = TempIsManualPidMappingEnabled;
             _settings.ModelMappings = TempModelMappings.ToList();
             _settings.Save();
 
