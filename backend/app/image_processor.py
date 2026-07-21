@@ -18,6 +18,11 @@ from .database import get_db
 _target_dirs = set()
 _target_dirs_lock = threading.Lock()
 
+def verbose_log(message: str):
+    """Avoid synchronous console I/O for every image in production."""
+    if config.IMAGE_VERBOSE_LOG:
+        print(message)
+
 def ensure_target_dir(target_dir: str):
     """Create each target folder once per process to reduce metadata I/O."""
     with _target_dirs_lock:
@@ -43,7 +48,7 @@ class CPUEngine(ImageEngine):
                 img.save(target_path, "JPEG", quality=quality, optimize=False, subsampling=2)
             return True
         except (UnidentifiedImageError, Exception) as e:
-            print(f"CPU Processing warning: {e}. Falling back to COPY for {os.path.basename(input_path)}")
+            verbose_log(f"CPU Processing warning: {e}. Falling back to COPY for {os.path.basename(input_path)}")
             shutil.copy2(input_path, target_path)
             return True
 
@@ -80,9 +85,9 @@ class GPUEngine(ImageEngine):
             
             if self.is_gpu_ready:
                 device_name = torch.cuda.get_device_name(device_id)
-                print(f"Image Engine: Worker {mp.current_process().pid} pinned to TITAN X GPU {device_id} ({device_name})")
+                verbose_log(f"Image Engine: Worker {mp.current_process().pid} pinned to TITAN X GPU {device_id} ({device_name})")
         except Exception as e:
-            print(f"GPU Init Error: {e}")
+            verbose_log(f"GPU Init Error: {e}")
             self.is_gpu_ready = False
         
     def compress(self, input_path: str, target_path: str):
@@ -108,7 +113,7 @@ class GPUEngine(ImageEngine):
             if "Unsupported image file" in str(e) or "cannot identify" in str(e).lower():
                  return CPUEngine().compress(input_path, target_path)
             
-            print(f"GPU Processing error: {e}. Falling back to CPU.")
+            verbose_log(f"GPU Processing error: {e}. Falling back to CPU.")
             return CPUEngine().compress(input_path, target_path)
 
 _engine_cache = None
@@ -133,16 +138,16 @@ def process_compressed_image(image_id: int):
     try:
         img_record = db.query(database.PCBImage).filter(database.PCBImage.id == image_id).first()
         if not img_record:
-            print(f"DEBUG: Image record {image_id} not found in DB")
+            verbose_log(f"DEBUG: Image record {image_id} not found in DB")
             return
             
         if not img_record.image_path:
-            print(f"DEBUG: Image record {image_id} has no image_path")
+            verbose_log(f"DEBUG: Image record {image_id} has no image_path")
             return
             
         # 1. Kiểm tra trạng thái đã xử lý
         if img_record.is_processed:
-            print(f"DEBUG: Image already processed (is_processed=True): {img_record.image_path}")
+            verbose_log(f"DEBUG: Image already processed (is_processed=True): {img_record.image_path}")
             db.close()
             return True
             
@@ -154,7 +159,7 @@ def process_compressed_image(image_id: int):
                 db.commit()
                 return True
                 
-            print(f"DEBUG: Original image NOT FOUND: {original_path}. Leaving unprocessed.")
+            verbose_log(f"DEBUG: Original image NOT FOUND: {original_path}. Leaving unprocessed.")
             return
             
         # 1.1 Kiểm tra điều kiện có được phép lưu trữ chưa (OK ngay hoặc NG đã đánh giá)
@@ -199,17 +204,23 @@ def process_compressed_image(image_id: int):
         # print(f"DEBUG: Compressing to: {target_path}")
         
         # 3. Thực hiện nén ảnh và lưu vào storage
-        if config.IMAGE_VERBOSE_LOG:
-            print(f"Image: {file_name} - compressing...")
-        engine = get_processor_engine()
-        engine.compress(original_path, target_path)
+        if os.path.isfile(target_path) and os.path.getsize(target_path) > 0:
+            # A previous attempt already wrote the compressed file. Reuse it
+            # instead of decoding and encoding the same source again.
+            compressed = True
+        else:
+            verbose_log(f"Image: {file_name} - compressing...")
+            engine = get_processor_engine()
+            compressed = engine.compress(original_path, target_path)
+
+        if not compressed or not os.path.isfile(target_path) or os.path.getsize(target_path) == 0:
+            raise RuntimeError(f"Compression did not produce a valid target: {target_path}")
         
         # Xóa ảnh gốc sau khi nén thành công
         if os.path.exists(target_path) and original_path != target_path:
             os.remove(original_path)
             
-        if config.IMAGE_VERBOSE_LOG:
-            print(f"Image: {file_name} - compression done")
+        verbose_log(f"Image: {file_name} - compression done")
         db_path = f"/storage/{rel_path.replace(os.sep, '/')}/{file_name}"
         img_record.image_path = db_path
         img_record.is_processed = True # Đánh dấu đã xử lý

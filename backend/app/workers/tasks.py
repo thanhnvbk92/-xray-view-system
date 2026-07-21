@@ -54,12 +54,13 @@ async def scan_unprocessed_images():
                 pending_ids = await asyncio.to_thread(find_queueable_image_ids)
                 
                 if pending_ids:
-                    print(f"Cleanup Task: Found {len(pending_ids)} images ready for storage. Adding to queue...")
+                    if config.IMAGE_VERBOSE_LOG:
+                        print(f"Cleanup Task: Found {len(pending_ids)} images ready for storage. Adding to queue...")
                     queued = 0
                     for image_id in pending_ids:
                         if await enqueue_image(image_id):
                             queued += 1
-                    if queued:
+                    if queued and config.IMAGE_VERBOSE_LOG:
                         print(f"Cleanup Task: queued {queued} new images.")
             except Exception as e:
                 print(f"Cleanup Task Error: {e}")
