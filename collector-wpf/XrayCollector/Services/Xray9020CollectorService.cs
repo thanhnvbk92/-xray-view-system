@@ -320,32 +320,11 @@ namespace XrayCollector.Services
                 bool stateChanged = false;
                 string logFileName = Path.GetFileName(filePath);
 
-                string? firstJobFolder = allImageGroups.FirstOrDefault()?.JobFolder;
-                if (!string.IsNullOrWhiteSpace(firstJobFolder) &&
-                    !string.Equals(_settings.LastDetected9020Model, firstJobFolder, StringComparison.Ordinal))
-                {
-                    _settings.LastDetected9020Model = firstJobFolder;
-                    _settings.Save();
-                    _logAction?.Invoke($"[9020] Job/Model phát hiện từ dữ liệu: {firstJobFolder}");
-                }
-
-                // Tìm cấu hình mapping thủ công theo Model phù hợp
-                ModelMappingConfig? matchedConfig = null;
-                if (_settings.IsManualPidMappingEnabled && _settings.ModelMappings != null && _settings.ModelMappings.Count > 0)
-                {
-                    matchedConfig = _settings.ModelMappings.FirstOrDefault(m =>
-                        !string.IsNullOrWhiteSpace(m.ModelName) &&
-                        !string.IsNullOrWhiteSpace(firstJobFolder) &&
-                        string.Equals(
-                            m.ModelName.Trim(),
-                            firstJobFolder.Trim(),
-                            StringComparison.OrdinalIgnoreCase));
-
-                    if (matchedConfig != null)
-                    {
-                        _logAction?.Invoke($"[9020] Phát hiện cấu hình mapping manual cho Model: {matchedConfig.ModelName}");
-                    }
-                }
+                // Automatic mode always starts from Unit 1's PID, then derives
+                // every other PID from the UnitIndex embedded in the image name.
+                var autoBaseEntry = logEntries.FirstOrDefault(logEntry =>
+                    int.TryParse(logEntry.OriginalUnitIndex, out int logUnitIndex) &&
+                    logUnitIndex == 1) ?? logEntries[0];
 
                 for (int i = 0; i < matchCount; i++)
                 {
@@ -355,30 +334,19 @@ namespace XrayCollector.Services
                         logUnitIndex == group.UnitIndex) ?? logEntries[i];
                     
                     string finalPid;
-                    if (matchedConfig != null && group.UnitIndex > 0 && group.UnitIndex <= matchedConfig.UnitCount)
+                    if (group.UnitIndex > 0)
                     {
-                        int pidIndex = matchedConfig.Mappings.TryGetValue(group.UnitIndex, out int mapped) ? mapped : group.UnitIndex;
-                        if (pidIndex >= 1 && pidIndex <= logEntries.Count)
-                        {
-                            entry = logEntries[pidIndex - 1];
-                            finalPid = entry.Pid;
-                            _logAction?.Invoke($"[Manual Map] Model {matchedConfig.ModelName}: Unit {group.UnitIndex} => PID dòng {pidIndex} => {finalPid}");
-                        }
-                        else
-                        {
-                            finalPid = entry.Pid;
-                            _logAction?.Invoke($"[Manual Map Warning] Model {matchedConfig.ModelName}: PID dòng {pidIndex} không tồn tại. Dùng PID của Unit {group.UnitIndex}: {finalPid}");
-                        }
+                        int unitOffset = group.UnitIndex - 1;
+                        finalPid = PidMapper.MapPid(
+                            autoBaseEntry.Pid,
+                            unitOffset,
+                            _settings.IsPidMappingIncrease);
+                        _logAction?.Invoke($"[Auto Map] Unit {group.UnitIndex} => Base PID {autoBaseEntry.Pid}, Offset {unitOffset} => {finalPid}");
                     }
                     else
                     {
-                        // No enabled matching manual mapping: retain the configured
-                        // automatic increase/decrease behavior for 9020.
-                        finalPid = PidMapper.MapPid(entry.Pid, i, _settings.IsPidMappingIncrease);
-                        if (_settings.IsManualPidMappingEnabled && matchedConfig != null && group.UnitIndex > matchedConfig.UnitCount)
-                        {
-                            _logAction?.Invoke($"[Manual Map Warning] Unit {group.UnitIndex} vượt số Unit ({matchedConfig.UnitCount}) của Model {matchedConfig.ModelName}. Dùng auto PID: {finalPid}");
-                        }
+                        finalPid = entry.Pid;
+                        _logAction?.Invoke($"[Auto Map Warning] Không đọc được UnitIndex từ tên ảnh. Dùng PID log: {finalPid}");
                     }
 
                     _logAction?.Invoke($"[Match] {i+1}: PID {entry.Pid} => {group.JobFolder} ({group.Images.Count} ảnh, Time: {group.LastWriteTime:HH:mm:ss})");
