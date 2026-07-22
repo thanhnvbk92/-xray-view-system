@@ -363,6 +363,13 @@ namespace XrayCollector.Services
 
                     var imagePaths = group.Images.Select(img => img.Path).ToList();
                     var imageResults = group.Images.Select(img => img.Result).ToList();
+                    string boardResult = imageResults.Any(result =>
+                        string.Equals(result, "NG", StringComparison.OrdinalIgnoreCase)) ? "NG" : "OK";
+
+                    if (!string.Equals(entry.Result, boardResult, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logAction?.Invoke($"[Result Mismatch] Unit {group.UnitIndex}: Log={entry.Result}, Images={boardResult}. Dùng kết quả từ ảnh.");
+                    }
                     
                     var shotNums = new List<int>();
                     var imageTypes = new List<string>();
@@ -377,11 +384,11 @@ namespace XrayCollector.Services
                         imageCauses.Add(imageResults[imagePaths.IndexOf(path)] == "NG" ? "Machine Detect" : "");
                     }
 
-                    var success = await _apiService.UploadScanAsync(finalPid, _machineId, entry.Result, isoTime, group.JobFolder, group.UnitIndex, imagePaths, imageResults, logFileName, shotNums, imageTypes, imageCauses);
+                    var success = await _apiService.UploadScanAsync(finalPid, _machineId, boardResult, isoTime, group.JobFolder, group.UnitIndex, imagePaths, imageResults, logFileName, shotNums, imageTypes, imageCauses);
                     
                     if (success) 
                     {
-                        _logAction?.Invoke($"Đồng bộ thành công: {finalPid} ({entry.Result}) - Job: {group.JobFolder}");
+                        _logAction?.Invoke($"Đồng bộ thành công: {finalPid} ({boardResult}) - Job: {group.JobFolder}");
                         
                         if (currentLogTime > lastTime)
                         {
@@ -396,7 +403,7 @@ namespace XrayCollector.Services
                         {
                             Pid = finalPid,
                             MachineId = _machineId,
-                            Result = entry.Result,
+                            Result = boardResult,
                             ClientTime = isoTime,
                             JobFile = group.JobFolder,
                             ImagePaths = imagePaths,

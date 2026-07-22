@@ -9,8 +9,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <!-- Version: Tăng mỗi khi release bản mới -->
-    <Version>1.2.12</Version>
-    <AssemblyVersion>1.2.12</AssemblyVersion>
+    <Version>1.2.15</Version>
+    <AssemblyVersion>1.2.15</AssemblyVersion>
     <!-- Publish settings -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
