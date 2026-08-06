@@ -7,6 +7,8 @@ python-multipart
 websockets
 python-dotenv
 Pillow
+opencv-python-headless
+numpy
 torch
 torchvision
 passlib

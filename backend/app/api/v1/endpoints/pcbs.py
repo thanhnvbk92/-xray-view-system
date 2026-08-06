@@ -82,6 +82,8 @@ def upload_scan(
 
     if files:
         for i, file in enumerate(files):
+            if file.filename and file.filename.lower().endswith(".raw"):
+                continue
             safe_original_name = os.path.basename(file.filename).replace(" ", "_")
             file_name = f"{line_name}_{m_name}_{pid}_{safe_original_name}"
             file_path = os.path.join(config.UPLOAD_DIR, file_name)
@@ -90,7 +92,7 @@ def upload_scan(
                 shutil.copyfileobj(file.file, buffer)
             
             saved_paths.append(file_path)
-            if i == 0: main_image_path = file_path
+            if not main_image_path: main_image_path = file_path
 
     # Nếu đã tồn tại, thực hiện CẬP NHẬT (UPSERT)
     if existing_pcb:
@@ -138,6 +140,15 @@ def upload_scan(
             global_stats_cache.clear()
             return {"status": "success", "message": "Record updated with images", "pcb_id": existing_pcb.id}
         
+        # Xóa các file ảnh tạm vừa lưu nếu PCB này đã có ảnh rồi (tránh trùng lặp đọng file trong upload folder)
+        if saved_paths:
+            for p in saved_paths:
+                try:
+                    if os.path.exists(p):
+                        os.remove(p)
+                except Exception:
+                    pass
+
         db.commit()
         return {"status": "success", "message": "Duplicate verified", "pcb_id": existing_pcb.id}
 

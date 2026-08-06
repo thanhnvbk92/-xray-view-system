@@ -454,6 +454,9 @@ namespace XrayCollector.Services
 
                 foreach (var filePath in allFiles)
                 {
+                    if (filePath.EndsWith(".raw", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
                     var fi = new FileInfo(filePath);
                     var dirInfo = fi.Directory;
                     if (dirInfo == null) continue;

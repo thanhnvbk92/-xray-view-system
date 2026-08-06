@@ -30,7 +30,6 @@ function MachineDetail() {
         }
     }, [selectedImage?.id, showOriginal]);
 
-
     // Modal states
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalScale, setModalScale] = useState(1);
@@ -40,7 +39,7 @@ function MachineDetail() {
 
     // Hàm tính toán độ ưu tiên của PCB dựa trên nguyên nhân lỗi
     const getPcbPriority = (pcb) => {
-        if (!pcb.images || pcb.images.length === 0) return 3;
+        if (!pcb || !pcb.images || pcb.images.length === 0) return 3;
         
         const causes = pcb.images.map(img => img.cause || "");
         if (causes.some(c => c === "Short")) return 1;
@@ -52,32 +51,71 @@ function MachineDetail() {
     const getDisplayImages = (pcb) => {
         if (!pcb || !pcb.images) return [];
         
-        // Bước 1: Lọc ảnh marked/không origin chưa confirm theo bộ lọc onlyShowNg
-        let filtered = pcb.images.filter(img => {
-            if (img.image_type === 'origin') return false;
-            if (img.user_result !== 'PENDING') return false;
-            if (onlyShowNg) return img.machine_result === 'NG';
-            return true;
+        if (onlyShowNg) {
+            // 1. Lọc tất cả ảnh bị đánh dấu NG bởi Machine (hoặc AI)
+            let ngImages = pcb.images.filter(img => img.machine_result === 'NG' || img.ai_result === 'NG');
+            
+            if (ngImages.length > 0) {
+                // Ưu tiên các ảnh NG chưa duyệt (PENDING)
+                let ngPending = ngImages.filter(img => img.user_result === 'PENDING');
+                let targetImages = ngPending.length > 0 ? ngPending : ngImages;
+
+                // Ưu tiên marked image cho mỗi shot_num nếu cả 2 cùng là NG
+                const shotMap = new Map();
+                targetImages.forEach(img => {
+                    const s = img.shot_num || 1;
+                    if (!shotMap.has(s) || (img.image_type !== 'origin' && shotMap.get(s).image_type === 'origin')) {
+                        shotMap.set(s, img);
+                    }
+                });
+                return Array.from(shotMap.values()).sort((a, b) => (a.shot_num || 0) - (b.shot_num || 0));
+            }
+
+            // 2. Fallback cực đoan: PCB bị đánh dấu final_result='NG' nhưng không tìm thấy ảnh NG nào trong DB
+            let pendingMarked = pcb.images.filter(img => img.image_type !== 'origin' && img.user_result === 'PENDING');
+            if (pendingMarked.length > 0) return pendingMarked;
+
+            let anyPending = pcb.images.filter(img => img.user_result === 'PENDING');
+            if (anyPending.length > 0) return anyPending;
+
+            let markedAll = pcb.images.filter(img => img.image_type !== 'origin');
+            return markedAll.length > 0 ? markedAll : pcb.images;
+        }
+
+        // Chế độ xem tất cả (onlyShowNg = false):
+        // Nhóm theo shot_num, ưu tiên marked image
+        const shotMap = new Map();
+        pcb.images.forEach(img => {
+            const s = img.shot_num || 1;
+            if (!shotMap.has(s)) {
+                shotMap.set(s, img);
+            } else {
+                const existing = shotMap.get(s);
+                if (img.image_type !== 'origin' && existing.image_type === 'origin') {
+                    shotMap.set(s, img);
+                } else if (img.machine_result === 'NG' && existing.machine_result !== 'NG') {
+                    shotMap.set(s, img);
+                }
+            }
         });
-        
-        // Khi đang chỉ duyệt NG, không chuyển sang ảnh OK/PENDING.
-        // Nếu không còn NG nào, handleConfirm phải nhận biết PCB đã duyệt xong
-        // và tự chuyển sang PCB NG tiếp theo.
-        if (filtered.length === 0 && !onlyShowNg) {
-            filtered = pcb.images.filter(img => {
-                if (img.image_type === 'origin') return false;
-                if (img.user_result !== 'PENDING') return false;
-                return true;
-            });
+
+        let displayList = Array.from(shotMap.values()).sort((a, b) => (a.shot_num || 0) - (b.shot_num || 0));
+        return displayList.length > 0 ? displayList : pcb.images;
+    };
+
+    // Helper lấy đúng phiên bản ảnh (Gốc vs Marked) dựa trên state showOriginal
+    const getImageToDisplay = (img, pcb, showOrig) => {
+        if (!img || !pcb || !pcb.images) return img;
+        const sameShot = pcb.images.filter(i => (i.shot_num || 1) === (img.shot_num || 1));
+        if (sameShot.length <= 1) return img;
+
+        if (showOrig) {
+            const orig = sameShot.find(i => i.image_type === 'origin');
+            return orig || img;
+        } else {
+            const marked = sameShot.find(i => i.image_type !== 'origin');
+            return marked || img;
         }
-        
-        // Chỉ chế độ xem tất cả mới fallback sang ảnh đã duyệt.
-        // Ở chế độ chỉ duyệt NG, danh sách rỗng là tín hiệu để chuyển PCB.
-        if (filtered.length === 0 && !onlyShowNg) {
-            filtered = pcb.images.filter(img => img.image_type !== 'origin');
-        }
-        
-        return filtered;
     };
 
     // Sắp xếp danh sách PCB
@@ -177,7 +215,6 @@ function MachineDetail() {
             controller.abort();
         };
     }, [selectedPcb?.id, pcbs, onlyShowNg]);
-
     const fetchData = async () => {
         setLoading(true);
         try {

@@ -163,6 +163,10 @@ namespace XrayCollector.Services
                 {
                     foreach (var path in imagePaths)
                     {
+                        if (System.IO.Path.GetExtension(path).Equals(".raw", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
                         if (System.IO.File.Exists(path))
                         {
                             var fileBytes = System.IO.File.ReadAllBytes(path);
