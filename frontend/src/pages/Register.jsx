@@ -78,9 +78,9 @@ function Register() {
     return (
         <div className="login-page fade-in">
             <div className="login-card" style={{ maxWidth: '500px' }}>
-                <div className="logo-area" style={{ justifyContent: 'center', marginBottom: '1.5rem' }}>
-                    <Cpu color="#3b82f6" size={32} />
-                    <h1 style={{ fontSize: '1.5rem' }}>X-RAY VISION</h1>
+                <div className="logo-area" style={{ justifyContent: 'center', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img src="/favicon.svg" alt="X-Ray Vision Logo" style={{ width: 36, height: 36, borderRadius: '8px' }} />
+                    <h1 style={{ fontSize: '1.5rem', margin: 0 }}>X-RAY VISION</h1>
                 </div>
 
                 <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>

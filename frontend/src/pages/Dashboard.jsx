@@ -106,10 +106,10 @@ function Dashboard() {
   const totalUnconfirmed = machines.reduce((sum, m) => sum + (m.unconfirmed_ng_count || 0), 0);
 
   useEffect(() => {
-    // Xóa cache cũ một lần để đảm bảo dữ liệu Map mới được áp dụng
-    if (!sessionStorage.getItem('v1.1_fix')) {
+    // Xóa cache cũ một lần để đảm bảo dữ liệu mới được áp dụng
+    if (!sessionStorage.getItem('v1.2_user_ok')) {
       sessionStorage.clear();
-      sessionStorage.setItem('v1.1_fix', 'true');
+      sessionStorage.setItem('v1.2_user_ok', 'true');
     }
     fetchData();
     const interval = setInterval(fetchData, 10000); // 10s auto refresh
@@ -153,14 +153,14 @@ function Dashboard() {
         <div className="stat-card" style={{ padding: '0.75rem 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div className="stat-icon" style={{ color: 'var(--status-ok)', padding: '6px' }}><CheckCircle2 size={18} /></div>
-            <div className="stat-label" style={{ fontSize: '0.75rem' }}>OK</div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>OK (Máy)</div>
           </div>
           <div className="stat-value" style={{ fontSize: '1.25rem', marginTop: '4px' }}>{stats.ok} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({stats.ok_rate}%)</span></div>
         </div>
         <div className="stat-card" style={{ padding: '0.75rem 1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div className="stat-icon" style={{ color: 'var(--status-ng)', padding: '6px' }}><AlertTriangle size={18} /></div>
-            <div className="stat-label" style={{ fontSize: '0.75rem' }}>NG</div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>NG (Máy)</div>
           </div>
           <div className="stat-value" style={{ color: 'var(--status-ng)', fontSize: '1.25rem', marginTop: '4px' }}>{stats.ng} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({stats.ng_rate}%)</span></div>
         </div>
@@ -170,6 +170,13 @@ function Dashboard() {
             <div className="stat-label" style={{ fontSize: '0.75rem' }}>AI Detect</div>
           </div>
           <div className="stat-value" style={{ fontSize: '1.25rem', marginTop: '4px' }}>{stats.ai_ok} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({stats.ai_ok_rate}%)</span></div>
+        </div>
+        <div className="stat-card" style={{ borderLeft: '3px solid #f59e0b', padding: '0.75rem 1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="stat-icon" style={{ color: '#f59e0b', padding: '6px' }}><UserCheck size={18} /></div>
+            <div className="stat-label" style={{ fontSize: '0.75rem' }}>User OK</div>
+          </div>
+          <div className="stat-value" style={{ color: '#f59e0b', fontSize: '1.25rem', marginTop: '4px' }}>{stats.user_ok || 0} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({stats.user_ok_rate || 0}%)</span></div>
         </div>
       </div>
 

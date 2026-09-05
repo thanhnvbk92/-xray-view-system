@@ -147,7 +147,7 @@ namespace XrayCollector.Services
         private class PinData
         {
             public Rect Rect { get; set; }
-            public string Result { get; set; }
+            public string Result { get; set; } = "0";
         }
     }
 }

@@ -45,9 +45,9 @@ function Login() {
     return (
         <div className="login-page fade-in">
             <div className="login-card">
-                <div className="logo-area" style={{ justifyContent: 'center', marginBottom: '2rem' }}>
-                    <Cpu color="#3b82f6" size={48} />
-                    <h1 style={{ fontSize: '1.75rem' }}>X-RAY VISION</h1>
+                <div className="logo-area" style={{ justifyContent: 'center', marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <img src="/favicon.svg" alt="X-Ray Vision Logo" style={{ width: 44, height: 44, borderRadius: '10px' }} />
+                    <h1 style={{ fontSize: '1.75rem', margin: 0 }}>X-RAY VISION</h1>
                 </div>
 
                 <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>

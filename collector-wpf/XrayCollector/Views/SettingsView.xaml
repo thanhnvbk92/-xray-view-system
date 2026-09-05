@@ -15,7 +15,17 @@
         </Grid.RowDefinitions>
 
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
-            <StackPanel>
+            <StackPanel IsEnabled="{Binding IsSettingsEditable}">
+                <!-- Warning Banner when Monitoring is Running -->
+                <materialDesign:Card Visibility="{Binding IsMonitoringRunning, Converter={StaticResource BoolVisConverter}}"
+                                     Background="#FEF2F2" BorderBrush="#FECACA" BorderThickness="1" Padding="12" Margin="0,0,0,16" UniformCornerRadius="8">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="AlertCircle" Foreground="#EF4444" Width="20" Height="20" VerticalAlignment="Center"/>
+                        <TextBlock Text="Hệ thống đang GIÁM SÁT (START). Vui lòng DỪNG (STOP) tại Trang chủ trước khi thay đổi cài đặt!" 
+                                   Foreground="#991B1B" FontWeight="Bold" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </materialDesign:Card>
+
                 <!-- API Configuration -->
                 <TextBlock Text="KẾT NỐI MÁY CHỦ" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"/>
                 <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="12" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1">
@@ -69,9 +79,81 @@
                 </materialDesign:Card>
 
                 <!-- Barcode Configuration -->
-                <TextBlock Text="CẤU HÌNH BARCODE" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"/>
+                <TextBlock Text="CẤU HÌNH BARCODE &amp; CỔNG COM" FontSize="10" FontWeight="Black" Foreground="#64748B" Margin="0,0,0,12"/>
                 <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="12" Background="White" materialDesign:ElevationAssist.Elevation="Dp0" BorderBrush="#E2E8F0" BorderThickness="1">
                     <StackPanel>
+                        <!-- Scanner & Upstream Log Section (Chỉ áp dụng cho máy X-ray 9020) -->
+                        <StackPanel Visibility="{Binding IsMachine9020, Converter={StaticResource BoolVisConverter}}">
+                            <CheckBox Content="SỬ DỤNG MÁY QUÉT BARCODE (SCANNER)" 
+                                      IsChecked="{Binding TempHasScanner}" 
+                                      Margin="0,0,0,14" 
+                                      FontSize="12" FontWeight="Bold"/>
+
+                            <!-- Upstream Log & COM Port Section (Shown when HasScanner is False) -->
+                            <StackPanel Visibility="{Binding TempHasScanner, Converter={StaticResource InverseBoolVisConverter}}" Margin="0,0,0,14">
+                                <TextBlock Text="THƯ MỤC LOG MÁY TRƯỚC (ĐỌC PID TỪ MÁY TRƯỚC)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                                <Grid Margin="0,0,0,14">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding TempUpstreamLogPath}" IsReadOnly="True" 
+                                             Style="{StaticResource MaterialDesignOutlinedTextBox}" 
+                                             MinHeight="44" FontSize="11" VerticalContentAlignment="Center" Padding="12,8"/>
+                                    <Button Grid.Column="1" Command="{Binding SelectFolderCommand}" CommandParameter="upstreamlog" 
+                                            Margin="8,0,0,0" Style="{StaticResource MaterialDesignIconButton}" 
+                                            Width="44" Height="44" Background="#F8FAFC">
+                                        <materialDesign:PackIcon Kind="Folder" Foreground="#64748B" Width="18" Height="18"/>
+                                    </Button>
+                                </Grid>
+
+                                <!-- Serial Port / COM Port Configuration for X-ray -->
+                                <TextBlock Text="CỔNG COM KẾT NỐI MÁY X-RAY (SERIAL PORT)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Select COM Port -->
+                                    <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                                        <TextBlock Text="CỔNG COM" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AvailableComPorts}"
+                                                  SelectedItem="{Binding TempComPort}"
+                                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                                  MinHeight="44" FontSize="12" FontWeight="SemiBold"
+                                                  VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Select Baud Rate -->
+                                    <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                                        <TextBlock Text="BAUD RATE" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                                        <ComboBox ItemsSource="{Binding AvailableBaudRates}"
+                                                  SelectedItem="{Binding TempBaudRate}"
+                                                  Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                                  MinHeight="44" FontSize="12" FontWeight="SemiBold"
+                                                  VerticalContentAlignment="Center"/>
+                                    </StackPanel>
+
+                                    <!-- Refresh Ports Button -->
+                                    <StackPanel Grid.Column="2" VerticalAlignment="Bottom">
+                                        <Button Command="{Binding RefreshComPortsCommand}"
+                                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                                Background="#F8FAFC" Foreground="#64748B" BorderBrush="#E2E8F0" BorderThickness="1"
+                                                Height="44" Padding="12,0"
+                                                materialDesign:ButtonAssist.CornerRadius="8"
+                                                ToolTip="Tải lại danh sách cổng COM">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="Refresh" Width="16" Height="16" VerticalAlignment="Center"/>
+                                                <TextBlock Text="Làm mới" Margin="6,0,0,0" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </StackPanel>
+
                         <TextBlock Text="CHẾ ĐỘ MAPPING BARCODE (PID)" FontSize="9" FontWeight="Black" Foreground="#94A3B8" Margin="0,0,0,8"/>
                         <StackPanel Orientation="Horizontal">
                             <RadioButton Content="Tăng dần (+)" 
@@ -289,6 +371,7 @@
         <!-- Save Action -->
         <Border Grid.Row="1" Background="White" Padding="20,16" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
             <Button Command="{Binding SaveSettingsCommand}"
+                    IsEnabled="{Binding IsSettingsEditable}"
                     Style="{StaticResource MaterialDesignRaisedButton}"
                     Background="#2563EB" Foreground="White"
                     Height="52" FontWeight="Black" FontSize="12"

@@ -16,7 +16,7 @@ const PrivateRoute = ({ children }) => {
   if (loading) return (
     <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)', color: 'white' }}>
       <div style={{ textAlign: 'center' }}>
-        <Cpu className="animate-pulse" size={48} color="var(--primary)" />
+        <img src="/favicon.svg" className="animate-pulse" style={{ width: 48, height: 48, borderRadius: '10px' }} alt="X-Ray Vision Logo" />
         <p style={{ marginTop: '1rem', opacity: 0.6 }}>Đang xác thực...</p>
       </div>
     </div>
@@ -26,8 +26,8 @@ const PrivateRoute = ({ children }) => {
 
 const Sidebar = ({ user, logout }) => (
   <aside className="sidebar">
-    <div className="logo-area">
-      <Cpu color="#3b82f6" size={32} />
+    <div className="logo-area" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <img src="/favicon.svg" alt="X-Ray Vision Logo" style={{ width: 32, height: 32, borderRadius: '8px' }} />
       <h2>X-RAY VISION</h2>
     </div>
 
@@ -113,7 +113,7 @@ function AppContent() {
     return (
       <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-dark)', color: 'white' }}>
         <div style={{ textAlign: 'center' }}>
-          <Cpu className="animate-pulse" size={48} color="var(--primary)" />
+          <img src="/favicon.svg" className="animate-pulse" style={{ width: 48, height: 48, borderRadius: '10px' }} alt="X-Ray Vision Logo" />
           <p style={{ marginTop: '1rem', opacity: 0.6 }}>Đang khởi tạo hệ thống...</p>
         </div>
       </div>

@@ -9,8 +9,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <!-- Version: Tăng mỗi khi release bản mới -->
-    <Version>1.2.15</Version>
-    <AssemblyVersion>1.2.15</AssemblyVersion>
+    <Version>1.2.18</Version>
+    <AssemblyVersion>1.2.18</AssemblyVersion>
     <!-- Publish settings -->
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
@@ -30,11 +30,16 @@
     <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.13.0.20260302" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="System.IO.Ports" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Assets\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Assets\*.exe;**\*.zip">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 
@@ -54,24 +59,30 @@
     <PropertyGroup>
       <RawBackendDir>..\..\backend\app\static\downloads\</RawBackendDir>
       <FullBackendDir>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\$(RawBackendDir)'))</FullBackendDir>
-      <TempZip>$(FullBackendDir)XrayCollector_temp.zip</TempZip>
+      <TempZip>$([System.IO.Path]::GetTempPath())XrayCollector_temp.zip</TempZip>
     </PropertyGroup>
 
     <Message Text="[AUTO-DEPLOY] Dang chuan bi dong goi vao thư mục: $(FullBackendDir)" Importance="high" />
     <MakeDir Directories="$(FullBackendDir)" />
 
-    <!-- 1. Nén ra file tạm (không bao giờ bị lock) -->
+    <!-- 0. Xóa mọi file .zip cũ nằm trong PublishDir trước khi nén để tránh nén lặp đệ quy -->
+    <ItemGroup>
+      <_PublishZipFiles Include="$(PublishDir)**\*.zip" />
+    </ItemGroup>
+    <Delete Files="@(_PublishZipFiles)" ContinueOnError="true" />
+
+    <!-- 1. Nén thư mục PublishDir ra file tạm trong thư mục Temp hệ thống -->
     <Delete Files="$(TempZip)" Condition="Exists('$(TempZip)')" ContinueOnError="true" />
     <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(TempZip)" Overwrite="true" ContinueOnError="true" />
 
-    <!-- 2. Thử sao chép vào file chính, nếu lỗi (do đang bị mở) thì chỉ cảnh báo -->
+    <!-- 2. Sao chép vào file chính ở thư mục downloads của backend -->
     <Copy SourceFiles="$(TempZip)" DestinationFiles="$(FullBackendDir)XrayCollector.zip" Condition="Exists('$(TempZip)')" ContinueOnError="true" />
     <Delete Files="$(TempZip)" Condition="Exists('$(TempZip)')" ContinueOnError="true" />
 
     <!-- 3. Ghi đè file version -->
-    <WriteLinesToFile File="$(FullBackendDir)version.json" Lines='{ "version": "$(Version)" }' Overwrite="true" Encoding="UTF-8" ContinueOnError="true" />
+    <WriteLinesToFile File="$(FullBackendDir)version.json" Lines="{ &quot;version&quot;: &quot;$(Version)&quot; }" Overwrite="true" Encoding="UTF-8" ContinueOnError="true" />
 
-    <Message Text="[AUTO-DEPLOY] Hoan tat cac buoc phu tro (Co the co canh bao lock file neu Backend dang chay)." Importance="high" />
+    <Message Text="[AUTO-DEPLOY] Hoan tat dong goi XrayCollector.zip cho backend." Importance="high" />
   </Target>
 
 </Project>

@@ -12,6 +12,7 @@
 
             <BooleanToVisibilityConverter x:Key="BoolVisConverter"/>
             <vm:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+            <vm:InverseBooleanToVisibilityConverter x:Key="InverseBoolVisConverter"/>
 
             <!-- Global Status Button Style -->
             <Style x:Key="StatusButtonStyle" TargetType="Button" BasedOn="{StaticResource MaterialDesignRaisedButton}">

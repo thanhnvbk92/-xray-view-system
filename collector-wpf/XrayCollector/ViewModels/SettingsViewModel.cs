@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO.Ports;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -24,11 +27,22 @@ namespace XrayCollector.ViewModels
         [ObservableProperty] private string _tempLogExtension;
         [ObservableProperty] private string _tempSubLogExtension;
         [ObservableProperty] private bool _tempIsPidMappingIncrease;
+        [ObservableProperty] private bool _tempHasScanner;
+        [ObservableProperty] private string _tempUpstreamLogPath = string.Empty;
+        [ObservableProperty] private string _tempComPort = string.Empty;
+        [ObservableProperty] private int _tempBaudRate = 9600;
+        [ObservableProperty] private ObservableCollection<string> _availableComPorts = new();
+        [ObservableProperty] private ObservableCollection<int> _availableBaudRates = new() { 2400, 4800, 9600, 19200, 38400, 57600, 115200 };
         [ObservableProperty]
         [NotifyPropertyChangedFor(nameof(IsManualMappingConfigurationVisible))]
         private bool _tempIsManualPidMappingEnabled;
         [ObservableProperty] private string _detected9020Model = string.Empty;
         [ObservableProperty] private bool _isLoading;
+        [ObservableProperty]
+        [NotifyPropertyChangedFor(nameof(IsSettingsEditable))]
+        private bool _isMonitoringRunning;
+
+        public bool IsSettingsEditable => !IsMonitoringRunning;
         
         [ObservableProperty] private ObservableCollection<LineDto> _lines = new();
         [ObservableProperty] private ObservableCollection<MachineDto> _allMachines = new();
@@ -74,8 +88,19 @@ namespace XrayCollector.ViewModels
             _tempLogExtension = _settings.LogExtension;
             _tempSubLogExtension = _settings.SubLogExtension;
             _tempIsPidMappingIncrease = _settings.IsPidMappingIncrease;
+            _tempHasScanner = _settings.HasScanner;
+            _tempUpstreamLogPath = _settings.UpstreamLogPath;
+            _tempComPort = string.IsNullOrEmpty(_settings.ComPort) ? "Không dùng" : _settings.ComPort;
+            _tempBaudRate = _settings.BaudRate != 0 ? _settings.BaudRate : 9600;
             _tempIsManualPidMappingEnabled = _settings.IsManualPidMappingEnabled;
             _detected9020Model = _settings.LastDetected9020Model;
+
+            RefreshComPorts();
+
+            WeakReferenceMessenger.Default.Register<MonitoringStateMessage>(this, (r, m) =>
+            {
+                IsMonitoringRunning = m.Value;
+            });
 
             if (_settings.ModelMappings != null)
             {
@@ -326,6 +351,12 @@ namespace XrayCollector.ViewModels
         [RelayCommand]
         private void SaveSettings()
         {
+            if (IsMonitoringRunning)
+            {
+                System.Windows.MessageBox.Show("Hệ thống đang GIÁM SÁT (START). Vui lòng DỪNG (STOP) hệ thống tại trang chủ trước khi lưu cài đặt!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             if (SelectedMachine == null)
             {
                 //    MessageBox.Show("Vui lòng chọn Máy quét trước khi lưu!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -354,6 +385,10 @@ namespace XrayCollector.ViewModels
             _settings.LogExtension = TempLogExtension;
             _settings.SubLogExtension = TempSubLogExtension;
             _settings.IsPidMappingIncrease = TempIsPidMappingIncrease;
+            _settings.HasScanner = TempHasScanner;
+            _settings.UpstreamLogPath = TempUpstreamLogPath;
+            _settings.ComPort = TempComPort == "Không dùng" ? "" : TempComPort;
+            _settings.BaudRate = TempBaudRate;
             _settings.IsManualPidMappingEnabled = TempIsManualPidMappingEnabled;
             _settings.ModelMappings = TempModelMappings.ToList();
             _settings.Save();
@@ -367,6 +402,30 @@ namespace XrayCollector.ViewModels
         }
 
         [RelayCommand]
+        private void RefreshComPorts()
+        {
+            AvailableComPorts.Clear();
+            AvailableComPorts.Add("Không dùng");
+            try
+            {
+                var ports = SerialPort.GetPortNames();
+                foreach (var port in ports)
+                {
+                    if (!AvailableComPorts.Contains(port))
+                    {
+                        AvailableComPorts.Add(port);
+                    }
+                }
+            }
+            catch { }
+
+            if (string.IsNullOrEmpty(TempComPort) || !AvailableComPorts.Contains(TempComPort))
+            {
+                TempComPort = "Không dùng";
+            }
+        }
+
+        [RelayCommand]
         private void SelectFolder(string type)
         {
             var dialog = new Microsoft.Win32.OpenFolderDialog();
@@ -376,6 +435,7 @@ namespace XrayCollector.ViewModels
                 else if (type == "log") TempLogPath = dialog.FolderName;
                 else if (type == "backup") TempBackupPath = dialog.FolderName;
                 else if (type == "sublog") TempSubLogPath = dialog.FolderName;
+                else if (type == "upstreamlog") TempUpstreamLogPath = dialog.FolderName;
             }
         }
     }

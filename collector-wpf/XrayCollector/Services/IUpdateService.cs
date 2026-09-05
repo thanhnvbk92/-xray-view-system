@@ -114,23 +114,28 @@ namespace XrayCollector.Services
                 LogUpdateError($"TempZip path: {tempZip}");
                 LogUpdateError($"Expected bytes: {totalBytes}");
 
-                // 1. Tải file ZIP
+                // 1. Tải file ZIP với buffer 80KB và tiết chế tần suất cập nhật Progress trên UI Thread
                 using var contentStream = await response.Content.ReadAsStreamAsync();
-                using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None, 8192, true);
+                using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None, 81920, true);
 
-                var buffer = new byte[8192];
+                var buffer = new byte[81920];
                 var totalRead = 0L;
                 var readCount = 0;
+                double lastReportedPercentage = -1.0;
 
                 while ((readCount = await contentStream.ReadAsync(buffer, 0, buffer.Length)) != 0)
                 {
                     await fileStream.WriteAsync(buffer, 0, readCount);
                     totalRead += readCount;
 
-                    if (totalBytes != -1)
+                    if (totalBytes > 0)
                     {
                         var percentage = (double)totalRead / totalBytes * 100;
-                        progress?.Report(percentage);
+                        if (percentage - lastReportedPercentage >= 0.5 || percentage >= 100.0)
+                        {
+                            lastReportedPercentage = percentage;
+                            progress?.Report(percentage);
+                        }
                     }
                 }
 

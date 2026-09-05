@@ -22,6 +22,10 @@ namespace XrayCollector.Services
         private int _machineId;
         private string? _imagePath;
         private FileSystemWatcher? _subLogWatcher;
+        private FileSystemWatcher? _upstreamLogWatcher;
+        private CancellationTokenSource? _upstreamDebounceCts;
+        private string? _lastProcessedUpstreamRecord;
+        private readonly IXrayComService _xrayComService;
         private readonly string _tempPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "temp");
 
         public Xray9020CollectorService(
@@ -29,13 +33,15 @@ namespace XrayCollector.Services
             IFileWatcherService logWatcher,
             ISettingsService settings,
             ISyncPersistenceService persistence,
-            ILogger<Xray9020CollectorService> logger)
+            ILogger<Xray9020CollectorService> logger,
+            IXrayComService xrayComService)
         {
             _apiService = apiService;
             _logWatcher = logWatcher;
             _settings = settings;
             _persistence = persistence;
             _logger = logger;
+            _xrayComService = xrayComService;
         }
 
         public void Start(string logPath, string imagePath, string machineId, string logExtension, Action<string> onLog)
@@ -68,6 +74,15 @@ namespace XrayCollector.Services
             }
             StartSubLogWatcher();
 
+            if (!_settings.HasScanner && !string.IsNullOrWhiteSpace(_settings.UpstreamLogPath))
+            {
+                StartUpstreamLogWatcher();
+            }
+            else
+            {
+                _logAction?.Invoke($"[Upstream Log] Chưa bật đọc log máy trước (HasScanner={_settings.HasScanner}, Path='{_settings.UpstreamLogPath}')");
+            }
+
             _logWatcher.Start(logPath, logFilter, (path, type) => 
             {
                 if (type == "ERROR") 
@@ -95,6 +110,20 @@ namespace XrayCollector.Services
                 _subLogWatcher.EnableRaisingEvents = false;
                 _subLogWatcher.Dispose();
                 _subLogWatcher = null;
+            }
+
+            if (_upstreamLogWatcher != null)
+            {
+                _upstreamLogWatcher.EnableRaisingEvents = false;
+                _upstreamLogWatcher.Dispose();
+                _upstreamLogWatcher = null;
+            }
+
+            if (_upstreamDebounceCts != null)
+            {
+                _upstreamDebounceCts.Cancel();
+                _upstreamDebounceCts.Dispose();
+                _upstreamDebounceCts = null;
             }
         }
 
@@ -173,6 +202,154 @@ namespace XrayCollector.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi sao chép Loại 2 sang temp");
+            }
+        }
+
+        private void StartUpstreamLogWatcher()
+        {
+            string upstreamPath = _settings.UpstreamLogPath;
+            if (string.IsNullOrEmpty(upstreamPath) || !Directory.Exists(upstreamPath))
+            {
+                _logAction?.Invoke($"[Upstream Log] Thư mục log máy trước không tồn tại hoặc rỗng: '{upstreamPath}'");
+                return;
+            }
+
+            try
+            {
+                _upstreamLogWatcher?.Dispose();
+                _upstreamLogWatcher = new FileSystemWatcher(upstreamPath)
+                {
+                    Filter = "*.csv",
+                    EnableRaisingEvents = true,
+                    IncludeSubdirectories = true,
+                    InternalBufferSize = 65536,
+                    NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite | NotifyFilters.DirectoryName | NotifyFilters.Size
+                };
+
+                _upstreamLogWatcher.Created += OnUpstreamLogChanged;
+                _upstreamLogWatcher.Changed += OnUpstreamLogChanged;
+                _upstreamLogWatcher.Renamed += OnUpstreamLogChanged;
+                _upstreamLogWatcher.Error += (s, e) => _logAction?.Invoke($"[Upstream Log] Lỗi Watcher: {e.GetException().Message}");
+
+                _logAction?.Invoke($"[Upstream Log] Đã bật giám sát log máy trước (*.csv) tại: {upstreamPath} (Đã bật theo dõi thư mục con)");
+
+                // Đọc file *.csv mới nhất hiện có trong thư mục (kể cả trong thư mục con)
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var latestFile = new DirectoryInfo(upstreamPath)
+                            .GetFiles("*.csv", SearchOption.AllDirectories)
+                            .OrderByDescending(f => f.LastWriteTime)
+                            .FirstOrDefault();
+
+                        if (latestFile != null)
+                        {
+                            _logAction?.Invoke($"[Upstream Log] Đang quét file log CSV gần nhất: {latestFile.Name} ({latestFile.Directory?.Name})");
+                            ProcessUpstreamLogFile(latestFile.FullName);
+                        }
+                        else
+                        {
+                            _logAction?.Invoke("[Upstream Log] Chưa tìm thấy file *.csv nào trong thư mục máy trước và các thư mục con.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logAction?.Invoke($"[Upstream Log] Lỗi khi tìm file log CSV ban đầu: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logAction?.Invoke($"[Upstream Log] Lỗi bật giám sát log máy trước: {ex.Message}");
+            }
+        }
+
+        private async void OnUpstreamLogChanged(object sender, FileSystemEventArgs e)
+        {
+            if (Directory.Exists(e.FullPath)) return;
+            if (!e.FullPath.EndsWith(".csv", StringComparison.OrdinalIgnoreCase)) return;
+
+            // Hủy timer cũ nếu máy trước vẫn đang tiếp tục ghi file dồn dập
+            _upstreamDebounceCts?.Cancel();
+            var cts = new CancellationTokenSource();
+            _upstreamDebounceCts = cts;
+
+            try
+            {
+                // Chờ 500ms không có thêm sự kiện ghi nào mới tiến hành đọc file (ghi hoàn tất)
+                await Task.Delay(500, cts.Token);
+                ProcessUpstreamLogFile(e.FullPath);
+            }
+            catch (TaskCanceledException)
+            {
+                // Bị hủy do máy trước vẫn đang ghi tiếp
+            }
+        }
+
+        private void ProcessUpstreamLogFile(string filePath)
+        {
+            try
+            {
+                if (!File.Exists(filePath)) return;
+
+                string[]? lines = null;
+                int retryCount = 0;
+                while (retryCount < 5 && lines == null)
+                {
+                    try
+                    {
+                        lines = File.ReadAllLines(filePath);
+                    }
+                    catch (IOException)
+                    {
+                        retryCount++;
+                        Thread.Sleep(200);
+                    }
+                }
+
+                if (lines == null || lines.Length <= 1) return;
+
+                // Tìm dòng hợp lệ cuối cùng trong file log máy trước
+                for (int i = lines.Length - 1; i >= 1; i--)
+                {
+                    string line = lines[i];
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+
+                    var parts = line.Split(',');
+                    if (parts.Length < 4) continue;
+
+                    string upstreamPid = parts[0].Trim();
+                    string unitIdxStr = parts[1].Trim();
+                    string result = parts[2].Trim();
+                    string ts = parts[3].Trim();
+
+                    if (string.IsNullOrEmpty(upstreamPid) || upstreamPid.Equals("PID", StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    // Tạo key định danh bản ghi duy nhất để loại trừ đọc trùng lặp
+                    string recordKey = $"{upstreamPid}_{ts}_{unitIdxStr}_{result}";
+                    if (_lastProcessedUpstreamRecord == recordKey)
+                    {
+                        // Bản ghi cuối này đã được xử lý thành công trước đó
+                        break;
+                    }
+
+                    _lastProcessedUpstreamRecord = recordKey;
+
+                    string mappedPid = PidMapper.MapPid(upstreamPid, 1, _settings.IsPidMappingIncrease);
+                    _xrayComService.SetLatestPid(mappedPid);
+                    
+                    string logMsg = $"[Upstream Log] Đọc bản ghi máy trước (Unit: {unitIdxStr}, Result: {result}, TS: {ts}): {upstreamPid} => PID máy này: {mappedPid}";
+                    _logAction?.Invoke(logMsg);
+                    _logger.LogInformation("[Upstream Log] File {FileName} | {Message}", Path.GetFileName(filePath), logMsg);
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logAction?.Invoke($"[Upstream Log] Lỗi xử lý file log máy trước: {ex.Message}");
+                _logger.LogError(ex, "[Upstream Log] Lỗi xử lý file log máy trước: {Path}", filePath);
             }
         }
 

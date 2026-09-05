@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Calendar, Monitor, Hash, CheckCircle2, XCircle, Eye, Filter, ArrowRight, Move, ZoomIn, ZoomOut, Maximize, Check, X } from 'lucide-react';
+import { Search, Calendar, Monitor, Hash, CheckCircle2, XCircle, Eye, Filter, ArrowRight, Move, ZoomIn, ZoomOut, Maximize, Check, X, UserCheck } from 'lucide-react';
 import { useAuth, api } from '../context/AuthContext';
 
 const API_URL = import.meta.env.DEV 
@@ -53,6 +53,70 @@ function Trace() {
         // Nếu cùng độ ưu tiên, sắp xếp theo thời gian mới nhất (item.time)
         return new Date(b.time) - new Date(a.time);
     });
+
+    // Bộ lọc trực tiếp trên từng cột của bảng
+    const [columnFilters, setColumnFilters] = useState({
+        time: '',
+        pid: '',
+        machine: '',
+        result: '',
+        confirmed: '',
+        confirmedBy: ''
+    });
+    const [showColumnFilters, setShowColumnFilters] = useState(false);
+
+    // Lọc danh sách kết quả hiển thị theo bộ lọc từng cột
+    const filteredResults = sortedResults.filter(item => {
+        if (columnFilters.pid && !item.pid.toLowerCase().includes(columnFilters.pid.toLowerCase().trim())) {
+            return false;
+        }
+        if (columnFilters.time) {
+            const timeStr = new Date(item.time).toLocaleString().toLowerCase();
+            if (!timeStr.includes(columnFilters.time.toLowerCase().trim())) return false;
+        }
+        if (columnFilters.machine) {
+            const machineStr = (item.display_name || '').toLowerCase();
+            if (!machineStr.includes(columnFilters.machine.toLowerCase().trim())) return false;
+        }
+        if (columnFilters.result) {
+            if (columnFilters.result === 'USER_OK') {
+                if (!(item.user_confirmed && item.result === 'OK' && item.machine_result === 'NG')) return false;
+            } else if (item.result !== columnFilters.result) {
+                return false;
+            }
+        }
+        if (columnFilters.confirmed) {
+            if (columnFilters.confirmed === 'HUMAN' && !item.user_confirmed) return false;
+            if (columnFilters.confirmed === 'AUTO' && item.user_confirmed) return false;
+        }
+        if (columnFilters.confirmedBy) {
+            const name = (item.confirmed_by_name || '').toLowerCase();
+            if (!name.includes(columnFilters.confirmedBy.toLowerCase().trim())) return false;
+        }
+        return true;
+    });
+
+    const filterInputStyle = {
+        width: '100%',
+        padding: '4px 8px',
+        fontSize: '0.75rem',
+        background: 'rgba(255, 255, 255, 0.08)',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '4px',
+        color: '#fff',
+        outline: 'none'
+    };
+
+    const filterSelectStyle = {
+        width: '100%',
+        padding: '4px 6px',
+        fontSize: '0.75rem',
+        background: '#1a1b26',
+        border: '1px solid rgba(255, 255, 255, 0.2)',
+        borderRadius: '4px',
+        color: '#fff',
+        outline: 'none'
+    };
 
     const getRowStyle = (pcb) => {
         const priority = getPcbPriority(pcb);
@@ -392,6 +456,35 @@ function Trace() {
 
             {/* Bảng kết quả */}
             <div className="data-table-container">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1.25rem', borderBottom: '1px solid var(--glass-border)', background: 'rgba(255, 255, 255, 0.02)' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                        Hiển thị <b>{filteredResults.length}</b> / <b>{results.length}</b> kết quả
+                        {(columnFilters.time || columnFilters.pid || columnFilters.machine || columnFilters.result || columnFilters.confirmed || columnFilters.confirmedBy) && (
+                            <span style={{ marginLeft: '10px', color: '#f59e0b', fontSize: '0.75rem' }}>(Đang bật lọc cột)</span>
+                        )}
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        {(columnFilters.time || columnFilters.pid || columnFilters.machine || columnFilters.result || columnFilters.confirmed || columnFilters.confirmedBy) && (
+                            <button
+                                type="button"
+                                onClick={() => setColumnFilters({ time: '', pid: '', machine: '', result: '', confirmed: '', confirmedBy: '' })}
+                                className="btn"
+                                style={{ padding: '4px 10px', fontSize: '0.75rem', color: 'var(--status-ng)', border: '1px solid rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                            >
+                                <X size={13} /> Xóa lọc cột
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            onClick={() => setShowColumnFilters(!showColumnFilters)}
+                            className={`btn ${showColumnFilters ? 'btn-primary' : ''}`}
+                            style={{ padding: '4px 12px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '6px', background: showColumnFilters ? '' : 'rgba(255,255,255,0.05)' }}
+                        >
+                            <Filter size={14} /> {showColumnFilters ? 'Ẩn bộ lọc cột' : 'Hiện bộ lọc cột'}
+                        </button>
+                    </div>
+                </div>
+
                 <table className="data-table">
                     <thead>
                         <tr>
@@ -404,9 +497,74 @@ function Trace() {
                             <th>NGƯỜI THỰC HIỆN</th>
                             <th style={{ textAlign: 'right' }}>THAO TÁC</th>
                         </tr>
+                        {showColumnFilters && (
+                            <tr style={{ background: 'rgba(0, 0, 0, 0.25)', borderBottom: '1px solid var(--glass-border)' }}>
+                                <th style={{ padding: '6px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Lọc thời gian..."
+                                        value={columnFilters.time}
+                                        onChange={(e) => setColumnFilters({ ...columnFilters, time: e.target.value })}
+                                        style={filterInputStyle}
+                                    />
+                                </th>
+                                <th style={{ padding: '6px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Lọc PID..."
+                                        value={columnFilters.pid}
+                                        onChange={(e) => setColumnFilters({ ...columnFilters, pid: e.target.value })}
+                                        style={filterInputStyle}
+                                    />
+                                </th>
+                                <th style={{ padding: '6px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Lọc Máy/Line..."
+                                        value={columnFilters.machine}
+                                        onChange={(e) => setColumnFilters({ ...columnFilters, machine: e.target.value })}
+                                        style={filterInputStyle}
+                                    />
+                                </th>
+                                <th style={{ padding: '6px' }}>
+                                    <select
+                                        value={columnFilters.result}
+                                        onChange={(e) => setColumnFilters({ ...columnFilters, result: e.target.value })}
+                                        style={filterSelectStyle}
+                                    >
+                                        <option value="">Tất cả</option>
+                                        <option value="OK">OK</option>
+                                        <option value="NG">NG</option>
+                                        <option value="USER_OK">User OK</option>
+                                    </select>
+                                </th>
+                                <th style={{ padding: '6px' }}>
+                                    <select
+                                        value={columnFilters.confirmed}
+                                        onChange={(e) => setColumnFilters({ ...columnFilters, confirmed: e.target.value })}
+                                        style={filterSelectStyle}
+                                    >
+                                        <option value="">Tất cả</option>
+                                        <option value="HUMAN">Người duyệt</option>
+                                        <option value="AUTO">Máy tự động</option>
+                                    </select>
+                                </th>
+                                <th style={{ padding: '6px', textAlign: 'center', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>-</th>
+                                <th style={{ padding: '6px' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Lọc người thực hiện..."
+                                        value={columnFilters.confirmedBy}
+                                        onChange={(e) => setColumnFilters({ ...columnFilters, confirmedBy: e.target.value })}
+                                        style={filterInputStyle}
+                                    />
+                                </th>
+                                <th style={{ padding: '6px', textAlign: 'right' }}></th>
+                            </tr>
+                        )}
                     </thead>
                     <tbody>
-                        {sortedResults.length > 0 ? sortedResults.map((item) => (
+                        {filteredResults.length > 0 ? filteredResults.map((item) => (
                             <tr key={item.id} style={getRowStyle(item)}>
                                 <td style={{ fontSize: '0.8rem' }}>{new Date(item.time).toLocaleString()}</td>
                                 <td style={{ fontWeight: 'bold' }}>{item.pid}</td>
@@ -415,9 +573,15 @@ function Trace() {
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                                        <span className={`badge ${item.result === 'OK' ? 'badge-ok' : 'badge-ng'}`}>
-                                            {item.result}
-                                        </span>
+                                        {item.user_confirmed && item.result === 'OK' && item.machine_result === 'NG' ? (
+                                            <span className="badge badge-ok" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', border: '1px solid rgba(245, 158, 11, 0.4)', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                                <UserCheck size={12} /> User OK
+                                            </span>
+                                        ) : (
+                                            <span className={`badge ${item.result === 'OK' ? 'badge-ok' : 'badge-ng'}`}>
+                                                {item.result}
+                                            </span>
+                                        )}
                                         {getPcbPriority(item) === 1 && (
                                             <span style={{ fontSize: '0.6rem', color: '#ef4444', fontWeight: 'bold', textShadow: '0 0 10px rgba(239, 68, 68, 0.3)' }}>CRITICAL SHORT</span>
                                         )}
@@ -428,8 +592,8 @@ function Trace() {
                                 </td>
                                 <td style={{ textAlign: 'center' }}>
                                     {item.user_confirmed ? (
-                                        <div style={{ color: 'var(--status-ok)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.7rem' }}>
-                                            <CheckCircle2 size={12} /> Người duyệt
+                                        <div style={{ color: item.result === 'OK' ? '#f59e0b' : 'var(--status-ok)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', fontSize: '0.7rem' }}>
+                                            <UserCheck size={12} /> Người duyệt
                                         </div>
                                     ) : (
                                         <div style={{ color: 'var(--text-secondary)', fontSize: '0.7rem' }}>Máy tự động</div>
@@ -453,7 +617,7 @@ function Trace() {
                             </tr>
                         )) : (
                             <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
+                                <td colSpan="8" style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
                                     Không tìm thấy dữ liệu phù hợp
                                 </td>
                             </tr>

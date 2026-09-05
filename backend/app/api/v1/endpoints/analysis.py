@@ -183,14 +183,16 @@ def get_analysis_summary(
         shot_stats = f_shots.result()
 
     # 2. --- XỬ LÝ KẾT QUẢ ---
-    overall = {"total": 0, "ok": 0, "ng": 0, "ai_ok": 0, "user_ok": 0, "ok_rate": 0, "ng_rate": 0}
+    overall = {"total": 0, "ok": 0, "ng": 0, "ai_ok": 0, "user_ok": 0, "ok_rate": 0, "ng_rate": 0, "ai_ok_rate": 0, "user_ok_rate": 0}
     if overall_stats:
         total = overall_stats.total or 0
         ok = int(overall_stats.ok or 0); ng = int(overall_stats.ng or 0)
         overall = {
             "total": total, "ok": ok, "ng": ng,
             "ai_ok": int(overall_stats.ai_ok or 0), "user_ok": int(overall_stats.user_ok or 0),
-            "ok_rate": get_rate(ok, total), "ng_rate": get_rate(ng, total)
+            "ok_rate": get_rate(ok, total), "ng_rate": get_rate(ng, total),
+            "ai_ok_rate": get_rate(int(overall_stats.ai_ok or 0), total),
+            "user_ok_rate": get_rate(int(overall_stats.user_ok or 0), total)
         }
 
     # Machines

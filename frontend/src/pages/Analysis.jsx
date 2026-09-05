@@ -6,7 +6,8 @@ import {
 import {
     TrendingUp, BarChart3, Database, Layers, X,
     Filter, Download, Calendar, RefreshCw, CheckCircle2,
-    AlertTriangle, Zap, Layout, Monitor, FileText
+    AlertTriangle, Zap, Layout, Monitor, FileText,
+    UserCheck, Activity, Cpu
 } from 'lucide-react';
 import { api } from '../context/AuthContext';
 
@@ -274,6 +275,45 @@ function Analysis() {
                     {!loading && processTime !== null && (
                         <span>Xử lý: <b>{processTime}s</b></span>
                     )}
+                </div>
+            </div>
+
+            {/* Overall Quick Stats Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div className="stat-card" style={{ padding: '0.75rem 1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="stat-icon" style={{ color: '#3b82f6', padding: '6px' }}><Activity size={18} /></div>
+                        <div className="stat-label" style={{ fontSize: '0.75rem' }}>Tổng quét</div>
+                    </div>
+                    <div className="stat-value" style={{ fontSize: '1.25rem', marginTop: '4px' }}>{data.overall?.total || 0}</div>
+                </div>
+                <div className="stat-card" style={{ padding: '0.75rem 1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="stat-icon" style={{ color: 'var(--status-ok)', padding: '6px' }}><CheckCircle2 size={18} /></div>
+                        <div className="stat-label" style={{ fontSize: '0.75rem' }}>Machine OK</div>
+                    </div>
+                    <div className="stat-value" style={{ fontSize: '1.25rem', marginTop: '4px' }}>{data.overall?.ok || 0} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({data.overall?.ok_rate || 0}%)</span></div>
+                </div>
+                <div className="stat-card" style={{ padding: '0.75rem 1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="stat-icon" style={{ color: 'var(--status-ng)', padding: '6px' }}><AlertTriangle size={18} /></div>
+                        <div className="stat-label" style={{ fontSize: '0.75rem' }}>Machine NG</div>
+                    </div>
+                    <div className="stat-value" style={{ color: 'var(--status-ng)', fontSize: '1.25rem', marginTop: '4px' }}>{data.overall?.ng || 0} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({data.overall?.ng_rate || 0}%)</span></div>
+                </div>
+                <div className="stat-card" style={{ padding: '0.75rem 1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="stat-icon" style={{ color: '#8b5cf6', padding: '6px' }}><Cpu size={18} /></div>
+                        <div className="stat-label" style={{ fontSize: '0.75rem' }}>AI OK</div>
+                    </div>
+                    <div className="stat-value" style={{ fontSize: '1.25rem', marginTop: '4px' }}>{data.overall?.ai_ok || 0} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({data.overall?.ai_ok_rate || 0}%)</span></div>
+                </div>
+                <div className="stat-card" style={{ borderLeft: '3px solid #f59e0b', padding: '0.75rem 1rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div className="stat-icon" style={{ color: '#f59e0b', padding: '6px' }}><UserCheck size={18} /></div>
+                        <div className="stat-label" style={{ fontSize: '0.75rem' }}>User OK</div>
+                    </div>
+                    <div className="stat-value" style={{ color: '#f59e0b', fontSize: '1.25rem', marginTop: '4px' }}>{data.overall?.user_ok || 0} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>({data.overall?.user_ok_rate || 0}%)</span></div>
                 </div>
             </div>
 

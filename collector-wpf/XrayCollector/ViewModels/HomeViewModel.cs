@@ -37,6 +37,11 @@ namespace XrayCollector.ViewModels
         [NotifyPropertyChangedFor(nameof(MonitoringButtonText))]
         [NotifyPropertyChangedFor(nameof(MonitoringButtonIcon))]
         private bool _isRunning;
+
+        partial void OnIsRunningChanged(bool value)
+        {
+            WeakReferenceMessenger.Default.Send(new MonitoringStateMessage(value));
+        }
         
         public string MonitoringButtonText => IsRunning ? "STOP" : "START";
         public string MonitoringButtonIcon => IsRunning ? "Stop" : "Play";
@@ -53,7 +58,9 @@ namespace XrayCollector.ViewModels
 
         public ObservableCollection<string> Logs { get; } = new();
 
-        public HomeViewModel(IApiService apiService, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence, IXray9730CollectorService xray9730Service, IXray9020CollectorService xray9020Service)
+        private readonly IXrayComService _xrayComService;
+
+        public HomeViewModel(IApiService apiService, ISettingsService settings, IUpdateService updateService, ISyncPersistenceService persistence, IXray9730CollectorService xray9730Service, IXray9020CollectorService xray9020Service, IXrayComService xrayComService)
         {
             _apiService = apiService;
             _settings = settings;
@@ -61,6 +68,7 @@ namespace XrayCollector.ViewModels
             _persistence = persistence;
             _xray9730Service = xray9730Service;
             _xray9020Service = xray9020Service;
+            _xrayComService = xrayComService;
 
             // Đăng ký nhận log từ các ViewModel khác
             WeakReferenceMessenger.Default.Register<AddLogMessage>(this, (r, m) => AddLog(m.Value));
@@ -269,6 +277,11 @@ namespace XrayCollector.ViewModels
                 _xray9020Service.Start(_settings.LogPath, _settings.ImagePath, _settings.MachineId, _settings.LogExtension, (msg) => AddLog(msg));
             }
 
+            if (!_settings.HasScanner && !string.IsNullOrEmpty(_settings.ComPort))
+            {
+                _xrayComService.Start(_settings.ComPort, _settings.BaudRate, (msg) => AddLog(msg));
+            }
+
             // 3. Kích hoạt Heartbeat báo Online chỉ sau khi đã START thành công
             if (int.TryParse(_settings.MachineId, out mid))
             {
@@ -388,6 +401,7 @@ namespace XrayCollector.ViewModels
 
             _xray9730Service.Stop();
             _xray9020Service.Stop();
+            _xrayComService.Stop();
             _heartbeatTimer?.Stop();
 
             if (int.TryParse(_settings.MachineId, out int mid))
@@ -454,6 +468,11 @@ namespace XrayCollector.ViewModels
 
     // Thông điệp dùng để đồng bộ giữa các ViewModel
     public class SettingsChangedMessage { }
+
+    public class MonitoringStateMessage : CommunityToolkit.Mvvm.Messaging.Messages.ValueChangedMessage<bool>
+    {
+        public MonitoringStateMessage(bool isRunning) : base(isRunning) { }
+    }
 
     // Thông điệp dùng để ghi log từ các ViewModel khác
     public class AddLogMessage : CommunityToolkit.Mvvm.Messaging.Messages.ValueChangedMessage<string>

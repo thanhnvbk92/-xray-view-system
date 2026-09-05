@@ -77,7 +77,7 @@ namespace XrayUpdater
                             {
                                 entry.ExtractToFile(destinationPath, overwrite: true);
                             }
-                            catch (IOException ex) when (entry.Name.Equals("XrayUpdater.exe", StringComparison.OrdinalIgnoreCase))
+                            catch (IOException) when (entry.Name.Equals("XrayUpdater.exe", StringComparison.OrdinalIgnoreCase))
                             {
                                 // Bỏ qua nếu là chính nó đang chạy
                                 Console.WriteLine("  > Dang dung ban Updater hiện tại (bo qua file locked)");

@@ -19,6 +19,7 @@ namespace XrayCollector
                 services.AddSingleton<IUpdateService, UpdateService>();
                 services.AddSingleton<ISyncPersistenceService, SyncPersistenceService>();
                 services.AddSingleton<ITrayService, TrayService>(); // Thêm TrayService
+                services.AddSingleton<IXrayComService, XrayComService>();
                 services.AddTransient<IApiService, ApiService>();
                 services.AddTransient<IFileWatcherService, FileWatcherService>();
                 services.AddTransient<IImageMarkingService, ImageMarkingService>();

@@ -18,6 +18,10 @@ namespace XrayCollector.Services
         string SubLogExtension { get; set; }
         bool IsPidMappingIncrease { get; set; }
         bool IsManualPidMappingEnabled { get; set; }
+        bool HasScanner { get; set; }
+        string UpstreamLogPath { get; set; }
+        string ComPort { get; set; }
+        int BaudRate { get; set; }
         string LastDetected9020Model { get; set; }
         List<ModelMappingConfig> ModelMappings { get; set; }
         void Save();
@@ -38,6 +42,10 @@ namespace XrayCollector.Services
         public string SubLogExtension { get; set; } = @"^r\d+\.txt$";
         public bool IsPidMappingIncrease { get; set; } = true;
         public bool IsManualPidMappingEnabled { get; set; } = false;
+        public bool HasScanner { get; set; } = true;
+        public string UpstreamLogPath { get; set; } = "";
+        public string ComPort { get; set; } = "";
+        public int BaudRate { get; set; } = 9600;
         public string LastDetected9020Model { get; set; } = "";
         public List<ModelMappingConfig> ModelMappings { get; set; } = new();
 
@@ -67,6 +75,10 @@ namespace XrayCollector.Services
                         SubLogExtension = settings.SubLogExtension ?? SubLogExtension;
                         IsPidMappingIncrease = settings.IsPidMappingIncrease;
                         IsManualPidMappingEnabled = settings.IsManualPidMappingEnabled;
+                        HasScanner = settings.HasScanner;
+                        UpstreamLogPath = settings.UpstreamLogPath ?? UpstreamLogPath;
+                        ComPort = settings.ComPort ?? ComPort;
+                        BaudRate = settings.BaudRate != 0 ? settings.BaudRate : BaudRate;
                         LastDetected9020Model = settings.LastDetected9020Model ?? LastDetected9020Model;
                         ModelMappings = settings.ModelMappings ?? ModelMappings;
                     }
